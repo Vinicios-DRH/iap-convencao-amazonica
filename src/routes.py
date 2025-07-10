@@ -40,12 +40,11 @@ def inscricao():
 
     form = InscricaoForm()
     if form.validate_on_submit():
-        # Remove tudo que não for número
         telefone_limpo = re.sub(r"\D", "", form.telefone.data or "")
-        senha_gerada = telefone_limpo or "123456"  # fallback
+        senha_gerada = telefone_limpo or "123456"
 
         hash_senha = bcrypt.generate_password_hash(
-            senha_gerada).decode('utf-8')
+            senha_gerada).decode("utf-8")
         novo_usuario = User(
             nome=form.nome.data,
             email=form.email.data,
@@ -57,6 +56,15 @@ def inscricao():
         database.session.add(novo_usuario)
         database.session.commit()
         login_user(novo_usuario)
+
+        # Cria o comprovante pendente automaticamente
+        comprovante_pendente = ComprovantesPagamento(
+            id_user=novo_usuario.id,
+            status="PENDENTE",
+            parcela="1ª PARCELA"
+        )
+        database.session.add(comprovante_pendente)
+        database.session.commit()
 
         flash("Inscrição realizada com sucesso!", "success")
         return redirect(url_for("painel_candidato"))
