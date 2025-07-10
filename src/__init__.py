@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from dotenv import load_dotenv
 import os
+from supabase import create_client
 
 # Carregar variáveis do .env
 load_dotenv()
@@ -18,6 +19,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 app.jinja_env.globals.update(enumerate=enumerate)
 
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 # Configuração do diretório de uploads
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -31,3 +37,4 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'alert-info'
 
 from src import routes
+app.supabase = supabase

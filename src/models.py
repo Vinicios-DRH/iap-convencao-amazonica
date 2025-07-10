@@ -4,6 +4,7 @@ from datetime import datetime
 from datetime import datetime
 import pytz
 
+
 def agora_manaus():
     fuso_am = pytz.timezone("America/Manaus")
     return datetime.now(fuso_am)

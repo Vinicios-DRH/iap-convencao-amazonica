@@ -1,12 +1,14 @@
-from flask import render_template, request, redirect, send_file, url_for, flash, jsonify, send_from_directory
+from flask import render_template, request, redirect, send_file, url_for, flash, jsonify, send_from_directory, current_app
 from flask_login import login_required, current_user, login_user, logout_user
 from src import app, bcrypt, database
 from src.models import User, FuncaoUser, ComprovantesPagamento
 from src.forms import InscricaoForm, LoginForm, FormCriarUsuario
+from src import supabase
 import os
 import re
 import pandas as pd
 import io
+import uuid
 from werkzeug.utils import secure_filename
 
 
@@ -105,15 +107,30 @@ def painel_candidato():
 def upload_comprovante():
     file = request.files.get("comprovante")
     if file:
-        filename = secure_filename(file.filename)
-        caminho = os.path.join(app.root_path, 'static',
-                               'comprovantes', filename)
-        file.save(caminho)
+        supabase = current_app.supabase
 
+        # Gera um nome único pra evitar conflitos
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        nome_arquivo = f"{uuid.uuid4().hex}.{ext}"
+
+        # Caminho no bucket
+        caminho_bucket = f"{current_user.id}/{nome_arquivo}"
+
+        # Upload para Supabase Storage
+        file.stream.seek(0)
+        resultado = supabase.storage.from_("comprovantes").upload(
+            caminho_bucket, file, {"content-type": file.mimetype}
+        )
+
+        if resultado.get("error"):
+            flash("Erro ao enviar comprovante!", "danger")
+            return redirect(url_for("painel_candidato"))
+
+        # Salvar no banco
         novo = ComprovantesPagamento(
             id_user=current_user.id,
             parcela="Única",
-            arquivo_comprovante=filename,
+            arquivo_comprovante=caminho_bucket,
             status="Pendente"
         )
         database.session.add(novo)
@@ -126,12 +143,19 @@ def upload_comprovante():
 @app.route("/admin/comprovantes")
 @login_required
 def admin_comprovantes():
-    if current_user.funcao_user_id != 1:  # ID 1 = DIRETOR, por exemplo
+    if current_user.funcao_user_id != 1:
         flash("Acesso restrito!", "danger")
         return redirect(url_for("info"))
 
     comprovantes = ComprovantesPagamento.query.order_by(
         ComprovantesPagamento.data_envio.desc()).all()
+
+    # Montar URLs públicas
+    for c in comprovantes:
+        if c.arquivo_comprovante:
+            c.link_arquivo = app.supabase.storage.from_('comprovantes')\
+                .get_public_url(c.arquivo_comprovante)
+
     return render_template("admin_comprovantes.html", comprovantes=comprovantes)
 
 
