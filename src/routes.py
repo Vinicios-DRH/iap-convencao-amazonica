@@ -100,7 +100,6 @@ def login():
 @app.route("/painel")
 @login_required
 def painel_candidato():
-    # Busca o comprovante MAIS RECENTE COM ARQUIVO
     comprovante = ComprovantesPagamento.query.filter(
         ComprovantesPagamento.id_user == current_user.id,
         ComprovantesPagamento.arquivo_comprovante.isnot(None)
@@ -113,17 +112,12 @@ def painel_candidato():
         status = comprovante.status
         url_arquivo = current_app.supabase.storage.from_("comprovantes")\
             .get_public_url(comprovante.arquivo_comprovante)
-        print("DEBUG PAINEL:")
-        print("Arquivo:", comprovante.arquivo_comprovante)
-        print("Status:", comprovante.status)
     else:
         comprovante = ComprovantesPagamento.query.filter_by(
             id_user=current_user.id
         ).order_by(ComprovantesPagamento.data_envio.desc()).first()
         if comprovante:
             status = comprovante.status
-            print("DEBUG PAINEL (sem arquivo):")
-            print("Status:", comprovante.status)
 
     return render_template(
         "painel.html",
@@ -149,31 +143,38 @@ def upload_comprovante():
         nome_arquivo = f"{uuid.uuid4().hex}.{ext}"
         caminho_bucket = f"{current_user.id}/{nome_arquivo}"
 
-        # Upload para Supabase Storage (USA BYTES, NÃO O OBJETO FILE!)
+        # Upload para Supabase Storage (USA BYTES)
         file.stream.seek(0)
         file_bytes = file.read()
         resultado = supabase.storage.from_("comprovantes").upload(
             caminho_bucket, file_bytes, {"content-type": file.mimetype}
         )
 
-        # Se houver erro no upload (ajuste se sua lib não retornar dict!)
-        # Se não houver resultado.get, pode só checar se resultado está ok.
-        # Se sua lib NUNCA retorna dict, pule esse bloco.
-
-        # Atualiza o comprovante PENDENTE já existente!
+        # Procura pendente (envio inicial)
         comprovante = ComprovantesPagamento.query.filter_by(
             id_user=current_user.id, status="PENDENTE"
         ).order_by(ComprovantesPagamento.data_envio.desc()).first()
 
         if comprovante:
+            # Atualiza o existente
             comprovante.arquivo_comprovante = caminho_bucket
             comprovante.parcela = "Única"
-            comprovante.status = "AGUARDANDO CONFIRMAÇÃO"  # Atualiza se quiser, ou mantenha o que já tiver
+            comprovante.status = "AGUARDANDO CONFIRMAÇÃO"
             comprovante.data_envio = datetime.datetime.utcnow()
             database.session.commit()
-            flash("Comprovante enviado com sucesso!", "success")
         else:
-            flash("Nenhum comprovante pendente encontrado para atualizar.", "danger")
+            # Se não existe PENDENTE, cria um NOVO
+            novo_comprovante = ComprovantesPagamento(
+                id_user=current_user.id,
+                parcela="Única",
+                arquivo_comprovante=caminho_bucket,
+                status="AGUARDANDO CONFIRMAÇÃO",
+                data_envio=datetime.datetime.utcnow()
+            )
+            database.session.add(novo_comprovante)
+            database.session.commit()
+
+        flash("Comprovante enviado com sucesso!", "success")
 
     except Exception as e:
         print("Erro no upload:", e)
@@ -189,16 +190,34 @@ def admin_comprovantes():
         flash("Acesso restrito!", "danger")
         return redirect(url_for("info"))
 
+    comprovantes = ComprovantesPagamento.query.filter(
+        ComprovantesPagamento.status == "AGUARDANDO CONFIRMAÇÃO"
+    ).order_by(ComprovantesPagamento.data_envio.desc()).all()
+
+    for c in comprovantes:
+        if c.arquivo_comprovante:
+            c.link_arquivo = supabase.storage.from_(
+                "comprovantes").get_public_url(c.arquivo_comprovante)
+
+    return render_template("admin_comprovantes.html", comprovantes=comprovantes)
+
+
+@app.route("/admin/comprovantes/historico")
+@login_required
+def historico_comprovantes():
+    if current_user.funcao_user_id != 1:
+        flash("Acesso restrito!", "danger")
+        return redirect(url_for("info"))
+
     comprovantes = ComprovantesPagamento.query.order_by(
         ComprovantesPagamento.data_envio.desc()).all()
 
     for c in comprovantes:
         if c.arquivo_comprovante:
-            # Agora corretamente: retorna a URL direta como string
             c.link_arquivo = supabase.storage.from_(
                 "comprovantes").get_public_url(c.arquivo_comprovante)
 
-    return render_template("admin_comprovantes.html", comprovantes=comprovantes)
+    return render_template("admin_historico_comprovantes.html", comprovantes=comprovantes)
 
 
 @app.route("/admin/comprovantes/<int:id>/atualizar", methods=["POST"])
@@ -216,43 +235,56 @@ def atualizar_comprovante(id):
     return redirect(url_for("admin_comprovantes"))
 
 
-@app.route("/exportar_comprovantes")
+@app.route("/admin/candidatos")
 @login_required
-def exportar_comprovantes():
-    # Buscar todos os comprovantes com o usuário relacionado
-    comprovantes = database.session.query(
-        ComprovantesPagamento).join(User).all()
+def admin_candidatos():
+    if current_user.funcao_user_id != 1:
+        flash("Acesso restrito!", "danger")
+        return redirect(url_for("info"))
 
-    # Montar os dados para o DataFrame
-    dados = []
-    for c in comprovantes:
-        dados.append({
-            "Nome": c.usuario.nome,
-            "Email": c.usuario.email,
-            "Telefone": c.usuario.telefone,
-            "IAP Local": c.usuario.iap_local,
-            "Parcela": c.parcela or "Única",
-            "Arquivo": c.arquivo_comprovante,
-            "Status": c.status,
-            "Data Envio": c.data_envio.strftime("%d/%m/%Y %H:%M"),
+    # Pega todos os usuários (ou filtra por tipo se quiser)
+    candidatos = User.query.order_by(User.nome).all()
+
+    # Se quiser o último status do comprovante do cara:
+    for c in candidatos:
+        ultimo_comprovante = ComprovantesPagamento.query.filter_by(id_user=c.id)\
+            .order_by(ComprovantesPagamento.data_envio.desc()).first()
+        c.status_comprovante = ultimo_comprovante.status if ultimo_comprovante else "Não enviado"
+        c.data_envio = ultimo_comprovante.data_envio if ultimo_comprovante else None
+
+    return render_template("admin_candidatos.html", candidatos=candidatos)
+
+
+@app.route("/admin/candidatos/exportar")
+@login_required
+def exportar_candidatos():
+    if current_user.funcao_user_id != 1:
+        flash("Acesso restrito!", "danger")
+        return redirect(url_for("info"))
+
+    candidatos = User.query.order_by(User.nome).all()
+    data = []
+    for c in candidatos:
+        ultimo_comprovante = ComprovantesPagamento.query.filter_by(id_user=c.id)\
+            .order_by(ComprovantesPagamento.data_envio.desc()).first()
+        status = ultimo_comprovante.status if ultimo_comprovante else "Não enviado"
+        data_envio = ultimo_comprovante.data_envio.strftime(
+            '%d/%m/%Y %H:%M') if ultimo_comprovante and ultimo_comprovante.data_envio else ""
+        data.append({
+            "Nome": c.nome,
+            "Email": c.email,
+            "Telefone": c.telefone,
+            "IAP Local": getattr(c, "iap_local", ""),  # só se existir o campo
+            "Status Comprovante": status,
+            "Data do Último Comprovante": data_envio,
+            "Data de Inscrição": c.created_at.strftime('%d/%m/%Y %H:%M') if getattr(c, "created_at", None) else ""
         })
 
-    # Criar o DataFrame
-    df = pd.DataFrame(dados)
-
-    # Criar arquivo Excel em memória
+    df = pd.DataFrame(data)
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name="Comprovantes", index=False)
-
+    df.to_excel(output, index=False)
     output.seek(0)
-
-    return send_file(
-        output,
-        download_name="comprovantes_exportados.xlsx",
-        as_attachment=True,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    return send_file(output, download_name="candidatos.xlsx", as_attachment=True)
 
 
 @app.route("/logout")

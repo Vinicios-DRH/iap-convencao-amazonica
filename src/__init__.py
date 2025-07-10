@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 from supabase import create_client
 
@@ -36,5 +37,10 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'alert-info'
 
+@app.context_processor
+def inject_now():
+    return {'now': datetime.utcnow}
+
 from src import routes
 app.supabase = supabase
+

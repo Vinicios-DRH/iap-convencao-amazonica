@@ -16,6 +16,7 @@
         border-radius: 20px;
         max-width: 800px;
         margin: 60px auto;
+        text-align: center;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
@@ -155,6 +156,8 @@
     <div class="text-end mb-3">
         <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Sair</a>
     </div>
+    <img src="{{ url_for('static', filename='img/Logo Arte Conferencia Reino 01.png') }}" alt="Logo" class="mb-4"
+        style="max-width: 150px;">
 
     <h1>Bem-vindo, {{ usuario.nome }}!</h1>
     <p class="lead">Estamos felizes em ter você na <strong>Conferência Reino</strong>.</p>
@@ -215,4 +218,5 @@
     </div>
 
 </div>
+{% include 'footer_candidatos.html' %}
 {% endblock %}

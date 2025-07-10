@@ -1,0 +1,28 @@
+<!-- admin_navbar.html -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{{ url_for('admin_comprovantes') }}">Admin Conferência Reino</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin_comprovantes' %}active{% endif %}"
+                        href="{{ url_for('admin_comprovantes') }}">Aprovar Comprovantes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'historico_comprovantes' %}active{% endif %}"
+                        href="{{ url_for('historico_comprovantes') }}">Histórico de Envios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin_candidatos' %}active{% endif %}"
+                        href="{{ url_for('admin_candidatos') }}">Todos os Candidatos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Sair</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
