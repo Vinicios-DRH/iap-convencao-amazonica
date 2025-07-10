@@ -1,0 +1,67 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+    scroll-behavior: smooth;
+}
+
+.hero {
+    background: linear-gradient(135deg, #2a005f, #8b2200);
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.hero-logo-container {
+    display: inline-block;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.hero img {
+    max-width: 280px;
+    height: auto;
+}
+
+.btn-inscrever {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    padding: 12px 30px;
+    background-color: white;
+    color: #6e00ff;
+    border: none;
+    border-radius: 50px;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-inscrever:hover {
+    background-color: #ff4d00;
+    color: white;
+}
+
+.section {
+    padding: 60px 20px;
+}
+
+.pastor-img {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.pastor-img:hover {
+    transform: scale(1.03);
+}
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}

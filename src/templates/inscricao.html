@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(135deg, #6e00ff, #ff4d00);
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .form-header {
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .alert-login {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        padding: 15px;
+        margin: 0;
+        border-radius: 0;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .form-box {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        margin-top: 50px;
+    }
+
+    .form-box img {
+        max-width: 150px;
+        margin-bottom: 20px;
+    }
+
+    .btn-inscrever {
+        background: linear-gradient(135deg, #6e00ff, #ff4d00);
+        border: none;
+        color: white;
+        font-weight: bold;
+    }
+
+    .btn-inscrever:hover {
+        background: linear-gradient(135deg, #4e00c2, #d74200);
+    }
+
+    .form-text-error {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 5px;
+    }
+
+    .voltar-link {
+        display: inline-block;
+        margin-top: 20px;
+        text-decoration: underline;
+        font-weight: bold;
+        color: #6e00ff;
+    }
+
+    .voltar-link:hover {
+        color: #ff4d00;
+    }
+
+    .card-login-notice {
+        background-color: #fff8e1;
+        border: 1px solid #ffe08a;
+        border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 form-box">
+            <div class="form-header">
+                <img src="{{ url_for('static', filename='img/Logo Arte Conferencia Reino 01.png') }}"
+                    alt="Logo Conferência Reino">
+                <h2>Formulário de Inscrição</h2>
+            </div>
+
+            <div
+                class="card-login-notice my-3 mx-4 px-3 py-2 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 text-warning"></i>
+                    <span class="fw-semibold">Já fez sua inscrição? Acesse seu painel de login!</span>
+                </div>
+                <a href="{{ url_for('login') }}" class="btn btn-warning fw-bold text-dark px-4">
+                    Fazer Login
+                </a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="p-4">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} flash-message" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="p-4">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.nome.label(class="form-label") }}
+                    {{ form.nome(class="form-control") }}
+                    {% for error in form.nome.errors %}
+                    <div class="form-text-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control") }}
+                    {% for error in form.email.errors %}
+                    <div class="form-text-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.telefone.label(class="form-label") }}
+                    {{ form.telefone(class="form-control") }}
+                    {% for error in form.telefone.errors %}
+                    <div class="form-text-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.iap_local.label(class="form-label") }}
+                    {{ form.iap_local(class="form-control") }}
+                    {% for error in form.iap_local.errors %}
+                    <div class="form-text-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="d-grid">
+                    {{ form.submit(class="btn btn-inscrever btn-lg") }}
+                </div>
+                <div class="text-center">
+                    <a href="{{ url_for('info') }}" class="voltar-link">&larr; Voltar para a Página Inicial</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Máscara para telefone (formato brasileiro)
+    document.addEventListener('DOMContentLoaded', function () {
+        const telefoneInput = document.querySelector('input[name="telefone"]');
+
+        telefoneInput.addEventListener('input', function (e) {
+            let valor = e.target.value.replace(/\D/g, '');
+
+            if (valor.length > 11) valor = valor.slice(0, 11);
+
+            if (valor.length <= 10) {
+                valor = valor.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            } else {
+                valor = valor.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+            }
+
+            e.target.value = valor;
+        });
+    });
+</script>
+{% endblock %}

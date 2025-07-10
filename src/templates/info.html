@@ -1,0 +1,93 @@
+<!-- Novo info.html usando base.html e com CSS separado -->
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+<header class="hero">
+    <div class="hero-logo-container">
+        <img src="{{ url_for('static',  filename='img/Logo Arte Conferencia Reino 01.png') }}"
+            alt="Logo Conferência Reino">
+    </div>
+    <h1 class="display-4 fw-bold">Conferência Reino</h1>
+    <p class="lead">Na Terra como no Céu</p>
+    <p class="mt-3">
+        <strong>📅 9 de Agosto de 2025</strong> | <strong>📍 1ª IAP MANAUS</strong>
+    </p>
+    <a href="#inscricao" class="btn btn-inscrever">Inscreva-se</a>
+</header>
+
+<section class="section" id="sobre">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 fade-in">
+                <h2 class="text-center mb-4">Um dia pra marcar sua vida!</h2>
+                <p class="text-center">
+                    A Conferência Reino tá chegando com o tema "Na terra como no céu", e a gente quer viver algo
+                    poderoso juntos — com
+                    palavra, louvor, comunhão e presença de Deus do começo ao fim!
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section bg-light" id="pastor">
+    <div class="container">
+        <h2 class="text-center mb-5">Convidado Especial</h2>
+        <div class="row">
+            <div class="col-md-6 col-lg-3 fade-in"><img src="{{ url_for('static',  filename='img/pastor1.jpg') }}"
+                    class="pastor-img"></div>
+            <div class="col-md-6 col-lg-3 fade-in"><img src="{{ url_for('static',  filename='img/pastor2.jpg') }}"
+                    class="pastor-img"></div>
+            <div class="col-md-6 col-lg-3 fade-in"><img src="{{ url_for('static',  filename='img/pastor3.jpg') }}"
+                    class="pastor-img"></div>
+            <div class="col-md-6 col-lg-3 fade-in"><img src="{{ url_for('static',  filename='img/pastor4.jpg') }}"
+                    class="pastor-img"></div>
+        </div>
+        <div class="text-center mt-4 fade-in">
+            <p>🎤 <strong>Pr. Stefano de Moraes</strong> – tecladista do Anderson Freire, ganhador do Latin Grammy,
+                compositor de:
+                <br>✨ Vou Profetizar (Fernanda Brum)
+                <br>✨ Paulo e Silas (Cristina Mel)
+                <br>✨ Como Águia (Bruna Karla)
+                <br>E muito mais!
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="programacao">
+    <div class="container">
+        <h2 class="text-center mb-4">Programação</h2>
+        <ul class="list-unstyled text-center fade-in">
+            <li><strong>🕒 15h30</strong> – Palestra da Tarde</li>
+            <li><strong>🕒 18h45</strong> – Culto da Noite</li>
+            <li><strong>🎟 Inscrição:</strong> R$ 15,00 (até 3 de Agosto)</li>
+            <li><strong>📊 Meta:</strong> 15 pessoas por igreja</li>
+        </ul>
+    </div>
+</section>
+
+<section class="section bg-dark text-white text-center" id="inscricao">
+    <div class="container fade-in">
+        <h2>Vai ser dia de alinhamento com o Céu!</h2>
+        <p class="mb-4">Chama geral da tua igreja, teu grupo de louvor, teus amigos!</p>
+        <a href="{{ url_for('inscricao') }}" class="btn btn-inscrever">Fazer Inscrição</a>
+    </div>
+</section>
+
+<script>
+    const faders = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+    faders.forEach(fade => observer.observe(fade));
+</script>
+{% endblock %}

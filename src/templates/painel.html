@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(135deg, #6e00ff, #ff4d00);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: white;
+    }
+
+    .painel-box {
+        background-color: rgba(0, 0, 0, 0.65);
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 800px;
+        margin: 60px auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .painel-box h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .painel-box p {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    .status {
+        margin: 20px auto;
+        font-size: 1.1rem;
+        font-weight: bold;
+        background-color: white;
+        color: #6e00ff;
+        padding: 10px 20px;
+        border-radius: 50px;
+        display: inline-block;
+    }
+
+    .btn-pagamento {
+        background: white;
+        color: #ff4d00;
+        font-weight: bold;
+        padding: 12px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease-in-out;
+        display: inline-block;
+        margin: 30px auto 10px;
+    }
+
+    .btn-pagamento:hover {
+        background: #ff4d00;
+        color: white;
+    }
+
+    .comprovantes-list {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 40px;
+    }
+
+    .comprovantes-list h4 {
+        color: #ffffff;
+        margin-bottom: 15px;
+    }
+
+    .comprovante-item {
+        background-color: white;
+        color: #333;
+        border-radius: 10px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .upload-form {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .upload-form input[type="file"] {
+        margin-bottom: 10px;
+    }
+
+    .pix-info {
+        margin-top: 40px;
+        text-align: center;
+    }
+
+    .pix-info img {
+        max-width: 260px;
+        margin: 20px 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .pix-info a {
+        display: inline-block;
+        margin-top: 10px;
+        font-weight: bold;
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    .pix-info a:hover {
+        color: #ffd700;
+    }
+
+    .btn-outline-light.btn-sm {
+        padding: 6px 18px;
+        border-radius: 30px;
+        font-weight: bold;
+        border: 2px solid white;
+        transition: 0.3s ease-in-out;
+    }
+
+    .btn-outline-light.btn-sm:hover {
+        background: white;
+        color: #6e00ff;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="painel-box">
+    <div class="text-end mb-3">
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Sair</a>
+    </div>
+
+    <h1>Bem-vindo, {{ usuario.nome }}!</h1>
+    <p class="lead">Estamos felizes em ter você na <strong>Conferência Reino</strong>.</p>
+
+    {% if usuario.comprovantes_pagamento|length > 0 %}
+    <div class="status">
+        Status da Inscrição:
+        {% if usuario.comprovantes_pagamento[-1].status == 'Aprovado' %}
+        <span class="text-uppercase text-success">Confirmado</span>
+        {% elif usuario.comprovantes_pagamento[-1].status == 'Pendente' %}
+        <span class="text-uppercase text-warning">Aguardando Análise</span>
+        {% else %}
+        <span class="text-uppercase text-danger">Rejeitado</span>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="status">
+        Status da Inscrição: <span class="text-uppercase">Pendente</span>
+    </div>
+    {% endif %}
+
+    <p>Para confirmar sua participação, envie o comprovante do pagamento no valor de <strong>R$ 15,00</strong>.</p>
+
+    <!-- INSTRUÇÕES PIX -->
+    <div class="pix-info">
+        <h4>Pagamento via Pix</h4>
+        <img src="{{ url_for('static', filename='img/qrcode_pix.png') }}" alt="QR Code Pix">
+        <p><strong>Chave Pix:</strong> 01651845239 - CPF</p>
+        <a href="https://nubank.com.br/cobrar/1glyaf/686ef4c1-4309-4da5-94cb-0ab4568b0998" target="_blank">Abrir link
+            do pagamento</a>
+        <p class="text-white-50 mt-2">Após o pagamento, envie o comprovante abaixo:</p>
+    </div>
+
+    <!-- FORM DE UPLOAD -->
+    <form class="upload-form" method="POST" action="{{ url_for('upload_comprovante') }}" enctype="multipart/form-data">
+        <input type="file" name="comprovante" accept="image/*,application/pdf" required>
+        <button type="submit" class="btn btn-pagamento">Enviar Comprovante</button>
+    </form>
+
+    {% if usuario.comprovantes_pagamento|length > 0 %}
+    <div class="comprovantes-list">
+        <h4>Comprovantes Enviados</h4>
+        {% for comp in usuario.comprovantes_pagamento|reverse %}
+        <div class="comprovante-item">
+            <span>{{ comp.arquivo_comprovante }}</span>
+            <small>Status: <strong>{{ comp.status }}</strong></small>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

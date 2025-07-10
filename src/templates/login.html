@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block head_extra %}
+<link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(135deg, #6e00ff, #ff4d00);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: white;
+    }
+
+    .login-box {
+        background-color: rgba(0, 0, 0, 0.65);
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 500px;
+        margin: 60px auto;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .login-box h2 {
+        font-weight: bold;
+        margin-bottom: 30px;
+    }
+
+    .form-control {
+        margin-bottom: 15px;
+    }
+
+    .btn-login {
+        background: white;
+        color: #6e00ff;
+        font-weight: bold;
+        padding: 12px 30px;
+        border-radius: 50px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .btn-login:hover {
+        background: #ff4d00;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="login-box">
+    <img src="{{ url_for('static', filename='img/Logo Arte Conferencia Reino 01.png') }}" alt="Logo" class="mb-4"
+        style="max-width: 150px;">
+    <h2>Login</h2>
+
+    <div class="alert alert-info text-start px-4 py-3 rounded-3 mt-3 shadow-sm"
+        style="background-color: #e8f4fd; border-left: 6px solid #0d6efd; color: #0d6efd;">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Sua senha padrão é o número do seu telefone (somente números).</strong><br>
+        Em caso de dúvidas, entre em contato com a direção do evento.
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control") }}
+
+        {{ form.senha.label(class="form-label") }}
+        {{ form.senha(class="form-control") }}
+
+        <div class="form-check mb-3">
+            {{ form.lembrar(class="form-check-input") }}
+            {{ form.lembrar.label(class="form-check-label") }}
+        </div>
+
+        {{ form.submit(class="btn btn-login btn-lg w-100") }}
+    </form>
+</div>
+
+<footer class="text-center mt-5 text-white">
+    <div class="container py-4" style="background-color: rgba(0,0,0,0.4); border-radius: 15px;">
+        <p class="mb-1 fw-bold">Dúvidas? Fale com a direção:</p>
+        <p class="mb-1">📞 (92) 99299-8893 - Dsa. Aline</p>
+        <p class="mb-0">📧 iapam@gmail.com</p>
+    </div>
+</footer>
+
+{% endblock %}
