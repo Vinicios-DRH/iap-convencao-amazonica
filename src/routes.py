@@ -1,3 +1,4 @@
+import datetime
 from flask import render_template, request, redirect, send_file, url_for, flash, jsonify, send_from_directory, current_app
 from flask_login import login_required, current_user, login_user, logout_user
 from src import app, bcrypt, database
@@ -99,17 +100,30 @@ def login():
 @app.route("/painel")
 @login_required
 def painel_candidato():
-    comprovante = ComprovantesPagamento.query.filter_by(id_user=current_user.id)\
-        .order_by(ComprovantesPagamento.data_envio.desc()).first()
+    # Busca o comprovante MAIS RECENTE COM ARQUIVO
+    comprovante = ComprovantesPagamento.query.filter(
+        ComprovantesPagamento.id_user == current_user.id,
+        ComprovantesPagamento.arquivo_comprovante.isnot(None)
+    ).order_by(ComprovantesPagamento.data_envio.desc()).first()
 
     status = None
     url_arquivo = None
 
     if comprovante:
         status = comprovante.status
-        if comprovante.arquivo_comprovante:
-            url_arquivo = supabase.storage.from_("comprovantes")\
-                .get_public_url(comprovante.arquivo_comprovante)
+        url_arquivo = current_app.supabase.storage.from_("comprovantes")\
+            .get_public_url(comprovante.arquivo_comprovante)
+        print("DEBUG PAINEL:")
+        print("Arquivo:", comprovante.arquivo_comprovante)
+        print("Status:", comprovante.status)
+    else:
+        comprovante = ComprovantesPagamento.query.filter_by(
+            id_user=current_user.id
+        ).order_by(ComprovantesPagamento.data_envio.desc()).first()
+        if comprovante:
+            status = comprovante.status
+            print("DEBUG PAINEL (sem arquivo):")
+            print("Status:", comprovante.status)
 
     return render_template(
         "painel.html",
@@ -123,36 +137,46 @@ def painel_candidato():
 @login_required
 def upload_comprovante():
     file = request.files.get("comprovante")
-    if file:
-        supabase = current_app.supabase
+    if not file or file.filename.strip() == "":
+        flash("Nenhum arquivo selecionado.", "warning")
+        return redirect(url_for("painel_candidato"))
 
-        # Gera um nome único pra evitar conflitos
+    supabase = current_app.supabase
+
+    try:
+        # Gera nome único pra evitar conflitos
         ext = file.filename.rsplit(".", 1)[-1].lower()
         nome_arquivo = f"{uuid.uuid4().hex}.{ext}"
-
-        # Caminho no bucket
         caminho_bucket = f"{current_user.id}/{nome_arquivo}"
 
-        # Upload para Supabase Storage
+        # Upload para Supabase Storage (USA BYTES, NÃO O OBJETO FILE!)
         file.stream.seek(0)
+        file_bytes = file.read()
         resultado = supabase.storage.from_("comprovantes").upload(
-            caminho_bucket, file, {"content-type": file.mimetype}
+            caminho_bucket, file_bytes, {"content-type": file.mimetype}
         )
 
-        if resultado.get("error"):
-            flash("Erro ao enviar comprovante!", "danger")
-            return redirect(url_for("painel_candidato"))
+        # Se houver erro no upload (ajuste se sua lib não retornar dict!)
+        # Se não houver resultado.get, pode só checar se resultado está ok.
+        # Se sua lib NUNCA retorna dict, pule esse bloco.
 
-        # Salvar no banco
-        novo = ComprovantesPagamento(
-            id_user=current_user.id,
-            parcela="Única",
-            arquivo_comprovante=caminho_bucket,
-            status="Pendente"
-        )
-        database.session.add(novo)
-        database.session.commit()
-        flash("Comprovante enviado com sucesso!", "success")
+        # Atualiza o comprovante PENDENTE já existente!
+        comprovante = ComprovantesPagamento.query.filter_by(
+            id_user=current_user.id, status="PENDENTE"
+        ).order_by(ComprovantesPagamento.data_envio.desc()).first()
+
+        if comprovante:
+            comprovante.arquivo_comprovante = caminho_bucket
+            comprovante.parcela = "Única"  # Atualiza se quiser, ou mantenha o que já tiver
+            comprovante.data_envio = datetime.datetime.utcnow()
+            database.session.commit()
+            flash("Comprovante enviado com sucesso!", "success")
+        else:
+            flash("Nenhum comprovante pendente encontrado para atualizar.", "danger")
+
+    except Exception as e:
+        print("Erro no upload:", e)
+        flash("Erro ao enviar comprovante!", "danger")
 
     return redirect(url_for("painel_candidato"))
 

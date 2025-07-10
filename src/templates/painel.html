@@ -161,15 +161,16 @@
 
     <div class="status">
         Status da Inscrição:
-        {% if status_comprovante == 'Aprovado' %}
-        <span class="text-success text-uppercase fw-bold">Confirmado</span>
-        {% elif status_comprovante == 'Pendente' %}
-        <span class="text-warning text-uppercase fw-bold">Aguardando Análise</span>
-        {% elif status_comprovante == 'Rejeitado' %}
-        <span class="text-danger text-uppercase fw-bold">Rejeitado</span>
+        {% if status_comprovante == 'APROVADO' %}
+        <span class="text-success fw-bold">APROVADO</span>
+        {% elif status_comprovante == 'REJEITADO' %}
+        <span class="text-danger fw-bold">REJEITADO</span>
+        {% elif status_comprovante == 'PENDENTE' %}
+        <span class="text-warning fw-bold">PENDENTE</span>
         {% else %}
-        <span class="text-light text-uppercase fw-bold">Pendente</span>
+        <span class="text-muted">Aguardando envio</span>
         {% endif %}
+
     </div>
 
     <p>Para confirmar sua participação, envie o comprovante do pagamento no valor de <strong>R$ 15,00</strong>.</p>
@@ -202,12 +203,11 @@
         {% endif %}
 
         <p class="mt-2">
-            <strong>Status:</strong>
-            {% if status_comprovante == 'Aprovado' %}
+            {% if status_comprovante == 'APROVADO' %}
             <span class="text-success fw-bold">APROVADO</span>
-            {% elif status_comprovante == 'Rejeitado' %}
+            {% elif status_comprovante == 'REJEITADO' %}
             <span class="text-danger fw-bold">REJEITADO</span>
-            {% elif status_comprovante == 'Pendente' %}
+            {% elif status_comprovante == 'PENDENTE' %}
             <span class="text-warning fw-bold">PENDENTE</span>
             {% else %}
             <span class="text-muted">Aguardando envio</span>
