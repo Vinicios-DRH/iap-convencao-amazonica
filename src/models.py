@@ -1,6 +1,12 @@
 from src import database, login_manager
 from flask_login import UserMixin
 from datetime import datetime
+from datetime import datetime
+import pytz
+
+def agora_manaus():
+    fuso_am = pytz.timezone("America/Manaus")
+    return datetime.now(fuso_am)
 
 
 class FuncaoUser(database.Model):
@@ -27,9 +33,9 @@ class User(database.Model, UserMixin):
     telefone = database.Column(database.String(20))
     ip_address = database.Column(database.String(45))
     data_criacao = database.Column(
-        database.DateTime, default=datetime.utcnow())
+        database.DateTime, default=agora_manaus)
     data_ultimo_acesso = database.Column(
-        database.DateTime, default=datetime.utcnow())
+        database.DateTime, default=agora_manaus)
 
     funcao_user = database.relationship(
         'FuncaoUser', foreign_keys=[funcao_user_id])
@@ -44,5 +50,5 @@ class ComprovantesPagamento(database.Model):
         database.Integer, database.ForeignKey('user.id'))
     arquivo_comprovante = database.Column(database.String(50))
     parcela = database.Column(database.String(20))
-    data_envio = database.Column(database.DateTime, default=datetime.utcnow())
+    data_envio = database.Column(database.DateTime, default=agora_manaus)
     status = database.Column(database.String(50))

@@ -1,17 +1,18 @@
 from src import database, bcrypt, app
-from src.models import User
+from src.models import User, ComprovantesPagamento
 
 with app.app_context():
-    senha = bcrypt.generate_password_hash("admin123").decode('utf-8')
+    usuarios = User.query.all()
 
-    novo_admin = User(
-        nome="Administrador",
-        email="admin@conferencia.com",
-        senha=senha,
-        iap_local="Central",
-        telefone="(92) 98623-4547",
-        funcao_user_id=1  # DIRETOR
-    )
+    for usuario in usuarios:
+        # Verifica se já existe um comprovante pra evitar duplicação
+        if not ComprovantesPagamento.query.filter_by(id_user=usuario.id).first():
+            comprovante = ComprovantesPagamento(
+                id_user=usuario.id,
+                status="PENDENTE",
+                parcela="1ª PARCELA"
+            )
+            database.session.add(comprovante)
 
-    database.session.add(novo_admin)
     database.session.commit()
+    print("Comprovantes criados com sucesso!")
