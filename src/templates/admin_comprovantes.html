@@ -90,6 +90,11 @@
         color: black;
     }
 
+    .badge-aguardando {
+        background-color: #ff5507;
+        color: black;
+    }
+
     .admin-header {
         display: flex;
         justify-content: space-between;
@@ -115,6 +120,7 @@
                 <option value="">Todos os Status</option>
                 <option value="Aprovado">Aprovado</option>
                 <option value="Rejeitado">Rejeitado</option>
+                <option value="Aguardando confirmação">Aguardando confirmação</option>
                 <option value="Pendente">Pendente</option>
             </select>
         </div>
@@ -164,6 +170,8 @@
                         <span class="badge badge-aprovado">Aprovado</span>
                         {% elif comp.status == 'Rejeitado' %}
                         <span class="badge badge-rejeitado">Rejeitado</span>
+                        {% elif comp.status == 'AGUARDANDO CONFIRMAÇÃO' %}
+                        <span class="badge badge-aguardando">Aguardando confirmação</span>
                         {% else %}
                         <span class="badge badge-pendente">Pendente</span>
                         {% endif %}

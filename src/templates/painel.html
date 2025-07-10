@@ -165,35 +165,34 @@
         <span class="text-success fw-bold">APROVADO</span>
         {% elif status_comprovante == 'REJEITADO' %}
         <span class="text-danger fw-bold">REJEITADO</span>
-        {% elif status_comprovante == 'PENDENTE' %}
-        <span class="text-warning fw-bold">PENDENTE</span>
+        {% elif status_comprovante == 'AGUARDANDO CONFIRMAÇÃO' %}
+        <span class="text-warning fw-bold">AGUARDANDO CONFIRMAÇÃO</span>
         {% else %}
         <span class="text-muted">Aguardando envio</span>
         {% endif %}
-
     </div>
 
-    <p>Para confirmar sua participação, envie o comprovante do pagamento no valor de <strong>R$ 15,00</strong>.</p>
-
-    <!-- INSTRUÇÕES PIX -->
-    <div class="pix-info">
-        <h4>Pagamento via Pix</h4>
-        <img src="{{ url_for('static', filename='img/qrcode_pix.png') }}" alt="QR Code Pix">
-        <p><strong>Chave Pix:</strong> 01651845239 - CPF</p>
-        <a href="https://nubank.com.br/cobrar/1glyaf/686ef4c1-4309-4da5-94cb-0ab4568b0998" target="_blank">Abrir link
-            do pagamento</a>
-        <p class="text-white-50 mt-2">Após o pagamento, envie o comprovante abaixo:</p>
+    {% if status_comprovante == 'APROVADO' %}
+    <div class="alert alert-success mt-4 text-center" style="font-size:1.2rem;">
+        <strong>Pagamento confirmado!</strong><br>Sua inscrição está garantida.
     </div>
-
-    <!-- FORM DE UPLOAD -->
-    <form class="upload-form" method="POST" action="{{ url_for('upload_comprovante') }}" enctype="multipart/form-data">
-        <input type="file" name="comprovante" accept="image/*,application/pdf" required>
-        <button type="submit" class="btn btn-pagamento">Enviar Comprovante</button>
-    </form>
+    {% elif status_comprovante == 'AGUARDANDO CONFIRMAÇÃO' %}
+    <div class="alert alert-info mt-4 text-center" style="font-size:1.1rem;">
+        <strong>Seu comprovante foi enviado!</strong><br>
+        Aguarde a confirmação por parte da equipe.
+    </div>
+    {% elif status_comprovante == 'REJEITADO' %}
+    <div class="alert alert-danger mt-4 text-center" style="font-size:1.1rem;">
+        <strong>Seu comprovante foi rejeitado!</strong><br>
+        Por favor, envie novamente seguindo as instruções abaixo.
+    </div>
+    {% include 'painel_pix_upload.html' %}
+    {% else %}
+    {% include 'painel_pix_upload.html' %}
+    {% endif %}
 
     <div class="card p-3 mt-4">
         <h5>Comprovantes Enviados</h5>
-
         {% if url_comprovante %}
         <a href="{{ url_comprovante }}" target="_blank" class="btn btn-primary">
             Ver comprovante
@@ -201,14 +200,14 @@
         {% else %}
         <p class="text-muted">Nenhum comprovante enviado ainda.</p>
         {% endif %}
-
         <p class="mt-2">
+            <strong>Status:</strong>
             {% if status_comprovante == 'APROVADO' %}
             <span class="text-success fw-bold">APROVADO</span>
             {% elif status_comprovante == 'REJEITADO' %}
             <span class="text-danger fw-bold">REJEITADO</span>
-            {% elif status_comprovante == 'PENDENTE' %}
-            <span class="text-warning fw-bold">PENDENTE</span>
+            {% elif status_comprovante == 'AGUARDANDO CONFIRMAÇÃO' %}
+            <span class="text-warning fw-bold">AGUARDANDO CONFIRMAÇÃO</span>
             {% else %}
             <span class="text-muted">Aguardando envio</span>
             {% endif %}

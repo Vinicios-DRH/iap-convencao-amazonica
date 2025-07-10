@@ -167,7 +167,8 @@ def upload_comprovante():
 
         if comprovante:
             comprovante.arquivo_comprovante = caminho_bucket
-            comprovante.parcela = "Única"  # Atualiza se quiser, ou mantenha o que já tiver
+            comprovante.parcela = "Única"
+            comprovante.status = "AGUARDANDO CONFIRMAÇÃO"  # Atualiza se quiser, ou mantenha o que já tiver
             comprovante.data_envio = datetime.datetime.utcnow()
             database.session.commit()
             flash("Comprovante enviado com sucesso!", "success")
