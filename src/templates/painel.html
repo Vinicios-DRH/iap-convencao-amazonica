@@ -161,9 +161,9 @@
 
     <div class="status">
         Status da Inscrição:
-        {% if status_comprovante == 'APROVADO' %}
+        {% if status_comprovante == 'Aprovado' %}
         <span class="text-success fw-bold">APROVADO</span>
-        {% elif status_comprovante == 'REJEITADO' %}
+        {% elif status_comprovante == 'Rejeitado' %}
         <span class="text-danger fw-bold">REJEITADO</span>
         {% elif status_comprovante == 'AGUARDANDO CONFIRMAÇÃO' %}
         <span class="text-warning fw-bold">AGUARDANDO CONFIRMAÇÃO</span>
@@ -172,7 +172,7 @@
         {% endif %}
     </div>
 
-    {% if status_comprovante == 'APROVADO' %}
+    {% if status_comprovante == 'Aprovado' %}
     <div class="alert alert-success mt-4 text-center" style="font-size:1.2rem;">
         <strong>Pagamento confirmado!</strong><br>Sua inscrição está garantida.
     </div>
@@ -202,9 +202,9 @@
         {% endif %}
         <p class="mt-2">
             <strong>Status:</strong>
-            {% if status_comprovante == 'APROVADO' %}
+            {% if status_comprovante == 'Aprovado' %}
             <span class="text-success fw-bold">APROVADO</span>
-            {% elif status_comprovante == 'REJEITADO' %}
+            {% elif status_comprovante == 'Rejeitado' %}
             <span class="text-danger fw-bold">REJEITADO</span>
             {% elif status_comprovante == 'AGUARDANDO CONFIRMAÇÃO' %}
             <span class="text-warning fw-bold">AGUARDANDO CONFIRMAÇÃO</span>
