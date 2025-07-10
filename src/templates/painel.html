@@ -36,10 +36,30 @@
         font-size: 1.1rem;
         font-weight: bold;
         background-color: white;
-        color: #6e00ff;
         padding: 10px 20px;
         border-radius: 50px;
         display: inline-block;
+        color: #333;
+    }
+
+    .status span.text-success {
+        color: #28a745 !important;
+        /* Verde Bootstrap */
+    }
+
+    .status span.text-warning {
+        color: #ffc107 !important;
+        /* Amarelo Bootstrap */
+    }
+
+    .status span.text-danger {
+        color: #dc3545 !important;
+        /* Vermelho Bootstrap */
+    }
+
+    .status span.text-light {
+        color: #6c757d !important;
+        /* Cinza Bootstrap (visível no branco) */
     }
 
     .btn-pagamento {
@@ -139,22 +159,18 @@
     <h1>Bem-vindo, {{ usuario.nome }}!</h1>
     <p class="lead">Estamos felizes em ter você na <strong>Conferência Reino</strong>.</p>
 
-    {% if usuario.comprovantes_pagamento|length > 0 %}
     <div class="status">
         Status da Inscrição:
-        {% if usuario.comprovantes_pagamento[-1].status == 'Aprovado' %}
-        <span class="text-uppercase text-success">Confirmado</span>
-        {% elif usuario.comprovantes_pagamento[-1].status == 'Pendente' %}
-        <span class="text-uppercase text-warning">Aguardando Análise</span>
+        {% if status_comprovante == 'Aprovado' %}
+        <span class="text-success text-uppercase fw-bold">Confirmado</span>
+        {% elif status_comprovante == 'Pendente' %}
+        <span class="text-warning text-uppercase fw-bold">Aguardando Análise</span>
+        {% elif status_comprovante == 'Rejeitado' %}
+        <span class="text-danger text-uppercase fw-bold">Rejeitado</span>
         {% else %}
-        <span class="text-uppercase text-danger">Rejeitado</span>
+        <span class="text-light text-uppercase fw-bold">Pendente</span>
         {% endif %}
     </div>
-    {% else %}
-    <div class="status">
-        Status da Inscrição: <span class="text-uppercase">Pendente</span>
-    </div>
-    {% endif %}
 
     <p>Para confirmar sua participação, envie o comprovante do pagamento no valor de <strong>R$ 15,00</strong>.</p>
 
@@ -174,16 +190,30 @@
         <button type="submit" class="btn btn-pagamento">Enviar Comprovante</button>
     </form>
 
-    {% if usuario.comprovantes_pagamento|length > 0 %}
-    <div class="comprovantes-list">
-        <h4>Comprovantes Enviados</h4>
-        {% for comp in usuario.comprovantes_pagamento|reverse %}
-        <div class="comprovante-item">
-            <span>{{ comp.arquivo_comprovante }}</span>
-            <small>Status: <strong>{{ comp.status }}</strong></small>
-        </div>
-        {% endfor %}
+    <div class="card p-3 mt-4">
+        <h5>Comprovantes Enviados</h5>
+
+        {% if url_comprovante %}
+        <a href="{{ url_comprovante }}" target="_blank" class="btn btn-primary">
+            Ver comprovante
+        </a>
+        {% else %}
+        <p class="text-muted">Nenhum comprovante enviado ainda.</p>
+        {% endif %}
+
+        <p class="mt-2">
+            <strong>Status:</strong>
+            {% if status_comprovante == 'Aprovado' %}
+            <span class="text-success fw-bold">APROVADO</span>
+            {% elif status_comprovante == 'Rejeitado' %}
+            <span class="text-danger fw-bold">REJEITADO</span>
+            {% elif status_comprovante == 'Pendente' %}
+            <span class="text-warning fw-bold">PENDENTE</span>
+            {% else %}
+            <span class="text-muted">Aguardando envio</span>
+            {% endif %}
+        </p>
     </div>
-    {% endif %}
+
 </div>
 {% endblock %}

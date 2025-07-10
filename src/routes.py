@@ -99,7 +99,24 @@ def login():
 @app.route("/painel")
 @login_required
 def painel_candidato():
-    return render_template("painel.html", usuario=current_user)
+    comprovante = ComprovantesPagamento.query.filter_by(id_user=current_user.id)\
+        .order_by(ComprovantesPagamento.data_envio.desc()).first()
+
+    status = None
+    url_arquivo = None
+
+    if comprovante:
+        status = comprovante.status
+        if comprovante.arquivo_comprovante:
+            url_arquivo = supabase.storage.from_("comprovantes")\
+                .get_public_url(comprovante.arquivo_comprovante)
+
+    return render_template(
+        "painel.html",
+        usuario=current_user,
+        status_comprovante=status,
+        url_comprovante=url_arquivo
+    )
 
 
 @app.route("/upload_comprovante", methods=["POST"])
