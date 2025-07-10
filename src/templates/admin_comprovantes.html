@@ -157,11 +157,7 @@
                     <td>{{ comp.parcela }}</td>
                     <td>{{ comp.data_envio.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
-                        <a class="btn btn-ver btn-sm"
-                            href="https://supabase.co/storage/v1/object/public/comprovantes/{{ comp.id_user }}/{{ comp.arquivo_comprovante }}"
-                            target="_blank">Ver</a>
-
-
+                        <a class="btn btn-ver btn-sm" href="{{ comp.link_arquivo }}" target="_blank">Ver</a>
                     </td>
                     <td>
                         {% if comp.status == 'Aprovado' %}

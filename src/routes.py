@@ -150,11 +150,11 @@ def admin_comprovantes():
     comprovantes = ComprovantesPagamento.query.order_by(
         ComprovantesPagamento.data_envio.desc()).all()
 
-    # Montar URLs públicas
     for c in comprovantes:
         if c.arquivo_comprovante:
-            c.link_arquivo = app.supabase.storage.from_('comprovantes')\
-                .get_public_url(c.arquivo_comprovante)
+            # Agora corretamente: retorna a URL direta como string
+            c.link_arquivo = supabase.storage.from_(
+                "comprovantes").get_public_url(c.arquivo_comprovante)
 
     return render_template("admin_comprovantes.html", comprovantes=comprovantes)
 
