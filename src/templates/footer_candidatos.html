@@ -1,11 +1,81 @@
 <footer class="mt-5">
-    <div class="text-center py-3" style="background: rgba(30,30,30,0.95); color: #fff; border-radius: 12px;">
+    <div class="text-center py-4" style="background: rgba(30,30,30,0.97); color: #fff; border-radius: 16px 16px 0 0;">
         <div class="container">
-            <span class="fw-bold">Conferência Reino</span>
-            &nbsp;|&nbsp;
-            <span style="font-size: 0.95em;">Painel do Candidato</span>
+
+            <!-- Nome principal animado -->
+            <span class="fw-bold footer-logo-gradient"
+                style="font-size: 1.6em; letter-spacing: 1px; font-weight: 900; display:inline-block; position:relative;">
+                Conferência
+                <span class="footer-logo-reino ms-2">Reino</span>
+            </span>
             <br>
-            <span style="font-size: 0.85em;">&copy; {{ now().year }} Todos os direitos reservados</span>
+            <!-- Subtítulo pequeno, animado -->
+            <span class="footer-logo-gradient"
+                style="font-size: 0.85em; font-weight: 600; letter-spacing: 0.8px; display:inline-block; opacity:.87;">
+                Na Terra Como no Céu
+            </span>
+            <br>
+            <span style="font-size: 0.98em; color: #ccc;">Painel do Candidato</span>
+            <br>
+            <span style="font-size: 0.85em; color: #bbb;">&copy; {{ now().year }} Todos os direitos reservados</span>
+            <br>
+            <a href="https://wa.me/5592992998893" target="_blank"
+                style="color: #25d366; text-decoration: none; font-weight: 600; font-size: 1em; margin-top: 8px; display: inline-block;">
+                <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/whatsapp.svg" width="22"
+                    style="margin-right:4px; vertical-align:-4px;">
+                Dúvidas? Fale no WhatsApp (92) 99299-8893
+            </a>
         </div>
     </div>
 </footer>
+
+<style>
+    /* Gradiente animado */
+    .footer-logo-gradient,
+    .footer-logo-reino {
+        background: linear-gradient(90deg, #6e00ff, #ff4d00, #ffd700, #6e00ff);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-fill-color: transparent;
+        animation: reino-gradient-move 3s linear infinite alternate;
+    }
+
+    /* Só o "Reino" fica mais destacado e com brilho */
+    .footer-logo-reino {
+        font-size: 1.15em;
+        font-weight: 900;
+        letter-spacing: 2px;
+        position: relative;
+        animation: reino-gradient-move 2s linear infinite alternate, reino-shine 2.5s ease-in-out infinite;
+    }
+
+    /* Gradiente animando */
+    @keyframes reino-gradient-move {
+        0% {
+            background-position: 0%;
+        }
+
+        100% {
+            background-position: 100%;
+        }
+    }
+
+    /* Efeito de brilho sutil */
+    @keyframes reino-shine {
+
+        0%,
+        100% {
+            text-shadow: 0 0 6px #ffcf70cc, 0 0 1px #fff;
+        }
+
+        40% {
+            text-shadow: 0 0 24px #ffd70088, 0 0 6px #fff;
+        }
+
+        80% {
+            text-shadow: 0 0 16px #ff4d00cc, 0 0 1px #fff;
+        }
+    }
+</style>
