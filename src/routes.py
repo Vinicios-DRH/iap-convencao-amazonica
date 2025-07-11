@@ -1,5 +1,5 @@
 import datetime
-from flask import render_template, request, redirect, send_file, url_for, flash, jsonify, send_from_directory, current_app
+from flask import render_template, request, redirect, send_file, session, url_for, flash, jsonify, send_from_directory, current_app
 from flask_login import login_required, current_user, login_user, logout_user
 from src import app, bcrypt, database
 from src.models import User, FuncaoUser, ComprovantesPagamento
@@ -291,5 +291,6 @@ def exportar_candidatos():
 @login_required
 def logout():
     logout_user()
+    session.pop('_flashes', None)
     flash("Você saiu com sucesso!", "info")
     return redirect(url_for("login"))

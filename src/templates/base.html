@@ -19,30 +19,29 @@
     {% if current_user.is_authenticated %}
     <a href="{{ url_for('logout') }}" class="btn btn-sm btn-light">Sair</a>
     {% endif %}
-    {% with messages = get_flashed_messages(with_categories=true) %}
+
+    {% set messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show text-center fw-semibold" role="alert"
+    {% set last_message = messages[-1] %}
+    <div class="alert alert-{{ last_message[0] }} alert-dismissible fade show text-center fw-semibold" role="alert"
         style="max-width: 500px; margin: 18px auto 0; border-radius: 12px;">
-        {{ message }}
+        {{ last_message[1] }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
     </div>
-    {% endfor %}
     {% endif %}
-    {% endwith %}
 
     <script>
-        // Some todos os alerts após 3.8 segundos
         document.addEventListener("DOMContentLoaded", function () {
             setTimeout(function () {
                 document.querySelectorAll('.alert').forEach(function (el) {
                     el.classList.remove('show');
                     el.classList.add('fade');
-                    setTimeout(() => el.remove(), 600); // depois da animação fade
+                    setTimeout(() => el.remove(), 600);
                 });
-            }, 3800);
+            }, 3200);
         });
     </script>
+
 
     {% endblock %}
 </body>
