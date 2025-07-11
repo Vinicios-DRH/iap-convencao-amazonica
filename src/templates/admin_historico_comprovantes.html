@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block head_extra %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
 {% endblock %}
 
 {% block body %}
@@ -25,7 +26,7 @@
 
     {% if comprovantes %}
     <div class="table-responsive">
-        <table class="table table-bordered align-middle">
+        <table class="table table-bordered align-middle" id="tabela-historico">
             <thead class="table-dark">
                 <tr>
                     <th>Nome</th>
@@ -69,30 +70,45 @@
     {% endif %}
 </div>
 
+<!-- DataTables scripts -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
 <script>
-    // Filtro JS (igual seu painel antigo)
     document.addEventListener("DOMContentLoaded", function () {
-        const inputNome = document.getElementById("filtro-nome");
-        const selectStatus = document.getElementById("filtro-status");
-        const linhas = document.querySelectorAll("tbody tr");
+        let table = new DataTable('#tabela-historico', {
+            paging: true,
+            lengthChange: false,
+            pageLength: 10,
+            language: {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "Nenhum comprovante encontrado",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ comprovantes",
+                "infoEmpty": "Nenhum comprovante disponível",
+                "infoFiltered": "(filtrado de _MAX_ no total)",
+                "paginate": {
+                    "previous": "Anterior",
+                    "next": "Próximo"
+                },
+                "search": "Filtrar global:"
+            },
+            dom: 'rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+        });
 
-        function filtrar() {
-            const nomeFiltro = inputNome.value.toLowerCase();
-            const statusFiltro = selectStatus.value.toLowerCase();
-
-            linhas.forEach(linha => {
-                const nome = linha.children[0].innerText.toLowerCase();
-                const status = linha.children[3].innerText.trim().toLowerCase();
-
-                const nomeCond = nome.includes(nomeFiltro);
-                const statusCond = statusFiltro === "" || status === statusFiltro;
-
-                linha.style.display = nomeCond && statusCond ? "" : "none";
-            });
-        }
-
-        inputNome.addEventListener("keyup", filtrar);
-        selectStatus.addEventListener("change", filtrar);
+        // Filtros personalizados
+        document.getElementById("filtro-nome").addEventListener("input", function () {
+            table.column(0).search(this.value).draw();
+        });
+        document.getElementById("filtro-status").addEventListener("change", function () {
+            // O DataTables ignora acentos/diferença, mas status badge pode ser diferente do texto
+            let status = this.value.trim().toLowerCase();
+            if (status) {
+                // Procura por texto parcial na badge (usando o texto da célula, não o HTML)
+                table.column(3).search(status, true, false).draw();
+            } else {
+                table.column(3).search('').draw();
+            }
+        });
     });
 </script>
 {% include 'admin_footer.html' %}
