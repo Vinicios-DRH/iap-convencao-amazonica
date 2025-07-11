@@ -20,7 +20,7 @@ def home():
     return redirect(url_for('info'))
 
 
-@app.route("/info", methods=['GET', 'POST'])
+@app.route("/conferencia-reino", methods=['GET', 'POST'])
 def info():
     return render_template('info.html')
 
