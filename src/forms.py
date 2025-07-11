@@ -20,7 +20,7 @@ class InscricaoForm(FlaskForm):
     submit = SubmitField('Inscrever-se')
 
     def validate_email(self, email):
-        usuario = User.query.filter_by(email=email.data).first()
+        usuario = User.query.filter_by(email=email.data.lower()).first()
         if usuario:
             raise ValidationError(
                 'E-mail já cadastrado. Por favor, escolha outro e-mail.')

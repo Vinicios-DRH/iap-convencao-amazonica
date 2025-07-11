@@ -50,7 +50,7 @@ def inscricao():
             senha_gerada).decode("utf-8")
         novo_usuario = User(
             nome=form.nome.data,
-            email=form.email.data,
+            email=form.email.data.lower(),
             telefone=telefone_limpo,
             iap_local=form.iap_local.data,
             senha=hash_senha,
@@ -82,7 +82,7 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        usuario = User.query.filter_by(email=form.email.data).first()
+        usuario = User.query.filter_by(email=form.email.data.lower()).first()
         if usuario and bcrypt.check_password_hash(usuario.senha, form.senha.data):
             login_user(usuario, remember=form.lembrar.data)
             flash("Login realizado com sucesso!", "success")
