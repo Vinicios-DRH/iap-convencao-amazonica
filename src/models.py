@@ -53,3 +53,29 @@ class ComprovantesPagamento(database.Model):
     parcela = database.Column(database.String(20))
     data_envio = database.Column(database.DateTime, default=agora_manaus)
     status = database.Column(database.String(50))
+
+
+class Filho(database.Model):
+    __tablename__ = 'filhos'
+    id = database.Column(database.Integer, primary_key=True)
+    nome = database.Column(database.String(100), nullable=False)
+    idade = database.Column(database.Integer, nullable=False)
+    paga_inscricao = database.Column(database.Boolean, default=False)
+    id_usuario = database.Column(
+        database.Integer, database.ForeignKey('user.id'))
+
+    usuario = database.relationship('User', backref='filhos')
+    # Agora, os comprovantes vêm de outra tabela!
+    comprovantes = database.relationship(
+        'ComprovanteFilho', backref='filho', lazy=True)
+
+
+class ComprovanteFilho(database.Model):
+    __tablename__ = 'comprovantes_filho'
+    id = database.Column(database.Integer, primary_key=True)
+    id_filho = database.Column(
+        database.Integer, database.ForeignKey('filhos.id'), nullable=False)
+    caminho_arquivo = database.Column(database.String(
+        255), nullable=False)  # caminho/URL do arquivo
+    data_envio = database.Column(
+        database.DateTime, default=datetime.utcnow)

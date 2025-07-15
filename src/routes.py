@@ -1,8 +1,8 @@
 import datetime
-from flask import render_template, request, redirect, send_file, session, url_for, flash, jsonify, send_from_directory, current_app
+from flask import abort, render_template, request, redirect, send_file, session, url_for, flash, jsonify, send_from_directory, current_app
 from flask_login import login_required, current_user, login_user, logout_user
-from src import app, bcrypt, database
-from src.models import User, FuncaoUser, ComprovantesPagamento
+from src import UPLOAD_FOLDER, app, bcrypt, database
+from src.models import Filho, User, FuncaoUser, ComprovantesPagamento, ComprovanteFilho
 from src.forms import InscricaoForm, LoginForm, FormCriarUsuario
 from src import supabase
 import os
@@ -11,6 +11,7 @@ import pandas as pd
 import io
 import uuid
 from werkzeug.utils import secure_filename
+from src.controllers.b2_utils import upload_to_b2, get_b2_file_url
 
 
 @app.route("/")
@@ -119,11 +120,13 @@ def painel_candidato():
         if comprovante:
             status = comprovante.status
 
+    filhos = Filho.query.filter_by(id_usuario=current_user.id).all()
     return render_template(
         "painel.html",
         usuario=current_user,
         status_comprovante=status,
-        url_comprovante=url_arquivo
+        url_comprovante=url_arquivo,
+        filhos=filhos
     )
 
 
@@ -180,6 +183,42 @@ def upload_comprovante():
         print("Erro no upload:", e)
         flash("Erro ao enviar comprovante!", "danger")
 
+    return redirect(url_for("painel_candidato"))
+
+
+@app.route("/painel/filhos", methods=["POST"])
+@login_required
+def adicionar_filho():
+    qt = int(request.form.get("quantidade_filhos", 0))
+    for i in range(1, qt+1):
+        nome = request.form.get(f"nome_filho_{i}")
+        idade = int(request.form.get(f"idade_filho_{i}", 0))
+        if nome and idade is not None:
+            filho = Filho(nome=nome, idade=idade, paga_inscricao=(
+                idade >= 5), id_usuario=current_user.id)
+            database.session.add(filho)
+    database.session.commit()
+    flash("Informações dos filhos salvas!", "success")
+    return redirect(url_for("painel_candidato"))
+
+
+@app.route('/upload_comprovante_filho/<int:id>', methods=['POST'])
+@login_required
+def upload_comprovante_filho(id):
+    filho = Filho.query.get_or_404(id)
+    if filho.id_usuario != current_user.id:
+        abort(403)
+    arquivos = request.files.getlist("comprovante")
+    for arquivo in arquivos:
+        if arquivo:
+            filename = secure_filename(arquivo.filename)
+            caminho = f"filhos/{current_user.id}/{filho.id}_{filename}"
+            upload_to_b2(caminho, arquivo.stream)
+            novo_comp = ComprovanteFilho(
+                id_filho=filho.id, caminho_arquivo=caminho)
+            database.session.add(novo_comp)
+    database.session.commit()
+    flash("Comprovante(s) enviado(s)!", "success")
     return redirect(url_for("painel_candidato"))
 
 

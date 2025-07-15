@@ -11,158 +11,174 @@
     }
 
     .painel-box {
-        background-color: rgba(0, 0, 0, 0.65);
-        padding: 40px;
-        border-radius: 20px;
-        max-width: 800px;
-        margin: 60px auto;
+        background: rgba(0, 0, 0, 0.75);
+        padding: 38px 12px;
+        border-radius: 22px;
+        max-width: 900px;
+        margin: 45px auto 30px auto;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 32px 0 #2e1a4344;
     }
 
     .painel-box h1 {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
+        font-size: 2.35rem;
+        font-weight: 900;
+        margin-bottom: 18px;
+        letter-spacing: .5px;
     }
 
-    .painel-box p {
-        font-size: 1.2rem;
-        text-align: center;
-    }
-
-    .status {
-        margin: 20px auto;
+    .painel-status {
+        margin: 20px auto 18px auto;
         font-size: 1.1rem;
         font-weight: bold;
-        background-color: white;
-        padding: 10px 20px;
-        border-radius: 50px;
+        background-color: #fff;
+        padding: 11px 28px;
+        border-radius: 60px;
         display: inline-block;
         color: #333;
+        box-shadow: 0 2px 12px rgba(110, 0, 255, .11);
     }
 
-    .status span.text-success {
+    .painel-status .text-success {
         color: #28a745 !important;
-        /* Verde Bootstrap */
     }
 
-    .status span.text-warning {
+    .painel-status .text-warning {
         color: #ffc107 !important;
-        /* Amarelo Bootstrap */
     }
 
-    .status span.text-danger {
+    .painel-status .text-danger {
         color: #dc3545 !important;
-        /* Vermelho Bootstrap */
     }
 
-    .status span.text-light {
+    .painel-status .text-light {
         color: #6c757d !important;
-        /* Cinza Bootstrap (visível no branco) */
     }
 
-    .btn-pagamento {
-        background: white;
-        color: #ff4d00;
-        font-weight: bold;
-        padding: 12px 30px;
-        border-radius: 50px;
-        text-decoration: none;
-        transition: all 0.3s ease-in-out;
-        display: inline-block;
-        margin: 30px auto 10px;
+    .card-comprovante,
+    .card-filho {
+        background: #fff;
+        border-radius: 16px;
+        margin: 0 0 20px 0;
+        box-shadow: 0 3px 14px 0 rgba(110, 0, 255, .08), 0 1.5px 5px #ff4d0020;
+        padding: 22px 18px 16px 18px;
+        color: #333;
+        text-align: left;
     }
 
-    .btn-pagamento:hover {
-        background: #ff4d00;
-        color: white;
+    .card-comprovante h5,
+    .card-filho h6 {
+        font-weight: 700;
+        color: #6e00ff;
+        margin-bottom: 12px;
     }
 
-    .comprovantes-list {
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 10px;
-        margin-top: 40px;
+    .badge-inscricao {
+        padding: 6px 14px;
+        border-radius: 13px;
+        font-weight: 600;
+        font-size: 0.98em;
+        margin-left: 7px;
     }
 
-    .comprovantes-list h4 {
-        color: #ffffff;
+    .badge-paga {
+        background: #ffd700;
+        color: #b18600;
+    }
+
+    .badge-isento {
+        background: #e2ffe5;
+        color: #1d8138;
+    }
+
+    .badge-pendente {
+        background: #f4f4f4;
+        color: #888;
+    }
+
+    .filhos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+        gap: 17px 16px;
+        margin-top: 18px;
+        margin-bottom: 8px;
+    }
+
+    .form-filhos {
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 13px;
+        padding: 19px 16px 7px 16px;
         margin-bottom: 15px;
     }
 
-    .comprovante-item {
-        background-color: white;
+    .btn-gradient {
+        background: linear-gradient(92deg, #6e00ff 40%, #ff4d00 100%);
+        border: none;
+        color: #fff;
+        font-weight: bold;
+        padding: 10px 30px;
+        border-radius: 45px;
+        margin-top: 12px;
+        box-shadow: 0 1.5px 5px #ff4d0040;
+        transition: 0.13s;
+    }
+
+    .btn-gradient:hover {
+        background: linear-gradient(100deg, #ff4d00 20%, #6e00ff 90%);
+        color: #fff;
+    }
+
+    .comprovante-file {
+        font-size: .98em;
+        margin-bottom: 10px;
+        color: #888;
+    }
+
+    .label-filho {
+        font-size: 0.98em;
         color: #333;
-        border-radius: 10px;
-        padding: 10px 15px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        font-weight: 500;
     }
 
-    .upload-form {
-        margin-top: 30px;
-        text-align: center;
+    /* --- Título filhos destacado --- */
+    .filhos-title {
+        color: #fff !important;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-shadow: 0 2px 10px #2d004fbb;
     }
 
-    .upload-form input[type="file"] {
-        margin-bottom: 10px;
-    }
-
-    .pix-info {
-        margin-top: 40px;
-        text-align: center;
-    }
-
-    .pix-info img {
-        max-width: 260px;
-        margin: 20px 0;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .pix-info a {
-        display: inline-block;
-        margin-top: 10px;
-        font-weight: bold;
-        color: #ffffff;
-        text-decoration: underline;
-    }
-
-    .pix-info a:hover {
+    .filhos-sub {
         color: #ffd700;
-    }
-
-    .btn-outline-light.btn-sm {
-        padding: 6px 18px;
-        border-radius: 30px;
+        font-size: 0.9em;
         font-weight: bold;
-        border: 2px solid white;
-        transition: 0.3s ease-in-out;
+        margin-left: 4px;
+        text-shadow: 0 1px 5px #6e00ff80;
     }
 
-    .btn-outline-light.btn-sm:hover {
-        background: white;
-        color: #6e00ff;
+    @media (max-width:600px) {
+        .painel-box {
+            padding: 18px 2px;
+        }
+
+        .card-filho {
+            padding: 14px 7px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="painel-box">
-    <div class="text-end mb-3">
+    <div class="text-end mb-2">
         <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Sair</a>
     </div>
     <img src="{{ url_for('static', filename='img/Logo Arte Conferencia Reino 01.png') }}" alt="Logo" class="mb-4"
-        style="max-width: 150px;">
-
+        style="max-width: 135px; border-radius: 10px; box-shadow:0 2px 16px #6e00ff1a;">
     <h1>Bem-vindo, {{ usuario.nome }}!</h1>
-    <p class="lead">Estamos felizes em ter você na <strong>Conferência Reino</strong>.</p>
-
-    <div class="status">
+    <p class="lead mb-3" style="font-size:1.19rem;">Estamos felizes em ter você na <strong>Conferência Reino</strong>.
+    </p>
+    <div class="painel-status">
         Status da Inscrição:
         {% if status_comprovante == 'Aprovado' %}
         <span class="text-success fw-bold">APROVADO</span>
@@ -174,38 +190,34 @@
         <span class="text-muted">Aguardando envio</span>
         {% endif %}
     </div>
-
     {% if status_comprovante == 'Aprovado' %}
-    <div class="alert alert-success mt-4 text-center" style="font-size:1.2rem;">
-        <strong>Pagamento confirmado!</strong><br>Sua inscrição está garantida.
+    <div class="alert alert-success mt-4 text-center" style="font-size:1.08rem;">
+        <strong>Pagamento confirmado!</strong> Sua inscrição está garantida.
     </div>
     {% elif status_comprovante == 'AGUARDANDO CONFIRMAÇÃO' %}
-    <div class="alert alert-info mt-4 text-center" style="font-size:1.1rem;">
-        <strong>Seu comprovante foi enviado!</strong><br>
-        Aguarde a confirmação por parte da equipe.
+    <div class="alert alert-info mt-4 text-center" style="font-size:1.02rem;">
+        <strong>Seu comprovante foi enviado!</strong> Aguarde a confirmação da equipe.
     </div>
     {% elif status_comprovante == 'REJEITADO' %}
-    <div class="alert alert-danger mt-4 text-center" style="font-size:1.1rem;">
-        <strong>Seu comprovante foi rejeitado!</strong><br>
-        Por favor, envie novamente seguindo as instruções abaixo.
+    <div class="alert alert-danger mt-4 text-center" style="font-size:1.02rem;">
+        <strong>Seu comprovante foi rejeitado!</strong> Por favor, envie novamente abaixo.
     </div>
     {% include 'painel_pix_upload.html' %}
     {% else %}
     {% include 'painel_pix_upload.html' %}
     {% endif %}
 
-    <div class="card p-3 mt-4">
-        <h5>Comprovantes Enviados</h5>
+    <div class="card-comprovante mt-4 mb-3">
+        <h5>Comprovante do responsável</h5>
         {% if url_comprovante %}
-        <a href="{{ url_comprovante }}" target="_blank" class="btn btn-primary">
+        <a href="{{ url_comprovante }}" target="_blank" class="btn btn-primary btn-sm fw-bold">
             Ver comprovante
         </a>
         {% else %}
-        <p class="text-muted">Envie o comprovante em PDF.</p>
-        <p class="text-muted">Nenhum comprovante enviado ainda.</p>
+        <div class="comprovante-file">Nenhum comprovante enviado ainda.</div>
         {% endif %}
-        <p class="mt-2">
-            <strong>Status:</strong>
+        <div class="mt-2">
+            <span class="label-filho">Status:</span>
             {% if status_comprovante == 'Aprovado' %}
             <span class="text-success fw-bold">APROVADO</span>
             {% elif status_comprovante == 'Rejeitado' %}
@@ -215,9 +227,93 @@
             {% else %}
             <span class="text-muted">Aguardando envio</span>
             {% endif %}
-        </p>
+        </div>
     </div>
 
+    <!-- FILHOS -->
+    <div class="card mt-4 mb-4 text-start" style="background:rgba(255,255,255,0.08); box-shadow:none;">
+        <div class="card-body">
+            <h4 class="card-title mb-3 filhos-title">
+                Filhos
+                <span class="filhos-sub">(a partir de 5 anos paga inscrição)</span>
+            </h4>
+            {# Mostra o formulário apenas se não houver filhos cadastrados #}
+            {% if not filhos %}
+            <form id="form-filhos" method="POST" action="{{ url_for('adicionar_filho') }}" enctype="multipart/form-data"
+                class="form-filhos mb-2">
+                <div class="mb-2">
+                    <label class="form-label" style="color: #fff;">Quantos filhos?</label>
+                    <input type="number" min="0" max="10" class="form-control" name="quantidade_filhos"
+                        value="{{ quantidade_filhos or '' }}" required>
+                </div>
+                <div id="campos-filhos" style="color: #fff;"><!-- Adiciona os campos dos filhos por JS --></div>
+                <button type="submit" class="btn btn-gradient mt-2">Salvar Filhos</button>
+            </form>
+            {% endif %}
+            {% if filhos %}
+            <hr>
+            <h5 class="fw-bold mb-2" style="color:#fff;">Filhos cadastrados:</h5>
+            <div class="filhos-grid">
+                {% for f in filhos %}
+                <div class="card-filho">
+                    <h6>
+                        <span class="fw-bold">{{ f.nome }}</span>
+                        <span class="badge-inscricao {% if f.idade >= 5 %}badge-paga{% else %}badge-isento{% endif %}">
+                            {% if f.idade >= 5 %}Paga inscrição{% else %}Isento{% endif %}
+                        </span>
+                    </h6>
+                    <div class="mb-2" style="font-size:1.04em;">Idade: <b>{{ f.idade }}</b> anos</div>
+                    {% if f.idade >= 5 %}
+                    <hr style="margin:10px 0 13px 0;">
+                    {% if f.comprovantes %}
+                    <div style="font-size:0.98em;" class="mb-2">
+                        <span class="text-dark fw-bold">Comprovantes enviados:</span><br>
+                        {% for comp in f.comprovantes %}
+                        <a href="{{ get_b2_file_url(comp.caminho_arquivo) }}" target="_blank">Ver comprovante</a>
+                        <br>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <form class="d-block" method="POST" action="{{ url_for('upload_comprovante_filho', id=f.id) }}"
+                        enctype="multipart/form-data">
+                        <input type="file" name="comprovante" multiple class="form-control form-control-sm mb-2"
+                            required>
+                        <button type="submit" class="btn btn-sm btn-gradient">Enviar comprovante</button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const qtInput = document.querySelector('[name="quantidade_filhos"]');
+        const container = document.getElementById('campos-filhos');
+        if (qtInput) {
+            qtInput.addEventListener('input', function () {
+                const qt = parseInt(this.value) || 0;
+                container.innerHTML = '';
+                for (let i = 1; i <= qt; i++) {
+                    container.innerHTML += `
+                        <div class="row align-items-end mb-2">
+                            <div class="col-7 col-md-7">
+                                <label>Nome do filho ${i}</label>
+                                <input type="text" name="nome_filho_${i}" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-5 col-md-5">
+                                <label>Idade</label>
+                                <input type="number" name="idade_filho_${i}" min="0" max="20" class="form-control form-control-sm" required>
+                            </div>
+                        </div>`;
+                }
+            });
+        }
+    });
+</script>
+
 {% include 'footer_candidatos.html' %}
 {% endblock %}

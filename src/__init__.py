@@ -6,14 +6,15 @@ from dotenv import load_dotenv
 from datetime import datetime
 import os
 from supabase import create_client
+from src.controllers.b2_utils import get_b2_file_url
+
 
 # Carregar variáveis do .env
 load_dotenv()
-print("URL do Banco:", os.getenv("DATABASE_URL"))
-print("Chave secreta:", os.getenv("SECRET_KEY"))
 
 
 app = Flask(__name__)
+app.jinja_env.globals['get_b2_file_url'] = get_b2_file_url
 
 # Carrega as configurações do .env
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
