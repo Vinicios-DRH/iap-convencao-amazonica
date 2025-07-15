@@ -61,5 +61,69 @@
     <div class="alert alert-info text-center">Nenhum comprovante aguardando confirmação.</div>
     {% endif %}
 </div>
+
+<h2 class="mb-4">Aprovação de Comprovantes dos Filhos</h2>
+
+{% if comprovantes_filhos %}
+<div class="table-responsive">
+    <table class="table table-bordered align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Responsável</th>
+                <th>Email</th>
+                <th>Filho</th>
+                <th>Idade</th>
+                <th>Data</th>
+                <th>Arquivo</th>
+                <th>Status</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comp in comprovantes_filhos %}
+            <tr>
+                <td>{{ comp.filho.usuario.nome }}</td>
+                <td>{{ comp.filho.usuario.email }}</td>
+                <td>{{ comp.filho.nome }}</td>
+                <td>{{ comp.filho.idade }}</td>
+                <td>{{ comp.data_envio.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                    <a class="btn btn-primary btn-sm" href="{{ get_b2_file_url(comp.caminho_arquivo) }}"
+                        target="_blank">
+                        Ver
+                    </a>
+                </td>
+                <td>
+                    {% if comp.status == 'Aprovado' %}
+                    <span class="badge bg-success">Aprovado</span>
+                    {% elif comp.status == 'Rejeitado' %}
+                    <span class="badge bg-danger">Rejeitado</span>
+                    {% elif comp.status == 'AGUARDANDO CONFIRMAÇÃO' %}
+                    <span class="badge bg-warning text-dark">Aguardando</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Pendente</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('atualizar_comprovante_filho', id=comp.id) }}"
+                        style="display:inline-block">
+                        <input type="hidden" name="status" value="Aprovado">
+                        <button class="btn btn-success btn-sm" type="submit">Aprovar</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('atualizar_comprovante_filho', id=comp.id) }}"
+                        style="display:inline-block">
+                        <input type="hidden" name="status" value="Rejeitado">
+                        <button class="btn btn-danger btn-sm" type="submit">Rejeitar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info text-center">Nenhum comprovante de filho aguardando confirmação.</div>
+{% endif %}
+
 {% include 'admin_footer.html' %}
 {% endblock %}

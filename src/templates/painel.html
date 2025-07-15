@@ -265,21 +265,63 @@
                     <div class="mb-2" style="font-size:1.04em;">Idade: <b>{{ f.idade }}</b> anos</div>
                     {% if f.idade >= 5 %}
                     <hr style="margin:10px 0 13px 0;">
-                    {% if f.comprovantes %}
+
+                    {% if f.comp_pendente %}
+                    <div class="alert alert-info text-center">
+                        <b>Comprovante enviado!</b><br>
+                        Aguarde a aprovação da equipe.
+                    </div>
                     <div style="font-size:0.98em;" class="mb-2">
                         <span class="text-dark fw-bold">Comprovantes enviados:</span><br>
-                        {% for comp in f.comprovantes %}
-                        <a href="{{ get_b2_file_url(comp.caminho_arquivo) }}" target="_blank">Ver comprovante</a>
-                        <br>
-                        {% endfor %}
+                        <a href="{{ get_b2_file_url(f.comp_pendente.caminho_arquivo) }}" target="_blank"
+                            class="btn btn-sm btn-outline-primary mb-1">
+                            Ver comprovante ({{ f.comp_pendente.data_envio.strftime('%d/%m/%Y %H:%M') }})
+                        </a>
+                    </div>
+                    {% elif f.comp_aprovado %}
+                    <div class="alert alert-success text-center">
+                        <b>Pagamento aprovado!</b><br>
+                        Tudo certo, a inscrição do seu filho está garantida.
+                    </div>
+                    <div style="font-size:0.98em;" class="mb-2">
+                        <span class="text-dark fw-bold">Comprovante aprovado:</span><br>
+                        <a href="{{ get_b2_file_url(f.comp_aprovado.caminho_arquivo) }}" target="_blank"
+                            class="btn btn-sm btn-outline-primary mb-1">
+                            Ver comprovante ({{ f.comp_aprovado.data_envio.strftime('%d/%m/%Y %H:%M') }})
+                        </a>
+                    </div>
+                    {% else %}
+                    {% if f.comp_rejeitado %}
+                    <div class="alert alert-danger text-center">
+                        <b>Comprovante rejeitado!</b> Por favor, envie novamente.
+                    </div>
+                    <div style="font-size:0.98em;" class="mb-2">
+                        <span class="text-dark fw-bold">Último enviado:</span><br>
+                        <a href="{{ get_b2_file_url(f.comp_rejeitado.caminho_arquivo) }}" target="_blank"
+                            class="btn btn-sm btn-outline-primary mb-1">
+                            Ver comprovante ({{ f.comp_rejeitado.data_envio.strftime('%d/%m/%Y %H:%M') }})
+                        </a>
                     </div>
                     {% endif %}
+                    <div class="pix-info text-center mb-2">
+                        <h6 style="color:#6e00ff; font-weight:700;">Pagamento deste filho</h6>
+                        <img src="{{ url_for('static', filename='img/qrcode_pix.png') }}" alt="QR Code Pix"
+                            style="max-width:120px; border-radius:7px;">
+                        <p style="margin:10px 0 0 0;"><b>Chave Pix:</b> 01651845239 - CPF</p>
+                        <a href="https://nubank.com.br/cobrar/1glyaf/686ef4c1-4309-4da5-94cb-0ab4568b0998"
+                            target="_blank" style="color:#ff4d00; text-decoration:underline; font-size:0.98em;">
+                            Abrir link do pagamento deste filho
+                        </a>
+                        <p style="font-size:0.92em; color:#6c757d; margin-top:7px;">Após o pagamento, envie o
+                            comprovante abaixo.</p>
+                    </div>
                     <form class="d-block" method="POST" action="{{ url_for('upload_comprovante_filho', id=f.id) }}"
                         enctype="multipart/form-data">
                         <input type="file" name="comprovante" multiple class="form-control form-control-sm mb-2"
                             required>
                         <button type="submit" class="btn btn-sm btn-gradient">Enviar comprovante</button>
                     </form>
+                    {% endif %}
                     {% endif %}
                 </div>
                 {% endfor %}

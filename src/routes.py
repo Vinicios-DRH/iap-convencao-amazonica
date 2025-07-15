@@ -121,6 +121,17 @@ def painel_candidato():
             status = comprovante.status
 
     filhos = Filho.query.filter_by(id_usuario=current_user.id).all()
+
+    for filho in filhos:
+        comprovantes = sorted(filho.comprovantes,
+                              key=lambda c: c.data_envio, reverse=True)
+        filho.comp_pendente = next(
+            (c for c in comprovantes if c.status == "AGUARDANDO CONFIRMAÇÃO"), None)
+        filho.comp_rejeitado = next(
+            (c for c in comprovantes if c.status == "Rejeitado"), None)
+        filho.comp_aprovado = next(
+            (c for c in comprovantes if getattr(c, 'status', None) == "Aprovado"), None)
+
     return render_template(
         "painel.html",
         usuario=current_user,
@@ -229,16 +240,30 @@ def admin_comprovantes():
         flash("Acesso restrito!", "danger")
         return redirect(url_for("info"))
 
+    # Comprovantes do responsável
     comprovantes = ComprovantesPagamento.query.filter(
         ComprovantesPagamento.status == "AGUARDANDO CONFIRMAÇÃO"
     ).order_by(ComprovantesPagamento.data_envio.desc()).all()
-
     for c in comprovantes:
         if c.arquivo_comprovante:
             c.link_arquivo = supabase.storage.from_(
                 "comprovantes").get_public_url(c.arquivo_comprovante)
 
-    return render_template("admin_comprovantes.html", comprovantes=comprovantes)
+    # Comprovantes dos filhos
+    comprovantes_filhos = ComprovanteFilho.query.\
+        join(Filho).filter(ComprovanteFilho.status == "AGUARDANDO CONFIRMAÇÃO").\
+        order_by(ComprovanteFilho.data_envio.desc()).all()
+
+    # Adiciona o link público do arquivo (Backblaze)
+    from src.controllers.b2_utils import get_b2_file_url
+    for cf in comprovantes_filhos:
+        cf.link_arquivo = get_b2_file_url(cf.caminho_arquivo)
+
+    return render_template(
+        "admin_comprovantes.html",
+        comprovantes=comprovantes,
+        comprovantes_filhos=comprovantes_filhos
+    )
 
 
 @app.route("/admin/comprovantes/historico")
@@ -257,6 +282,19 @@ def historico_comprovantes():
                 "comprovantes").get_public_url(c.arquivo_comprovante)
 
     return render_template("admin_historico_comprovantes.html", comprovantes=comprovantes)
+
+
+@app.route("/admin/comprovantes/filho/<int:id>", methods=["POST"])
+@login_required
+def atualizar_comprovante_filho(id):
+    if current_user.funcao_user_id != 1:
+        abort(403)
+    comp = ComprovanteFilho.query.get_or_404(id)
+    status = request.form.get("status")
+    comp.status = status
+    database.session.commit()
+    flash(f"Comprovante do filho atualizado para {status}!", "success")
+    return redirect(url_for("admin_comprovantes"))
 
 
 @app.route("/admin/comprovantes/<int:id>/atualizar", methods=["POST"])

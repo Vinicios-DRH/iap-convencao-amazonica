@@ -79,3 +79,5 @@ class ComprovanteFilho(database.Model):
         255), nullable=False)  # caminho/URL do arquivo
     data_envio = database.Column(
         database.DateTime, default=datetime.utcnow)
+    status = database.Column(
+        database.String(50), default="AGUARDANDO CONFIRMAÇÃO", nullable=False)
