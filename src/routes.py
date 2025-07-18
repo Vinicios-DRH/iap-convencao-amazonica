@@ -37,10 +37,18 @@ def get_user_ip():
     return ip
 
 
+def inscricoes_suspensas():
+    return os.environ.get("INSCRICOES_SUSPENSAS") == "1"
+
+
 @app.route("/inscricao", methods=["GET", "POST"])
 def inscricao():
-    if current_user.is_authenticated:
-        return redirect(url_for("painel_candidato"))
+    if inscricoes_suspensas():
+        # Se for admin, permite o acesso normal
+        if current_user.is_authenticated and current_user.funcao_user_id == 1:
+            pass  # Segue normal
+        else:
+            return render_template("suspenso.html")
 
     form = InscricaoForm()
     if form.validate_on_submit():
@@ -78,8 +86,11 @@ def inscricao():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("painel_candidato"))
+    if inscricoes_suspensas():
+        if current_user.is_authenticated and current_user.funcao_user_id == 1:
+            pass
+        else:
+            return render_template("suspenso.html")
 
     form = LoginForm()
     if form.validate_on_submit():

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body %}
+<div
+    style="max-width: 520px; margin: 70px auto; background: #fff; border-radius: 22px; box-shadow: 0 4px 32px #6e00ff23; padding: 44px 28px; text-align: center;">
+    <img src="{{ url_for('static', filename='img/Logo Arte Conferencia Reino 01.png') }}"
+        style="max-width:110px; border-radius:8px; margin-bottom:18px;">
+    <h2 style="color: #6e00ff; font-weight:900; margin-bottom:14px;">Inscrições Suspensas</h2>
+    <p style="font-size:1.12em; color: #333;">
+        As inscrições e acessos de participantes estão <b>temporariamente suspensos</b> por tempo indeterminado.<br>
+        Aguarde novas orientações.<br><br>
+        <span style="color:#ff4d00; font-weight:bold;">Agradecemos sua compreensão!</span>
+    </p>
+</div>
+{% endblock %}
