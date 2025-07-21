@@ -18,7 +18,12 @@ from src.controllers.b2_utils import upload_to_b2, get_b2_file_url
 def home():
     # if current_user.is_authenticated:
     #     return redirect(url_for('candidato'))
-    return redirect(url_for('info'))
+    return redirect(url_for('save_the_date'))
+
+
+@app.route("/save-the-date", methods=['GET', 'POST'])
+def save_the_date():
+    return render_template('save_the_date.html')
 
 
 @app.route("/conferencia-reino", methods=['GET', 'POST'])

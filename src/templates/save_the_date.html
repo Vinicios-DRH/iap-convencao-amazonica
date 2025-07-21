@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Conferência Reino | Em breve</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:800,600,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #6e00ff 70%, #ff4d00 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .save-date-card {
+            background: #fff;
+            border-radius: 26px;
+            box-shadow: 0 10px 38px 0 #6e00ff22, 0 2px 8px #ff4d0033;
+            padding: 44px 28px 38px 28px;
+            text-align: center;
+            max-width: 430px;
+            margin: 32px 18px;
+            animation: fadein 1s;
+        }
+
+        @keyframes fadein {
+            from {
+                opacity: 0;
+                transform: translateY(-32px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .save-date-card img {
+            max-width: 120px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 22px #6e00ff11;
+        }
+
+        .save-date-title {
+            color: #6e00ff;
+            font-weight: 900;
+            font-size: 2.1em;
+            margin-bottom: 5px;
+            letter-spacing: .5px;
+        }
+
+        .save-date-date {
+            color: #ff4d00;
+            font-weight: 700;
+            font-size: 1.17em;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+
+        .save-date-info {
+            color: #333;
+            font-size: 1.11em;
+            margin-bottom: 18px;
+        }
+
+        .save-date-soon {
+            color: #fff;
+            background: linear-gradient(92deg, #6e00ff 50%, #ff4d00 100%);
+            padding: 12px 0 12px 0;
+            border-radius: 12px;
+            font-size: 1.13em;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            box-shadow: 0 1px 12px #6e00ff33;
+        }
+
+        @media (max-width: 600px) {
+            .save-date-card {
+                padding: 32px 7px 26px 7px;
+                margin: 22px 2px;
+            }
+
+            .save-date-title {
+                font-size: 1.32em;
+            }
+
+            .save-date-date {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="save-date-card">
+        <img src="{{ url_for('static', filename='img/Logo Arte Conferencia Reino 01.png') }}"
+            alt="Logo Conferência Reino">
+        <div class="save-date-title">Conferência Reino</div>
+        <div class="save-date-date">Adiada para <span style="color:#6e00ff;">Novembro</span></div>
+        <div class="save-date-info">
+            Em breve, novas informações sobre datas, inscrições e programação.<br>
+            Agradecemos sua compreensão! <br>
+            <span style="color:#ff4d00; font-weight:700;">Fique atento!</span>
+        </div>
+        <div class="save-date-soon">
+            EM BREVE<br>
+            <span style="font-size:0.87em; font-weight:500;">Save the date</span>
+        </div>
+    </div>
+</body>
+
+</html>
