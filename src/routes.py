@@ -23,7 +23,7 @@ def home():
 
 @app.route("/save-the-date", methods=['GET', 'POST'])
 def save_the_date():
-    return render_template('save_the_date.html')
+    return render_template('save_the_date_2.html')
 
 
 @app.route("/conferencia-reino", methods=['GET', 'POST'])
