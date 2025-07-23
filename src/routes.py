@@ -23,12 +23,12 @@ def home():
 
 @app.route("/save-the-date", methods=['GET', 'POST'])
 def save_the_date():
-    return render_template('save_the_date_2.html')
+    return render_template('conferencia_reino_ntcnc/save_the_date_2.html')
 
 
 @app.route("/conferencia-reino", methods=['GET', 'POST'])
 def info():
-    return render_template('info.html')
+    return render_template('conferencia_reino_ntcnc/info.html')
 
 
 def get_user_ip():
@@ -53,7 +53,7 @@ def inscricao():
         if current_user.is_authenticated and current_user.funcao_user_id == 1:
             pass  # Segue normal
         else:
-            return render_template("suspenso.html")
+            return render_template("conferencia_reino_ntcnc/suspenso.html")
 
     form = InscricaoForm()
     if form.validate_on_submit():
@@ -86,7 +86,7 @@ def inscricao():
         flash("Inscrição realizada com sucesso!", "success")
         return redirect(url_for("painel_candidato"))
 
-    return render_template("inscricao.html", form=form)
+    return render_template("conferencia_reino_ntcnc/inscricao.html", form=form)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -111,7 +111,7 @@ def login():
                 return redirect(url_for("painel_candidato"))
         else:
             flash("E-mail ou senha inválidos.", "danger")
-    return render_template("login.html", form=form)
+    return render_template("conferencia_reino_ntcnc/login.html", form=form)
 
 
 @app.route("/painel")
@@ -149,7 +149,7 @@ def painel_candidato():
             (c for c in comprovantes if getattr(c, 'status', None) == "Aprovado"), None)
 
     return render_template(
-        "painel.html",
+        "conferencia_reino_ntcnc/painel.html",
         usuario=current_user,
         status_comprovante=status,
         url_comprovante=url_arquivo,
@@ -276,7 +276,7 @@ def admin_comprovantes():
         cf.link_arquivo = get_b2_file_url(cf.caminho_arquivo)
 
     return render_template(
-        "admin_comprovantes.html",
+        "conferencia_reino_ntcnc/admin_comprovantes.html",
         comprovantes=comprovantes,
         comprovantes_filhos=comprovantes_filhos
     )
@@ -297,7 +297,7 @@ def historico_comprovantes():
             c.link_arquivo = supabase.storage.from_(
                 "comprovantes").get_public_url(c.arquivo_comprovante)
 
-    return render_template("admin_historico_comprovantes.html", comprovantes=comprovantes)
+    return render_template("conferencia_reino_ntcnc/admin_historico_comprovantes.html", comprovantes=comprovantes)
 
 
 @app.route("/admin/comprovantes/filho/<int:id>", methods=["POST"])
@@ -345,7 +345,7 @@ def admin_candidatos():
         c.status_comprovante = ultimo_comprovante.status if ultimo_comprovante else "Não enviado"
         c.data_envio = ultimo_comprovante.data_envio if ultimo_comprovante else None
 
-    return render_template("admin_candidatos.html", candidatos=candidatos)
+    return render_template("conferencia_reino_ntcnc/admin_candidatos.html", candidatos=candidatos)
 
 
 @app.route("/admin/candidatos/exportar")
