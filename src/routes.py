@@ -310,4 +310,4 @@ def criar_admin():
     admin.set_password("123456")
     db.session.add(admin)
     db.session.commit()
-    return "Usuário admin criado! Vá para /login e entre com admin@teste.com / 123456"
+    return "Usuário admin criado!"
