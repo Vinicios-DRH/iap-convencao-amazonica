@@ -1,83 +1,64 @@
 from src import database, login_manager
 from flask_login import UserMixin
 from datetime import datetime
-from datetime import datetime
 import pytz
+from werkzeug.security import generate_password_hash, check_password_hash
+
+fuso_am = pytz.timezone("America/Manaus")
 
 
 def agora_manaus():
-    fuso_am = pytz.timezone("America/Manaus")
     return datetime.now(fuso_am)
 
 
-class FuncaoUser(database.Model):
-    __tablename__ = "funcao_user"
+class User(UserMixin, database.Model):
+    __tablename__ = "users"
+
     id = database.Column(database.Integer, primary_key=True)
-    ocupacao = database.Column(database.String(50), nullable=False)
-    user = database.relationship('User', backref='user_funcao')
+    nome = database.Column(database.String(120), nullable=False)
+    email = database.Column(database.String(120), unique=True, nullable=False)
+    senha_hash = database.Column(database.String(255), nullable=False)
+
+    # importante: timezone=True pra armazenar info de fuso
+    created_at = database.Column(
+        database.DateTime(timezone=True),
+        default=agora_manaus
+    )
+
+    fichas = database.relationship("FichaPasse", backref="usuario", lazy=True)
+
+    def set_password(self, senha: str):
+        self.senha_hash = generate_password_hash(senha)
+
+    def check_password(self, senha: str) -> bool:
+        return check_password_hash(self.senha_hash, senha)
 
 
 @login_manager.user_loader
-def load_usuario(id_usuario):
-    return User.query.get(int(id_usuario))
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
-class User(database.Model, UserMixin):
-    __tablename__ = "user"
+class FichaPasse(database.Model):
+    __tablename__ = "ficha_passe"
+
     id = database.Column(database.Integer, primary_key=True)
-    nome = database.Column(database.String(100))
-    email = database.Column(database.String(50))
-    senha = database.Column(database.String(500))
-    funcao_user_id = database.Column(
-        database.Integer, database.ForeignKey('funcao_user.id'))
-    iap_local = database.Column(database.String(100), nullable=False)
-    telefone = database.Column(database.String(20))
-    ip_address = database.Column(database.String(45))
-    data_criacao = database.Column(
-        database.DateTime, default=agora_manaus)
-    data_ultimo_acesso = database.Column(
-        database.DateTime, default=agora_manaus)
 
-    funcao_user = database.relationship(
-        'FuncaoUser', foreign_keys=[funcao_user_id])
-    comprovantes_pagamento = database.relationship(
-        "ComprovantesPagamento", backref="usuario", lazy=True)
+    nome = database.Column(database.String(150), nullable=False)
+    endereco = database.Column(database.String(255), nullable=False)
+    complemento = database.Column(database.String(150))
+    bairro = database.Column(database.String(150))
+    telefone = database.Column(database.String(40))
+    servico = database.Column(database.String(255))
 
+    ja_conhecia = database.Column(database.Boolean, default=False)
+    quer_conhecer_mais = database.Column(database.Boolean, default=False)
 
-class ComprovantesPagamento(database.Model):
-    __tablename__ = "comprovantes_pagamento"
-    id = database.Column(database.Integer, primary_key=True)
-    id_user = database.Column(
-        database.Integer, database.ForeignKey('user.id'))
-    arquivo_comprovante = database.Column(database.String(50))
-    parcela = database.Column(database.String(20))
-    data_envio = database.Column(database.DateTime, default=agora_manaus)
-    status = database.Column(database.String(50))
+    created_at = database.Column(
+        database.DateTime(timezone=True),
+        default=agora_manaus
+    )
 
-
-class Filho(database.Model):
-    __tablename__ = 'filhos'
-    id = database.Column(database.Integer, primary_key=True)
-    nome = database.Column(database.String(100), nullable=False)
-    idade = database.Column(database.Integer, nullable=False)
-    paga_inscricao = database.Column(database.Boolean, default=False)
-    id_usuario = database.Column(
-        database.Integer, database.ForeignKey('user.id'))
-
-    usuario = database.relationship('User', backref='filhos')
-    # Agora, os comprovantes vêm de outra tabela!
-    comprovantes = database.relationship(
-        'ComprovanteFilho', backref='filho', lazy=True)
-
-
-class ComprovanteFilho(database.Model):
-    __tablename__ = 'comprovantes_filho'
-    id = database.Column(database.Integer, primary_key=True)
-    id_filho = database.Column(
-        database.Integer, database.ForeignKey('filhos.id'), nullable=False)
-    caminho_arquivo = database.Column(database.String(
-        255), nullable=False)  # caminho/URL do arquivo
-    data_envio = database.Column(
-        database.DateTime, default=datetime.utcnow)
-    status = database.Column(
-        database.String(50), default="AGUARDANDO CONFIRMAÇÃO", nullable=False)
+    usuario_id = database.Column(
+        database.Integer, database.ForeignKey("users.id")
+    )

@@ -1,0 +1,298 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+h1 {
+    color: #005596 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px !important;
+    /* Reduzi aqui */
+    font-weight: 600 !important;
+    /* Mais bold, já que é menor */
+}
+
+h2 {
+    color: #005596 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 26px !important;
+    /* Ideal para seções principais */
+    font-weight: 500 !important;
+    margin-bottom: 0.7rem;
+}
+
+h3 {
+    color: #005596 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px !important;
+    font-weight: 500 !important;
+}
+
+h5,
+h6 {
+    color: #171629 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px !important;
+    /* Para títulos dentro de cards, por exemplo */
+    font-weight: 600 !important;
+    margin: 0 !important;
+}
+
+
+p {
+    color: #000000 !important;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+}
+
+.banner-full {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: 15px;
+    margin-bottom: 2.5rem;
+    overflow: hidden;
+    background: #00000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.banner-slide {
+    width: 100%;
+    height: auto;
+    max-width: 1920px;
+    max-height: 460px;
+    object-fit: contain !important;
+    display: block;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 0;
+    box-shadow: 0 2px 26px rgba(44, 64, 106, 0.10);
+}
+
+
+.portal-section-title {
+    font-weight: 700;
+    font-size: 25px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin-bottom: 0.7rem;
+    color: #19487b;
+    text-transform: uppercase;
+}
+
+/* HR especial abaixo do título */
+.section-hr {
+    margin-top: -0.1rem;
+    margin-bottom: 2rem;
+    border: none;
+    border-top: 3px solid #19487b44;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 2px;
+}
+
+.rounded-4 {
+    border-radius: 1.2rem !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 2px 26px rgba(44, 64, 106, 0.09) !important;
+}
+
+.escola-biblica-card {
+    background: #f8f9fa;
+    border-radius: 1.1rem;
+    padding: 1.3rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 18px rgba(40, 50, 90, 0.06);
+}
+
+.escola-biblica-img {
+    border-radius: 0.6rem;
+    box-shadow: 0 4px 18px rgba(30, 60, 140, 0.08);
+    margin-bottom: 1.1rem;
+    max-width: 140px;
+}
+
+.grid-simple-card {
+    background: #fff;
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 10px rgba(44, 64, 106, 0.05);
+    padding: 1.2rem 1rem;
+    min-height: 180px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+}
+
+
+.btn-primary {
+    background-color: #144D85;
+    border-color: #144D85;
+}
+
+.btn-primary:hover {
+    background-color: #0d3b6f;
+    border-color: #0d3b6f;
+}
+
+.login-body {
+    margin: 0;
+    padding: 0;
+    background: url('/static/img/convencao/laptop-e-notebook-na-mesa-de-madeira.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.login-card {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.note-editable[contenteditable="true"] {
+    text-align: justify;
+}
+
+textarea#corpo {
+    height: 0px !important;
+    min-height: 0px !important;
+    max-height: 0px !important;
+    padding: 0 !important;
+    border: none !important;
+    position: absolute !important;
+    opacity: 0 !important;
+    z-index: -1;
+}
+
+.btn-gradient-primary {
+    background: linear-gradient(90deg, #267dff 0%, #33cfff 100%) !important;
+    color: #fff !important;
+    transition: box-shadow .2s, transform .2s;
+    border: none !important;
+}
+
+.btn-gradient-primary:hover,
+.btn-gradient-primary:focus {
+    box-shadow: 0 8px 24px #267dff44;
+    transform: translateY(-2px) scale(1.03);
+    color: #fff !important;
+}
+
+.form-check-label {
+    user-select: none;
+}
+
+.switches-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 0.5rem 0;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.switches-row .form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    gap: 0.6rem;
+    min-width: unset;
+    white-space: nowrap;
+    font-size: 1.05rem;
+}
+
+.switches-row .form-check-input {
+    width: 2.1em;
+    height: 1.1em;
+    accent-color: #267dff;
+}
+
+.switches-row .form-check-label {
+    font-size: 1rem;
+    color: #3b4860 !important;
+    font-weight: 500;
+    margin-left: 0;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* Responsivo: em telas menores, coloca switches em duas linhas */
+@media (max-width: 600px) {
+    .switches-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+    }
+
+    .switches-row .form-check {
+        justify-content: flex-start;
+        width: 100%;
+        font-size: 0.98rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .banner-full img.banner-slide {
+        min-height: 120px;
+        max-height: 180px;
+    }
+
+    .banner-full {
+        margin-top: 58px;
+        /* Pode reduzir um pouco a margem para mobile */
+    }
+
+    .banner-slide {
+        min-height: 120px;
+    }
+
+    .escola-biblica-card {
+        padding: 0.7rem;
+    }
+
+    .grid-simple-card {
+        min-height: 120px;
+        padding: 0.9rem 0.7rem;
+    }
+
+    .section-hr {
+        width: 55px;
+    }
+}

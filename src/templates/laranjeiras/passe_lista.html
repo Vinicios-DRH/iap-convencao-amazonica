@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% block title %}Fichas cadastradas{% endblock %}
+
+{% block head %}
+{{ super() }}
+
+<style>
+    /* 🔓 Override do layout do base.html pra usar a largura toda */
+    .app-container {
+        flex: 1;
+        display: block;
+        padding: 0.75rem 0.5rem 2rem;
+    }
+
+    .app-container .glass-card {
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+    }
+
+    @media (min-width: 768px) {
+        .app-container {
+            padding: 1rem 1rem 2.5rem;
+        }
+    }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.8rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .header-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--brand-blue-dark);
+    }
+
+    .btn-brand {
+        background: var(--brand-blue-dark);
+        border: none;
+        padding: .55rem 1.4rem;
+        border-radius: 10px;
+        font-weight: 600;
+        color: #fff !important;
+        white-space: nowrap;
+    }
+
+    .btn-brand:hover {
+        background: var(--brand-blue);
+        color: #fff;
+    }
+
+    .btn-ghost {
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .filters-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .06);
+        margin-bottom: 1.5rem;
+    }
+
+    .filters-label {
+        font-size: .8rem;
+        font-weight: 600;
+        color: var(--brand-blue-dark);
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: .35rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 12px;
+    }
+
+    .scroll-hint {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 0.4rem;
+    }
+
+    table.table-modern {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 28px rgba(0, 51, 102, .15);
+    }
+
+    table.table-modern thead {
+        background: var(--brand-blue-dark);
+        color: #fff;
+    }
+
+    table.table-modern thead th {
+        padding: .9rem .75rem;
+        font-size: .8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        white-space: nowrap;
+    }
+
+    table.table-modern tbody tr {
+        border-bottom: 1px solid rgba(0, 0, 0, .05);
+    }
+
+    table.table-modern tbody td {
+        padding: .8rem .75rem;
+        vertical-align: middle;
+        font-size: .9rem;
+        white-space: nowrap;
+    }
+
+    table.table-modern tbody tr:hover {
+        background: #f4faff;
+    }
+
+    .badge-sim {
+        background: var(--brand-blue-dark);
+        color: #fff;
+        padding: .35rem .65rem;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 600;
+    }
+
+    .badge-nao {
+        background: #c62828;
+        color: #fff;
+        padding: .35rem .65rem;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 600;
+    }
+
+    .badge-servico {
+        background: var(--brand-blue-soft);
+        color: var(--brand-blue-dark);
+        padding: .3rem .6rem;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 600;
+        white-space: normal;
+    }
+
+    .pagination .page-link {
+        color: var(--brand-blue-dark);
+        font-weight: 600;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--brand-blue-dark) !important;
+        color: #fff !important;
+        border-color: var(--brand-blue-dark);
+    }
+
+    .pagination .page-link:hover {
+        background-color: var(--brand-blue-soft);
+    }
+
+    /* 🌗 Dark-mode automático */
+    @media (prefers-color-scheme: dark) {
+        .filters-card {
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, .5);
+        }
+
+        table.table-modern {
+            background: #020617;
+            color: #e5e7eb;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .6);
+        }
+
+        table.table-modern tbody tr {
+            border-bottom-color: rgba(148, 163, 184, .25);
+        }
+
+        table.table-modern tbody tr:hover {
+            background: #020617;
+        }
+
+        .badge-servico {
+            background: #1e293b;
+            color: #e5e7eb;
+        }
+
+        .scroll-hint {
+            color: #94a3b8;
+        }
+    }
+
+    /* 📱 Ajustes extras para mobile */
+    @media (max-width: 575.98px) {
+        .header-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .header-title {
+            font-size: 1.3rem;
+        }
+
+        .filters-card {
+            padding: 0.85rem 0.9rem;
+        }
+
+        table.table-modern thead th,
+        table.table-modern tbody td {
+            font-size: 0.78rem;
+            padding: 0.55rem 0.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="header-row">
+    <div class="header-title">Fichas cadastradas</div>
+
+    <a class="btn btn-brand" href="{{ url_for('novo_passe') }}">
+        + Nova ficha
+    </a>
+</div>
+
+<form method="get" class="filters-card">
+    <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+            <div class="filters-label">Busca</div>
+            <input type="text" name="search" value="{{ request.args.get('search', '') }}" class="form-control"
+                placeholder="Nome, telefone ou bairro">
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="filters-label">Serviço</div>
+            <select name="servico" class="form-select">
+                <option value="">Todos</option>
+                {% for value, label in servicos_dict.items() %}
+                <option value="{{ value }}" {% if request.args.get('servico')==value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <div class="filters-label">De</div>
+            <input type="date" name="data_inicio" value="{{ request.args.get('data_inicio', '') }}"
+                class="form-control">
+        </div>
+
+        <div class="col-6 col-md-2">
+            <div class="filters-label">Até</div>
+            <input type="date" name="data_fim" value="{{ request.args.get('data_fim', '') }}" class="form-control">
+        </div>
+
+        <div class="col-12 col-md-1 d-flex flex-md-column gap-2 mt-2 mt-md-0">
+            <button type="submit" class="btn btn-brand w-100">
+                Filtrar
+            </button>
+
+            <button type="submit" class="btn btn-outline-secondary btn-ghost w-100"
+                formaction="{{ url_for('exportar_passe_excel') }}">
+                Excel
+            </button>
+        </div>
+    </div>
+</form>
+
+<div class="table-container">
+    <div class="scroll-hint d-block d-md-none">
+        Arraste para o lado para ver todas as colunas ⟶
+    </div>
+
+    <table class="table-modern">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Serviço</th>
+                <th class="d-none d-lg-table-cell">Já conhecia?</th>
+                <th class="d-none d-lg-table-cell">Quer conhecer mais?</th>
+                <th>Data</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for ficha in fichas.items %}
+            <tr>
+                <td>{{ ficha.id }}</td>
+                <td>{{ ficha.nome }}</td>
+                <td>{{ ficha.telefone or "-" }}</td>
+
+                <td>
+                    <span class="badge-servico">
+                        {{ servicos_dict.get(ficha.servico, ficha.servico) }}
+                    </span>
+                </td>
+
+                <td class="d-none d-lg-table-cell">
+                    {% if ficha.ja_conhecia %}
+                    <span class="badge-sim">Sim</span>
+                    {% else %}
+                    <span class="badge-nao">Não</span>
+                    {% endif %}
+                </td>
+
+                <td class="d-none d-lg-table-cell">
+                    {% if ficha.quer_conhecer_mais %}
+                    <span class="badge-sim">Sim</span>
+                    {% else %}
+                    <span class="badge-nao">Não</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ ficha.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
+                        data-bs-target="#modalFicha{{ ficha.id }}">
+                        Detalhes
+                    </button>
+                </td>
+            </tr>
+
+            <div class="modal fade" id="modalFicha{{ ficha.id }}" tabindex="-1"
+                aria-labelledby="modalFichaLabel{{ ficha.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalFichaLabel{{ ficha.id }}">
+                                Ficha #{{ ficha.id }} - {{ ficha.nome }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="mb-2">
+                                <strong>Telefone:</strong> {{ ficha.telefone or "-" }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Endereço:</strong> {{ ficha.endereco }}
+                                {% if ficha.complemento %}
+                                <br><strong>Complemento:</strong> {{ ficha.complemento }}
+                                {% endif %}
+                                {% if ficha.bairro %}
+                                <br><strong>Bairro:</strong> {{ ficha.bairro }}
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Serviço:</strong>
+                                {{ servicos_dict.get(ficha.servico, ficha.servico) }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Já conhecia a igreja?</strong>
+                                {{ "Sim" if ficha.ja_conhecia else "Não" }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Gostaria de conhecer mais?</strong>
+                                {{ "Sim" if ficha.quer_conhecer_mais else "Não" }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Registrado em:</strong>
+                                {{ ficha.created_at.strftime("%d/%m/%Y %H:%M") }}
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                Fechar
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+
+<nav aria-label="Paginação" class="mt-4">
+    <ul class="pagination justify-content-center">
+
+        {% if fichas.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('lista_passe',
+                                page=fichas.prev_num,
+                                search=request.args.get('search', ''),
+                                servico=request.args.get('servico', ''),
+                                data_inicio=request.args.get('data_inicio', ''),
+                                data_fim=request.args.get('data_fim', '')) }}">
+                Anterior
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">
+                Página {{ fichas.page }} de {{ fichas.pages }}
+            </span>
+        </li>
+
+        {% if fichas.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('lista_passe',
+                                page=fichas.next_num,
+                                search=request.args.get('search', ''),
+                                servico=request.args.get('servico', ''),
+                                data_inicio=request.args.get('data_inicio', ''),
+                                data_fim=request.args.get('data_fim', '')) }}">
+                Próxima
+            </a>
+        </li>
+        {% endif %}
+
+    </ul>
+</nav>
+
+{% endblock %}  

@@ -1,0 +1,134 @@
+<nav class="navbar navbar-expand-lg fixed-top navbar-light">
+    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+        <!-- LOGO -->
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='img/convencao/logo iap convencao amazonica minimalista 2.png') }}"
+                alt="Logo" class="logo-img">
+        </a>
+
+        <!-- BOTÃO DE TOGGLE (Mobile) -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- MENU -->
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul class="navbar-nav">
+                <!-- INÍCIO -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
+                        href="{{ url_for('home') }}">INÍCIO</a>
+                </li>
+
+                <!-- SOBRE NÓS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.endpoint in ['denominacao', 'convencao', 'missao_e_visao', 'pontos_de_fe', 'diretoria_regional'] %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        SOBRE NÓS
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('denominacao') }}">Sobre a Denominação</a>
+                        </li>
+                        <li><a class="dropdown-item" href="{{ url_for('convencao') }}">A Convenção Amazônica</a>
+                        </li>
+                        <li><a class="dropdown-item" href="{{ url_for('missao_e_visao') }}">Missão e Visão</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('pontos_de_fe') }}">Nossos Pontos de Fé</a>
+                        </li>
+                        <li><a class="dropdown-item" href="{{ url_for('diretoria_regional') }}">Nossa Diretoria
+                                Regional</a></li>
+                    </ul>
+                </li>
+
+                <!-- MINISTÉRIOS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.endpoint in ['ministerio_de_ensino', 'ministerio_de_mulheres', 'ministerio_de_jovens', 'ministerio_de_adolescentes', 'ministerio_de_celebracao', 'ministerio_de_me', 'ministerio_de_assistencia', 'ministerio_de_vida_pastoral', 'secretaria_capelania', 'secretaria_inclusao'] %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        MINISTÉRIOS
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_ensino') }}">Ministério de
+                                Ensino</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_mulheres') }}">Ministério de
+                                Mulheres</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_jovens') }}">Ministério de
+                                Jovens</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_adolescentes') }}">Ministério
+                                de Adolescentes</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_celebracao') }}">Ministério de
+                                Celebração</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_me') }}">Ministério de
+                                Missões</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_assistencia') }}">Ministério de
+                                Assistência</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('ministerio_de_vida_pastoral') }}">Ministério
+                                de Vida Pastoral</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('secretaria_capelania') }}">Secretaria de
+                                Capelania</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('secretaria_inclusao') }}">Secretaria de
+                                Inclusão</a></li>
+                    </ul>
+                </li>
+
+                <!-- NOSSAS NOTÍCIAS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.endpoint in ['noticias_regionais', 'noticias_nacionais', 'noticias_missionais'] %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        NOSSAS NOTÍCIAS
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('noticias_regionais') }}">Notícias
+                                Regionais</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('noticias_nacionais') }}">Notícias
+                                Nacionais</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('noticias_missionais') }}">Notícias
+                                Missionais</a></li>
+                    </ul>
+                </li>
+
+                <!-- DOWNLOADS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.endpoint in ['licoes', 'pequenos_grupos', 'ebooks'] %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">DOWNLOADS</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('licoes') }}">Lições Bíblicas</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('pequenos_grupos') }}">Pequenos Grupos</a>
+                        </li>
+                        <li><a class="dropdown-item" href="{{ url_for('ebooks') }}">Ebooks</a></li>
+                    </ul>
+                </li>
+
+                <!-- ÁREA DO MEMBRO -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.endpoint == 'promessa_mais' %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">ÁREA DO MEMBRO</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="https://promessamais.online/">PROMESSA +</a></li>
+                    </ul>
+                </li>
+
+                <!-- CONTATOS -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.endpoint in ['igrejas', 'converse_com_a_gente'] %}active{% endif %}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        CONTATOS
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('igrejas') }}">Encontre uma Igreja</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('converse_com_a_gente') }}">Converse com a
+                                gente</a></li>
+                    </ul>
+                </li>
+
+                <!-- LOGIN -->
+                {% if current_user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('criar_post') }}">POSTAR</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('perfil') }}">ADMIN</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">SAIR</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('acesso_restrito') }}">ENTRAR</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block body %}
+
+<div class="d-flex justify-content-center">
+    <div class="w-100" style="max-width: 420px;">
+
+        <h3 class="mb-4 text-center" style="color: var(--brand-blue-dark); font-weight: 700;">
+            Acesso ao Sistema
+        </h3>
+
+        <form method="post">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.email.label(class="form-label", style="font-weight:600; color:var(--brand-blue-dark);") }}
+                {{ form.email(class="form-control", style="padding: 0.75rem 1rem; border-radius: 10px;") }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.senha.label(class="form-label", style="font-weight:600; color:var(--brand-blue-dark);") }}
+                {{ form.senha(class="form-control", style="padding: 0.75rem 1rem; border-radius: 10px;") }}
+            </div>
+
+            <div class="form-check mb-4">
+                {{ form.lembrar(class="form-check-input") }}
+                {{ form.lembrar.label(class="form-check-label") }}
+            </div>
+
+            {{ form.submit(class="btn w-100",
+            style="background: var(--brand-blue-dark); border:none; padding:0.75rem; font-weight:600;
+            border-radius:10px;"
+            ) }}
+        </form>
+
+        <div class="text-center mt-4" style="font-size: 0.9rem; color: var(--brand-blue-dark); opacity: 0.8;">
+            <span>© {{ now().year if now else "" }} Igreja Adventista da Promessa – Laranjeiras</span>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,158 @@
+:root {
+    --azul-convencao: #144D85;
+    --amarelo-destaque: #FFC107;
+}
+
+.navbar {
+    background-color: white !important;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Montserrat', sans-serif;
+    z-index: 999;
+}
+
+.logo-img {
+    max-height: 35px;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav {
+    gap: 0.3rem;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    flex-wrap: nowrap;
+    /* Impede quebrar linha */
+    overflow-x: visible;
+    /* Se estourar, scroll horizontal */
+    scrollbar-width: none;
+}
+
+.navbar-nav::-webkit-scrollbar {
+    display: none;
+    /* Oculta no Chrome */
+}
+
+.navbar-nav .nav-link {
+    color: var(--azul-convencao) !important;
+    font-weight: 600;
+    font-size: clamp(0.75rem, 0.9vw, 0.95rem);
+    /* responsivo */
+    transition: 0.3s ease;
+    padding: 10px 14px;
+}
+
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:hover {
+    color: var(--amarelo-destaque) !important;
+}
+
+.dropdown-menu {
+    background-color: white;
+    border-radius: 6px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(20, 77, 133, 0.10) !important;
+    padding: 0.5rem 0;
+    z-index: 1000 !important;
+    position: absolute !important;
+}
+
+.dropdown-item {
+    color: var(--azul-convencao);
+    font-weight: 500;
+    padding: 8px 20px;
+    transition: 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #0d3055;
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* Responsividade completa */
+@media (max-width: 1200px) {
+    .navbar-nav .nav-link {
+        font-size: 0.9rem;
+    }
+
+    .logo-img {
+        max-height: 42px;
+    }
+}
+
+@media (max-width: 992px) {
+    .navbar-nav {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .navbar-nav .nav-link {
+        font-size: 1rem;
+        padding: 12px;
+    }
+
+    .logo-img {
+        max-height: 36px;
+    }
+}
+
+@media (max-width: 768px) {
+    .logo-img {
+        max-height: 32px;
+    }
+
+    .navbar {
+        padding: 0.6rem 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .logo-img {
+        max-height: 26px;
+    }
+
+    .navbar-nav .nav-link {
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .navbar-nav .nav-link {
+        font-size: clamp(0.7rem, 1vw, 0.9rem);
+        padding: 8px 10px;
+    }
+}
+
+/* Dropdown abre no hover em telas grandes */
+@media (min-width: 992px) {
+    .navbar-nav .dropdown:hover>.dropdown-menu {
+        display: block;
+        margin-top: 0;
+        /* ou ajuste se ficar colado demais */
+        animation: fadeIn 0.15s;
+    }
+
+    /* Suavidade na transição (opcional) */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Garante que o link não fique destacado quando hover */
+    .navbar-nav .dropdown:hover>.nav-link {
+        color: var(--amarelo-destaque) !important;
+    }
+}

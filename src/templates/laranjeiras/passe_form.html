@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Nova Ficha de Passe{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    .passe-header {
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .passe-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--brand-blue-dark);
+    }
+
+    .passe-subtitle {
+        font-size: .9rem;
+        color: #5a6a7a;
+    }
+
+    .section-title {
+        font-size: .9rem;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--brand-blue-dark);
+        font-weight: 600;
+        margin-bottom: .5rem;
+    }
+
+    .divider-soft {
+        border-top: 1px dashed rgba(0, 0, 0, .08);
+        margin: .75rem 0 1.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--brand-blue-dark);
+        font-size: .9rem;
+    }
+
+    .btn-brand {
+        background: var(--brand-blue-dark);
+        border: none;
+        font-weight: 600;
+        padding: .75rem 1.8rem;
+        border-radius: 999px;
+    }
+
+    .btn-brand:hover {
+        background: var(--brand-blue);
+    }
+
+    .helper-text {
+        font-size: .8rem;
+        color: #7b8a9a;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="passe-header">
+    <div class="badge bg-primary-subtle text-primary-emphasis mb-1" style="width:max-content;">
+        Ficha de Passe
+    </div>
+    <h3 class="passe-title">Cadastrar Ficha de Passe</h3>
+    <p class="passe-subtitle">
+        Registre os dados das pessoas atendidas para acompanhamento e futuras visitas da igreja.
+    </p>
+</div>
+
+<form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Dados pessoais -->
+    <div class="section-title">Dados pessoais</div>
+    <hr class="divider-soft">
+
+    <div class="row">
+        <div class="col-md-7 mb-3">
+            {{ form.nome.label(class="form-label") }}
+            {{ form.nome(class="form-control", placeholder="Nome completo") }}
+        </div>
+        <div class="col-md-5 mb-3">
+            {{ form.telefone.label(class="form-label") }}
+            {{ form.telefone(class="form-control", id="telefone", placeholder="(99) 99999-9999") }}
+            <div class="helper-text mt-1">Informe um número para contato posterior.</div>
+        </div>
+    </div>
+
+    <!-- Endereço -->
+    <div class="section-title mt-3">Endereço</div>
+    <hr class="divider-soft">
+
+    <div class="mb-3">
+        {{ form.endereco.label(class="form-label") }}
+        {{ form.endereco(class="form-control", placeholder="Rua, número") }}
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.complemento.label(class="form-label") }}
+            {{ form.complemento(class="form-control", placeholder="Bloco, apartamento, ponto de referência...") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.bairro.label(class="form-label") }}
+            {{ form.bairro(class="form-control", placeholder="Bairro") }}
+        </div>
+    </div>
+
+    <!-- Serviços -->
+    <div class="section-title mt-3">Serviço de interesse</div>
+    <hr class="divider-soft">
+
+    <div class="mb-3">
+        {{ form.servico.label(class="form-label") }}
+        {{ form.servico(class="form-select") }}
+        <div class="helper-text mt-1">
+            Selecione o principal serviço pelo qual a pessoa procurou o atendimento.
+        </div>
+    </div>
+
+    <!-- Relacionamento com a igreja -->
+    <div class="section-title mt-3">Relacionamento com a igreja</div>
+    <hr class="divider-soft">
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            {{ form.ja_conhecia.label(class="form-label") }}
+            {{ form.ja_conhecia(class="form-select") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ form.quer_conhecer_mais.label(class="form-label") }}
+            {{ form.quer_conhecer_mais(class="form-select") }}
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+        {{ form.submit(class="btn btn-brand") }}
+    </div>
+</form>
+
+<!-- Máscara de telefone -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.9/inputmask.min.js"
+    integrity="sha512-bKn4esx1S5sGgX1VbT5Imwpu2je/R+qVPsAtXGU2qRhWgYW1F5H0vLf7sAe37yGZN7zKx+9co0rOrAqV0K6Huw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var telInput = document.getElementById("telefone");
+        if (telInput) {
+            // Aceita (99) 9999-9999 e (99) 99999-9999
+            var im = new Inputmask("(99) 9999[9]-9999");
+            im.mask(telInput);
+        }
+    });
+</script>
+
+{% endblock %}

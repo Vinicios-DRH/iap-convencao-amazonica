@@ -22,9 +22,9 @@ app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 app.jinja_env.globals.update(enumerate=enumerate)
 
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_DB_URL, SUPABASE_KEY)
 
 # Configuração do diretório de uploads
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
