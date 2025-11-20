@@ -301,7 +301,6 @@ def exportar_passe_excel():
     )
 
 
-# rota rápida pra criar o primeiro usuário admin (depois você pode apagar)
 @app.route("/criar-admin")
 def criar_admin():
     if User.query.first():
