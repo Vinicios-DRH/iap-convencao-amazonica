@@ -129,6 +129,8 @@ def inscricao():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("painel"))
     form = LoginForm()
     if form.validate_on_submit():
         email = form.email.data.strip().lower()

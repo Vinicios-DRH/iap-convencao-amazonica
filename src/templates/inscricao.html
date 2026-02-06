@@ -133,15 +133,7 @@
         <div class="container">
 
             <!-- FLASH MESSAGES -->
-            <div class="flash-wrap mb-4">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                {% for category, message in messages %}
-                <div class="alert alert-{{ category }} mb-2" role="alert">{{ message }}</div>
-                {% endfor %}
-                {% endif %}
-                {% endwith %}
-            </div>
+            {% include "components/flash.html" %}
 
             <div class="row g-4 align-items-start">
 

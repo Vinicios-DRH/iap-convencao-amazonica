@@ -216,15 +216,7 @@
 
             <div class="content">
                 <!-- flashes -->
-                <div class="flash-wrap mb-3">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                    {% for category, msg in messages %}
-                    <div class="alert alert-{{ category }} py-2 mb-2" role="alert">{{ msg }}</div>
-                    {% endfor %}
-                    {% endif %}
-                    {% endwith %}
-                </div>
+                {% include "components/flash.html" %}
 
                 <form method="POST" novalidate>
                     {{ form.hidden_tag() }}
