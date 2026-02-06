@@ -33,8 +33,12 @@ INCLUI_ITENS = [
 CONTATO_PAGAMENTO = "+55 92 8459-6369"
 CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
 
+PIX_KEY_CNPJ = "17.739.576/0001-78"
+PIX_QR_STATIC = "img/qr_pix.jpeg"  # dentro do /static
 
 # helpers rápidos
+
+
 def is_pix(reg: Registration) -> bool:
     return (reg.payment_type or "").lower() == "pix"
 
@@ -185,7 +189,15 @@ def admin_login():
 @login_required
 def painel():
     reg = Registration.query.filter_by(user_id=current_user.id).first()
-    return render_template("painel.html", reg=reg)
+    return render_template(
+        "painel.html",
+        reg=reg,
+        pix_msg=PIX_PADRAO_MSG,
+        criancas_msg=CRIANCAS_MSG,
+        inclui_itens=INCLUI_ITENS,
+        contato_pagamento=CONTATO_PAGAMENTO,
+        contato_pagamento_texto=CONTATO_PAGAMENTO_TEXTO,
+    )
 
 
 @app.route("/comprovante", methods=["GET", "POST"])
