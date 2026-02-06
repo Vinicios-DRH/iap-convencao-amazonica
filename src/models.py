@@ -103,7 +103,7 @@ class Registration(database.Model):
     transport = database.Column(database.String(
         20), nullable=False)  # "onibus" | "carro"
     # "pix" | "cartao" | "dinheiro" etc.
-    payment_method = database.Column(database.String(30), nullable=False)
+    # payment_method = database.Column(database.String(30), nullable=False)
 
     lot_name = database.Column(database.String(
         40), nullable=False, default="1_LOTE")
