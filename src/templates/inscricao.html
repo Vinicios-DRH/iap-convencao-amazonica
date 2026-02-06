@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inscrição — Convenção Jovem Tempo de Resplandecer</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --pink: #d946ef;
+            --cyan: #22d3ee;
+            --bg: #070711;
+            --card: rgba(255, 255, 255, .06);
+            --border: rgba(255, 255, 255, .14);
+            --muted: rgba(255, 255, 255, .72);
+        }
+
+        body {
+            background:
+                radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .18), transparent 60%),
+                radial-gradient(900px 500px at 80% 20%, rgba(217, 70, 239, .20), transparent 60%),
+                linear-gradient(180deg, #05050d, var(--bg));
+            color: #f4f4fb;
+        }
+
+        .navy {
+            background: rgba(0, 0, 0, .35);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .cardx {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .btn-neon {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            border: none;
+            color: #06060c;
+            font-weight: 1000;
+        }
+
+        .btn-neon:hover {
+            opacity: .92;
+        }
+
+        .hl {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 1000;
+        }
+
+        .form-control,
+        .form-select {
+            background: rgba(0, 0, 0, .25);
+            border: 1px solid rgba(255, 255, 255, .14);
+            color: #fff;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background: rgba(0, 0, 0, .28);
+            border-color: rgba(34, 211, 238, .55);
+            box-shadow: 0 0 0 .2rem rgba(34, 211, 238, .15);
+            color: #fff;
+        }
+
+        label {
+            color: rgba(255, 255, 255, .86);
+            font-weight: 700;
+        }
+
+        .help {
+            color: rgba(255, 255, 255, .62);
+            font-size: .95rem;
+        }
+
+        .badge-soft {
+            border: 1px solid rgba(255, 255, 255, .16);
+            background: rgba(0, 0, 0, .22);
+            border-radius: 999px;
+            padding: .35rem .7rem;
+            font-weight: 900;
+            letter-spacing: .02em;
+            color: rgba(255, 255, 255, .86);
+        }
+
+        .note {
+            background: rgba(0, 0, 0, .25);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 14px;
+            padding: 14px;
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .divider {
+            border-top: 1px solid rgba(255, 255, 255, .12);
+            margin: 1rem 0;
+        }
+
+        .flash-wrap .alert {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(0, 0, 0, .25);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navy">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="{{ url_for('landing') }}">
+                <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="36" height="36"
+                    style="object-fit:contain" alt="Logo">
+                <span class="fw-bold">Tempo de Resplandecer</span>
+            </a>
+
+            <div class="ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Entrar</a>
+                <a class="btn btn-neon btn-sm" href="{{ url_for('landing') }}">Voltar</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-5">
+        <div class="container">
+
+            <!-- FLASH MESSAGES -->
+            <div class="flash-wrap mb-4">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} mb-2" role="alert">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="row g-4 align-items-start">
+
+                <!-- COL ESQUERDA: FORM -->
+                <div class="col-lg-7">
+                    <div class="cardx p-4 p-lg-5">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+                            <div>
+                                <div class="badge-soft mb-2">INSCRIÇÃO • 1º LOTE</div>
+                                <h1 class="h3 mb-1">Finalizar <span class="hl">Inscrição</span></h1>
+                                <div class="help">Crie sua conta e acompanhe o status: <b>Aguardando</b>,
+                                    <b>Confirmada</b> ou <b>Negada</b>.
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">20–22 Nov • 2026</div>
+                                <div class="help">Chácara Paraíso Verde</div>
+                            </div>
+                        </div>
+
+                        <div class="note mb-3">
+                            <div class="fw-bold mb-1">Avisos rápidos</div>
+                            <ul class="mb-0">
+                                <li>{{ criancas_msg }}</li>
+                                <li>{{ pix_msg }}</li>
+                            </ul>
+                        </div>
+
+                        <form method="POST" novalidate>
+                            {{ form.hidden_tag() }}
+
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">{{ form.full_name.label.text }}</label>
+                                    {{ form.full_name(class="form-control", placeholder="Ex: João da Silva") }}
+                                    {% for e in form.full_name.errors %}<div class="text-warning small mt-1">{{ e }}
+                                    </div>{% endfor %}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ form.cpf.label.text }}</label>
+                                    {{ form.cpf(class="form-control", placeholder="000.000.000-00", inputmode="numeric",
+                                    id="cpf") }}
+                                    {% for e in form.cpf.errors %}<div class="text-warning small mt-1">{{ e }}</div>{%
+                                    endfor %}
+                                </div>
+
+                                <div class="col-md-7">
+                                    <label class="form-label">{{ form.email.label.text }}</label>
+                                    {{ form.email(class="form-control", placeholder="seuemail@email.com") }}
+                                    {% for e in form.email.errors %}<div class="text-warning small mt-1">{{ e }}</div>{%
+                                    endfor %}
+                                </div>
+
+                                <div class="col-md-5">
+                                    <label class="form-label">{{ form.phone.label.text }}</label>
+                                    {{ form.phone(class="form-control", placeholder="(92) 9xxxx-xxxx", inputmode="tel",
+                                    id="phone") }}
+                                    {% for e in form.phone.errors %}<div class="text-warning small mt-1">{{ e }}</div>{%
+                                    endfor %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.iap_local.label.text }}</label>
+                                    {{ form.iap_local(class="form-control", placeholder="Ex: IAP Laranjeiras") }}
+                                    {% for e in form.iap_local.errors %}<div class="text-warning small mt-1">{{ e }}
+                                    </div>{% endfor %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.transport.label.text }}</label>
+                                    {{ form.transport(class="form-select") }}
+                                    {% for e in form.transport.errors %}<div class="text-warning small mt-1">{{ e }}
+                                    </div>{% endfor %}
+                                    <div class="help mt-1">Ônibus: saída de Manaus (caso prefira).</div>
+                                </div>
+
+                                <div class="col-md-7">
+                                    <label class="form-label">{{ form.payment_type.label.text }}</label>
+                                    {{ form.payment_type(class="form-select", id="payment_type") }}
+                                    {% for e in form.payment_type.errors %}<div class="text-warning small mt-1">{{ e }}
+                                    </div>{% endfor %}
+                                    <div class="help mt-1" id="payHint"></div>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <label class="form-label">{{ form.installments.label.text }}</label>
+                                    {{ form.installments(class="form-select", id="installments") }}
+                                    {% for e in form.installments.errors %}<div class="text-warning small mt-1">{{ e }}
+                                    </div>{% endfor %}
+                                    <div class="help mt-1">Você garante a inscrição pagando a <b>1ª parcela</b>.</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.password.label.text }}</label>
+                                    {{ form.password(class="form-control", placeholder="mín. 6 caracteres") }}
+                                    {% for e in form.password.errors %}<div class="text-warning small mt-1">{{ e }}
+                                    </div>{% endfor %}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">{{ form.confirm_password.label.text }}</label>
+                                    {{ form.confirm_password(class="form-control", placeholder="repita a senha") }}
+                                    {% for e in form.confirm_password.errors %}<div class="text-warning small mt-1">{{ e
+                                        }}</div>{% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <button type="submit" class="btn btn-neon btn-lg w-100">
+                                {{ form.submit.label.text }}
+                            </button>
+
+                            <div class="text-center mt-3 help">
+                                Já tem conta? <a class="link-light" href="{{ url_for('login') }}"><b>Entrar</b></a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- COL DIREITA: RESUMO / PAGAMENTO / BENEFÍCIOS -->
+                <div class="col-lg-5">
+                    <div class="cardx p-4">
+                        <img src="{{ url_for('static', filename='img/capa2.png') }}" class="img-fluid rounded-4 mb-3"
+                            alt="Arte do evento">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-bold">1º Lote</div>
+                            <div class="fw-black h4 mb-0">R$ 180,00</div>
+                        </div>
+                        <div class="help">Vagas limitadas: <b>50</b></div>
+
+                        <div class="divider"></div>
+
+                        <div class="fw-bold mb-2">Pagamento</div>
+                        <div class="help">
+                            <div><b>Pix</b> ou <b>Crédito</b> (crédito com taxa)</div>
+                            <div><b>Parcelas:</b> à vista ou até 3x (Fev/Mar/Abr)</div>
+                            <div class="mt-2"><b>Importante:</b> inscrição garantida após pagamento da <b>1ª
+                                    parcela</b>.</div>
+                        </div>
+
+                        <div class="note mt-3">
+                            <div class="fw-bold mb-1">Pix (CNPJ)</div>
+                            <div class="fw-semibold">17.739.576/0001-78</div>
+                            <div class="help">Convencao Regional Amazonica Das Igrejas Adventista Da Promessa</div>
+                            <div class="mt-2"><b>Atenção:</b> Pix deve terminar em <b>0,09</b>.</div>
+                        </div>
+
+                        <div class="note mt-3">
+                            <div class="fw-bold mb-1">Contato do pagamento</div>
+                            <div class="fw-semibold">{{ contato_pagamento }}</div>
+                            <div class="help">{{ contato_pagamento_texto }} 👆</div>
+                        </div>
+
+                        <!-- BENEFÍCIOS PADRÃO (se você já criou o componente) -->
+                        {% if inclui_itens %}
+                        <div class="divider"></div>
+                        <div class="fw-bold mb-2">Sua inscrição inclui</div>
+                        <ul class="help mb-0">
+                            {% for item in inclui_itens %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+
+                    <!-- Convidados misteriosos -->
+                    <div class="cardx p-4 mt-4">
+                        <div class="fw-bold mb-2">Convidados especiais</div>
+                        <div class="help mb-3">Dois convidados confirmados (um convidado e uma convidada) — revelação em
+                            breve 👀✨</div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 rounded-4 text-center"
+                                    style="border:1px dashed rgba(255,255,255,.25); background:rgba(0,0,0,.18)">
+                                    <div style="font-size:3rem; font-weight:1000;">?</div>
+                                    <div class="fw-bold">Convidada</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-4 text-center"
+                                    style="border:1px dashed rgba(255,255,255,.25); background:rgba(0,0,0,.18)">
+                                    <div style="font-size:3rem; font-weight:1000;">?</div>
+                                    <div class="fw-bold">Convidado</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    {% include "components/footer.html" %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // CPF mask: 000.000.000-00
+        function maskCPF(value) {
+            value = value.replace(/\D/g, '').slice(0, 11);
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            return value;
+        }
+
+        // Phone mask: (99) 99999-9999 (simples)
+        function maskPhone(value) {
+            value = value.replace(/\D/g, '').slice(0, 11);
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            return value;
+        }
+
+        const cpfEl = document.getElementById('cpf');
+        const phoneEl = document.getElementById('phone');
+        const payType = document.getElementById('payment_type');
+        const payHint = document.getElementById('payHint');
+
+        if (cpfEl) {
+            cpfEl.addEventListener('input', () => cpfEl.value = maskCPF(cpfEl.value));
+            cpfEl.value = maskCPF(cpfEl.value || '');
+        }
+        if (phoneEl) {
+            phoneEl.addEventListener('input', () => phoneEl.value = maskPhone(phoneEl.value));
+            phoneEl.value = maskPhone(phoneEl.value || '');
+        }
+
+        function updatePayHint() {
+            const v = payType?.value || 'pix';
+            if (v === 'pix') {
+                payHint.innerHTML = 'Pix: lembre de finalizar os centavos em <b>0,09</b> para identificação.';
+            } else {
+                payHint.innerHTML = 'Crédito: pode ter <b>taxa da maquininha</b>. Parcelamento até 3x.';
+            }
+        }
+
+        if (payType) {
+            payType.addEventListener('change', updatePayHint);
+            updatePayHint();
+        }
+    </script>
+</body>
+
+</html>

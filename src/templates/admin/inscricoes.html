@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin — Inscrições</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #d946ef;
+            --cyan: #22d3ee;
+            --bg: #070711;
+            --card: rgba(255, 255, 255, .06);
+            --border: rgba(255, 255, 255, .14);
+        }
+
+        body {
+            background: radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .18), transparent 60%),
+                radial-gradient(900px 500px at 80% 20%, rgba(217, 70, 239, .20), transparent 60%),
+                linear-gradient(180deg, #05050d, var(--bg));
+            color: #f4f4fb;
+        }
+
+        .navy {
+            background: rgba(0, 0, 0, .35);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .cardx {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .btn-neon {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            border: none;
+            color: #06060c;
+            font-weight: 1000;
+        }
+
+        .muted {
+            color: rgba(255, 255, 255, .72);
+        }
+
+        .form-control,
+        .form-select {
+            background: rgba(0, 0, 0, .25);
+            border: 1px solid rgba(255, 255, 255, .14);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navy">
+        <div class="container py-2">
+            <a class="navbar-brand text-white fw-bold" href="{{ url_for('painel') }}">Admin • Inscrições</a>
+            <div class="ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('painel') }}">Painel</a>
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-5">
+        <div class="container">
+            <div class="cardx p-4 mb-4">
+                <form class="row g-2 align-items-end" method="GET">
+                    <div class="col-md-6">
+                        <label class="form-label">Buscar</label>
+                        <input class="form-control" name="q" value="{{ q }}" placeholder="nome, cpf, telefone, iap...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="" {{ ''==status and 'selected' or '' }}>Todos</option>
+                            <option value="AGUARDANDO_CONFIRMACAO" {{ 'AGUARDANDO_CONFIRMACAO'==status and 'selected'
+                                or '' }}>Aguardando</option>
+                            <option value="CONFIRMADA" {{ 'CONFIRMADA'==status and 'selected' or '' }}>Confirmada
+                            </option>
+                            <option value="NEGADA" {{ 'NEGADA'==status and 'selected' or '' }}>Negada</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button class="btn btn-neon">Filtrar</button>
+                    </div>
+                </form>
+                <div class="muted mt-2">Clique em uma inscrição para revisar (se você tiver permissão).</div>
+            </div>
+
+            <div class="cardx p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0" style="--bs-table-bg: transparent;">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>IAP</th>
+                                <th>Pagamento</th>
+                                <th>Status</th>
+                                <th>Comprovante</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in regs %}
+                            <tr>
+                                <td class="fw-semibold">{{ r.full_name }}</td>
+                                <td class="muted">{{ r.cpf }}</td>
+                                <td class="muted">{{ r.iap_local }}</td>
+                                <td class="muted">{{ 'Pix' if r.payment_type=='pix' else 'Crédito' }} • {{
+                                    r.installments }}x</td>
+                                <td>
+                                    {% if r.status == 'CONFIRMADA' %}
+                                    <span class="badge text-bg-success">CONFIRMADA</span>
+                                    {% elif r.status == 'NEGADA' %}
+                                    <span class="badge text-bg-danger">NEGADA</span>
+                                    {% else %}
+                                    <span class="badge text-bg-warning">AGUARDANDO</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if r.proof_file_path %}
+                                    <span class="badge text-bg-info">ENVIADO</span>
+                                    {% else %}
+                                    <span class="badge text-bg-secondary">NÃO</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if current_user.can_review_payments %}
+                                    <a class="btn btn-outline-light btn-sm"
+                                        href="{{ url_for('admin_inscricao_detalhe', reg_id=r.id) }}">Revisar</a>
+                                    {% else %}
+                                    <span class="muted">Sem permissão</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if regs|length == 0 %}
+                            <tr>
+                                <td colspan="7" class="text-center muted p-4">Nenhuma inscrição encontrada.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include "components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

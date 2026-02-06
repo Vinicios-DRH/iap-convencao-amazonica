@@ -1,313 +1,399 @@
-# iap_laranjeiras/routes.py
-from datetime import datetime, timedelta
-from io import BytesIO
-from flask import (
-    render_template,
-    redirect,
-    send_file,
-    url_for,
-    flash,
-    request,
-)
+import os
+from datetime import datetime
+import uuid
+from flask import render_template, request, redirect, url_for, flash, abort
 from flask_login import login_user, logout_user, login_required, current_user
-import pytz
-from sqlalchemy import func
+from werkzeug.utils import secure_filename
 
-from src import app, database as db
-from src.models import User, FichaPasse
-from src.forms import LoginForm, FichaPasseForm
-import openpyxl
+from src import app, database
+from src.models import User, Role, Registration, AuditLog
+from src.forms import RegisterAndSignupForm, LoginForm, UploadProofForm, ReviewRegistrationForm
+from src.decorators import admin_required, payment_reviewer_required, super_required
+from src.controllers.b2_utils import upload_to_b2
+
+PIX_PADRAO_MSG = (
+    "Informamos que todos os pagamentos realizados via Pix — seja em valor integral ou parcelado — "
+    "devem conter obrigatoriamente os centavos finalizados em 0,09. "
+    "Essa padronização é necessária para a correta identificação do pagamento. Agradecemos a compreensão."
+)
+
+CRIANCAS_MSG = "Crianças de até 5 anos não pagam a inscrição, desde que dividam a cama com o responsável."
+
+INCLUI_ITENS = [
+    "Dia 20 — Almoço e jantar",
+    "Dia 21 — Café da manhã, almoço e jantar",
+    "Dia 22 — Café da manhã",
+    "Transporte de ônibus (caso prefira) — Saída de Manaus",
+    "Quarto climatizado",
+    "Cama",
+    "Participação em todas as programações durante a convenção jovem",
+    "Momento de lazer",
+]
+
+CONTATO_PAGAMENTO = "+55 92 8459-6369"
+CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
+
+
+# helpers rápidos
+def is_pix(reg: Registration) -> bool:
+    return (reg.payment_type or "").lower() == "pix"
+
+
+def can_admin():
+    return getattr(current_user, "can_access_admin", False)
+
+
+def can_review():
+    return getattr(current_user, "can_review_payments", False)
+
+
+def inscricoes_suspensas() -> bool:
+    return os.getenv("INSCRICOES_SUSPENSAS", "0") == "0"
+
+
+@app.route("/")
+def landing():
+    v = (request.args.get("v") or "a").lower()
+
+    allowed = {
+        "a": "landing_a.html",
+        "b": "landing_b.html",
+        "c": "landing_c.html",
+        "d": "landing_d.html",
+        "e": "landing_e.html",
+        "f": "landing_f.html",
+    }
+
+    tpl = allowed.get(v, "landing_a.html")
+    return render_template(
+        tpl,
+        pix_msg=PIX_PADRAO_MSG,
+        criancas_msg=CRIANCAS_MSG,
+        inclui_itens=INCLUI_ITENS,
+        contato_pagamento=CONTATO_PAGAMENTO,
+        contato_pagamento_texto=CONTATO_PAGAMENTO_TEXTO,
+    )
+
+
+@app.route("/inscricao", methods=["GET", "POST"])
+def inscricao():
+    if inscricoes_suspensas():
+        return render_template("inscricoes_suspensas.html")
+
+    form = RegisterAndSignupForm()
+
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+
+        # evita duplicar conta
+        if User.query.filter_by(email=email).first():
+            flash(
+                "Já existe uma conta com esse e-mail. Faça login para acompanhar.", "warning")
+            return redirect(url_for("login"))
+
+        # cria usuário
+        user = User(email=email)
+        user.set_password(form.password.data)
+
+        # regra de status inicial
+        status = "AGUARDANDO_CONFIRMACAO"
+        status_msg = "Aguardando confirmação do pagamento."
+
+        reg = Registration(
+            user=user,
+            full_name=form.full_name.data.strip(),
+            cpf=form.cpf.data.strip(),
+            phone=form.phone.data.strip(),
+            iap_local=form.iap_local.data.strip(),
+            transport=form.transport.data,
+            payment_type=form.payment_type.data,
+            installments=int(form.installments.data),
+            lot_name="1_LOTE",
+            lot_value_cents=18000,
+            status=status,
+            status_message=status_msg,
+        )
+
+        database.session.add(user)
+        database.session.add(reg)
+        database.session.add(
+            AuditLog(action="user_signup_and_register", details=f"email={email}"))
+        database.session.commit()
+
+        login_user(user)
+        flash("Inscrição criada! Agora você pode acompanhar o status no painel.", "success")
+        return redirect(url_for("painel"))
+
+    return render_template("inscricao.html", form=form)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("dashboard"))
-
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower()).first()
-        if user and user.check_password(form.senha.data):
-            login_user(user, remember=form.lembrar.data)
-            next_page = request.args.get("next") or url_for("dashboard")
-            return redirect(next_page)
-        flash("E-mail ou senha inválidos.", "danger")
-    return render_template("laranjeiras/auth_login.html", form=form)
+        email = form.email.data.strip().lower()
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not user.check_password(form.password.data):
+            flash("E-mail ou senha inválidos.", "danger")
+            return render_template("login.html", form=form)
+
+        login_user(user)
+        flash("Bem-vindo!", "success")
+        return redirect(url_for("painel"))
+
+    return render_template("login.html", form=form)
 
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("login"))
+    flash("Você saiu da sua conta.", "info")
+    return redirect(url_for("landing"))
 
 
-fuso_am = pytz.timezone("America/Manaus")
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    form = LoginForm()
 
-
-@app.route("/")
-@login_required
-def dashboard():
-    # Agora em Manaus
-    agora = datetime.now(fuso_am)
-
-    # Limites de dia/semana/mês
-    inicio_dia = agora.replace(hour=0, minute=0, second=0, microsecond=0)
-    fim_dia = agora.replace(hour=23, minute=59, second=59, microsecond=999999)
-
-    inicio_semana = (inicio_dia - timedelta(days=6))  # últimos 7 dias
-    inicio_mes = agora.replace(
-        day=1, hour=0, minute=0, second=0, microsecond=0)
-
-    # KPIs básicos
-    total_fichas = FichaPasse.query.count()
-
-    fichas_hoje = (
-        FichaPasse.query
-        .filter(FichaPasse.created_at >= inicio_dia)
-        .filter(FichaPasse.created_at <= fim_dia)
-        .count()
-    )
-
-    fichas_semana = (
-        FichaPasse.query
-        .filter(FichaPasse.created_at >= inicio_semana)
-        .filter(FichaPasse.created_at <= fim_dia)
-        .count()
-    )
-
-    fichas_mes = (
-        FichaPasse.query
-        .filter(FichaPasse.created_at >= inicio_mes)
-        .filter(FichaPasse.created_at <= fim_dia)
-        .count()
-    )
-
-    # ------- Gráfico 1: últimos 7 dias (linha/coluna) -------
-
-    inicio_7d = inicio_semana  # já calculado
-    rows_dias = (
-        db.session.query(
-            func.date(FichaPasse.created_at).label("dia"),
-            func.count(FichaPasse.id)
-        )
-        .filter(FichaPasse.created_at >= inicio_7d)
-        .group_by(func.date(FichaPasse.created_at))
-        .order_by(func.date(FichaPasse.created_at))
-        .all()
-    )
-
-    # monta dicionário dia -> count
-    mapa_dias = {r.dia: r[1] for r in rows_dias}
-
-    labels_dias = []
-    valores_dias = []
-
-    # garante todos os 7 dias no eixo X
-    for i in range(6, -1, -1):
-        dia = (inicio_7d + timedelta(days=i)).date()
-        labels_dias.append(dia.strftime("%d/%m"))
-        valores_dias.append(mapa_dias.get(dia, 0))
-
-    # ------- Gráfico 2: distribuição por serviço (pizza) -------
-
-    form_tmp = FichaPasseForm()
-    servicos_dict = dict(form_tmp.servico.choices)
-
-    rows_servicos = (
-        db.session.query(
-            FichaPasse.servico,
-            func.count(FichaPasse.id)
-        )
-        .group_by(FichaPasse.servico)
-        .all()
-    )
-
-    labels_servicos = []
-    valores_servicos = []
-
-    for codigo, qtd in rows_servicos:
-        label_legivel = servicos_dict.get(codigo, codigo or "Não informado")
-        labels_servicos.append(label_legivel)
-        valores_servicos.append(qtd)
-
-    return render_template(
-        "laranjeiras/dashboard.html",
-        total_fichas=total_fichas,
-        fichas_hoje=fichas_hoje,
-        fichas_semana=fichas_semana,
-        fichas_mes=fichas_mes,
-        labels_dias=labels_dias,
-        valores_dias=valores_dias,
-        labels_servicos=labels_servicos,
-        valores_servicos=valores_servicos,
-    )
-
-
-@app.route("/passe/novo", methods=["GET", "POST"])
-@login_required
-def novo_passe():
-    form = FichaPasseForm()
     if form.validate_on_submit():
-        ficha = FichaPasse(
-            nome=form.nome.data,
-            endereco=form.endereco.data,
-            complemento=form.complemento.data,
-            bairro=form.bairro.data,
-            telefone=form.telefone.data,
-            servico=form.servico.data,
-            ja_conhecia=(form.ja_conhecia.data == "sim"),
-            quer_conhecer_mais=(form.quer_conhecer_mais.data == "sim"),
-            usuario_id=current_user.id,
-        )
-        db.session.add(ficha)
-        db.session.commit()
-        flash("Ficha registrada com sucesso!", "success")
-        return redirect(url_for("novo_passe"))
-    return render_template("laranjeiras/passe_form.html", form=form)
+        email = form.email.data.strip().lower()
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not user.check_password(form.password.data):
+            flash("E-mail ou senha inválidos.", "danger")
+            return render_template("admin/login.html", form=form)
+
+        login_user(user)
+
+        # trava: só entra se tiver acesso ao admin
+        if not getattr(user, "can_access_admin", False):
+            logout_user()
+            flash("Você não tem permissão para acessar o Admin.", "warning")
+            return redirect(url_for("login"))
+
+        flash("Acesso administrativo liberado.", "success")
+        return redirect(url_for("admin_home"))
+
+    return render_template("admin/login.html", form=form)
 
 
-@app.route("/passe")
+@app.route("/painel")
 @login_required
-def lista_passe():
-    page = request.args.get("page", 1, type=int)
-    search = request.args.get("search", "", type=str)
-    servico = request.args.get("servico", "", type=str)
-    data_inicio = request.args.get("data_inicio", "", type=str)
-    data_fim = request.args.get("data_fim", "", type=str)
-
-    query = FichaPasse.query
-
-    if search:
-        like = f"%{search}%"
-        query = query.filter(
-            db.or_(
-                FichaPasse.nome.ilike(like),
-                FichaPasse.telefone.ilike(like),
-                FichaPasse.bairro.ilike(like),
-            )
-        )
-
-    if servico:
-        query = query.filter(FichaPasse.servico == servico)
-
-    # filtro de data por created_at (somente dia)
-    if data_inicio:
-        try:
-            dt_ini = datetime.strptime(data_inicio, "%Y-%m-%d")
-            query = query.filter(FichaPasse.created_at >= dt_ini)
-        except ValueError:
-            pass
-
-    if data_fim:
-        try:
-            # inclui o final do dia
-            dt_fim = datetime.strptime(data_fim, "%Y-%m-%d")
-            dt_fim = dt_fim.replace(hour=23, minute=59, second=59)
-            query = query.filter(FichaPasse.created_at <= dt_fim)
-        except ValueError:
-            pass
-
-    query = query.order_by(FichaPasse.created_at.desc())
-    fichas = query.paginate(page=page, per_page=20)
-
-    # dicionário de serviços (value -> label)
-    form_tmp = FichaPasseForm()
-    servicos_dict = dict(form_tmp.servico.choices)
-
-    return render_template(
-        "laranjeiras/passe_lista.html",
-        fichas=fichas,
-        servicos_dict=servicos_dict,
-    )
+def painel():
+    reg = Registration.query.filter_by(user_id=current_user.id).first()
+    return render_template("painel.html", reg=reg)
 
 
-@app.route("/passe/exportar-excel")
+@app.route("/comprovante", methods=["GET", "POST"])
 @login_required
-def exportar_passe_excel():
-    search = request.args.get("search", "", type=str)
-    servico = request.args.get("servico", "", type=str)
-    data_inicio = request.args.get("data_inicio", "", type=str)
-    data_fim = request.args.get("data_fim", "", type=str)
+def enviar_comprovante():
+    reg = Registration.query.filter_by(user_id=current_user.id).first()
+    if not reg:
+        flash("Você ainda não possui inscrição. Faça sua inscrição primeiro.", "warning")
+        return redirect(url_for("inscricao"))
 
-    query = FichaPasse.query
+    if not is_pix(reg):
+        flash("Envio de comprovante é apenas para pagamento via Pix.", "warning")
+        return redirect(url_for("painel"))
 
-    if search:
-        like = f"%{search}%"
+    form = UploadProofForm()
+    if form.validate_on_submit():
+        file = form.proof.data
+        ext = os.path.splitext(file.filename or "")[1].lower().replace(".", "")
+        safe_ext = ext if ext in ("pdf", "jpg", "jpeg", "png") else "pdf"
+
+        # caminho único no B2
+        key = f"comprovantes/{reg.id}/{uuid.uuid4().hex}.{safe_ext}"
+
+        upload_to_b2(filename=key, fileobj=file.stream)
+        reg.proof_file_path = key
+        reg.proof_uploaded_at = datetime.utcnow()
+        reg.status = "AGUARDANDO_CONFIRMACAO"
+        reg.status_message = "Comprovante enviado. Aguardando validação do administrador."
+
+        database.session.add(AuditLog(
+            actor_user_id=current_user.id,
+            action="upload_proof",
+            details=f"registration_id={reg.id} key={key}"
+        ))
+        database.session.commit()
+
+        flash("Comprovante enviado! Agora é só aguardar a confirmação.", "success")
+        return redirect(url_for("painel"))
+
+    return render_template("upload_comprovante.html", form=form, reg=reg)
+
+
+# =======================
+# ADMIN
+# =======================
+
+@app.route("/admin")
+@admin_required
+def admin_home():
+    return render_template("admin/home.html")
+
+
+@app.route("/admin/inscricoes")
+@login_required
+def admin_inscricoes():
+    if not can_admin():
+        abort(403)
+
+    status = request.args.get("status", "").strip()
+    q = request.args.get("q", "").strip()
+
+    query = Registration.query
+
+    if status:
+        query = query.filter(Registration.status == status)
+
+    if q:
+        like = f"%{q.lower()}%"
         query = query.filter(
-            db.or_(
-                FichaPasse.nome.ilike(like),
-                FichaPasse.telefone.ilike(like),
-                FichaPasse.bairro.ilike(like),
-            )
+            (Registration.full_name.ilike(like)) |
+            (Registration.email.ilike(like) if hasattr(Registration, "email") else False) |
+            (Registration.cpf.ilike(like)) |
+            (Registration.phone.ilike(like)) |
+            (Registration.iap_local.ilike(like))
         )
 
-    if servico:
-        query = query.filter(FichaPasse.servico == servico)
-
-    if data_inicio:
-        try:
-            dt_ini = datetime.strptime(data_inicio, "%Y-%m-%d")
-            query = query.filter(FichaPasse.created_at >= dt_ini)
-        except ValueError:
-            pass
-
-    if data_fim:
-        try:
-            dt_fim = datetime.strptime(data_fim, "%Y-%m-%d")
-            dt_fim = dt_fim.replace(hour=23, minute=59, second=59)
-            query = query.filter(FichaPasse.created_at <= dt_fim)
-        except ValueError:
-            pass
-
-    registros = query.order_by(FichaPasse.created_at.desc()).all()
-
-    # monta Excel com openpyxl
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Fichas"
-
-    ws.append([
-        "ID", "Nome", "Telefone", "Endereço", "Complemento",
-        "Bairro", "Serviço", "Já conhecia?", "Quer conhecer mais?", "Data"
-    ])
-
-    form_tmp = FichaPasseForm()
-    servicos_dict = dict(form_tmp.servico.choices)
-
-    for f in registros:
-        ws.append([
-            f.id,
-            f.nome,
-            f.telefone,
-            f.endereco,
-            f.complemento or "",
-            f.bairro or "",
-            servicos_dict.get(f.servico, f.servico),
-            "Sim" if f.ja_conhecia else "Não",
-            "Sim" if f.quer_conhecer_mais else "Não",
-            f.created_at.strftime("%d/%m/%Y %H:%M"),
-        ])
-
-    file_stream = BytesIO()
-    wb.save(file_stream)
-    file_stream.seek(0)
-
-    return send_file(
-        file_stream,
-        as_attachment=True,
-        download_name="fichas_passe.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    regs = query.order_by(Registration.created_at.desc()).all()
+    return render_template("admin/inscricoes.html", regs=regs, status=status, q=q)
 
 
-@app.route("/criar-admin")
-def criar_admin():
-    if User.query.first():
-        return "Já existe usuário criado.", 400
+@app.route("/admin/inscricoes/<int:reg_id>", methods=["GET", "POST"])
+@login_required
+def admin_inscricao_detalhe(reg_id):
+    if not can_review():
+        abort(403)
 
-    admin = User(nome="Admin", email="admin@teste.com")
-    admin.set_password("123456")
-    db.session.add(admin)
-    db.session.commit()
-    return "Usuário admin criado!"
+    reg = Registration.query.get_or_404(reg_id)
+    form = ReviewRegistrationForm()
+
+    if form.validate_on_submit():
+        decision = form.decision.data  # CONFIRMADA | NEGADA
+        note = (form.note.data or "").strip()
+
+        reg.status = decision
+        if decision == "CONFIRMADA":
+            reg.status_message = "Inscrição confirmada. Seja bem-vindo(a)!"
+        else:
+            reg.status_message = "Inscrição negada. Entre em contato para ajustes."
+
+        reg.review_note = note if note else None
+        reg.reviewed_by_user_id = current_user.id
+        reg.reviewed_at = datetime.utcnow()
+
+        database.session.add(AuditLog(
+            actor_user_id=current_user.id,
+            action="review_registration",
+            details=f"registration_id={reg.id} decision={decision}"
+        ))
+        database.session.commit()
+
+        flash("Decisão salva com sucesso!", "success")
+        return redirect(url_for("admin_inscricoes", status=request.args.get("status", "")))
+
+    return render_template("admin/inscricao_detalhe.html", reg=reg, form=form)
+
+# =======================
+# SUPER USER - PERMISSÕES
+# =======================
+
+
+@app.route("/admin/permissoes", methods=["GET", "POST"])
+@super_required
+def super_permissoes():
+    users = User.query.order_by(User.created_at.desc()).all()
+    roles = Role.query.order_by(Role.name.asc()).all()
+
+    if request.method == "POST":
+        user_id = int(request.form.get("user_id") or 0)
+        role_id = int(request.form.get("role_id") or 0)
+        action = request.form.get("action")  # "add" ou "remove"
+
+        user = User.query.get_or_404(user_id)
+        role = Role.query.get_or_404(role_id)
+
+        if action == "add" and role not in user.roles:
+            user.roles.append(role)
+        elif action == "remove" and role in user.roles:
+            user.roles.remove(role)
+
+        database.session.add(AuditLog(
+            actor_user_id=current_user.id,
+            action="super_update_role",
+            details=f"user_id={user_id} role_id={role_id} action={action}"
+        ))
+        database.session.commit()
+
+        flash("Permissões atualizadas.", "success")
+        return redirect(url_for("super_permissoes"))
+
+    return render_template("admin/permissoes.html", users=users, roles=roles)
+
+
+# =======================
+# BOOTSTRAP ROLES (rodar 1x)
+# =======================
+@app.cli.command("seed_roles")
+def seed_roles():
+    """
+    flask seed_roles
+    """
+    def upsert(name, **kwargs):
+        r = Role.query.filter_by(name=name).first()
+        if not r:
+            r = Role(name=name, **kwargs)
+            database.session.add(r)
+        else:
+            for k, v in kwargs.items():
+                setattr(r, k, v)
+
+    upsert("SUPER", is_super=True, can_access_admin=True,
+           can_review_payments=True)
+    upsert("ADMIN", is_super=False, can_access_admin=True,
+           can_review_payments=False)
+    upsert("REVISOR_PAGAMENTOS", is_super=False,
+           can_access_admin=True, can_review_payments=True)
+    database.session.commit()
+    print("Roles criadas/atualizadas.")
+
+
+@app.cli.command("make_super")
+def make_super():
+    """
+    Uso:
+      flask make_super admin@teste.com
+    """
+    import sys
+
+    if len(sys.argv) < 3:
+        print("Uso: flask make_super email@dominio.com")
+        return
+
+    email = sys.argv[2].strip().lower()
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        print(f"Usuário não encontrado: {email}")
+        return
+
+    role_super = Role.query.filter_by(name="SUPER").first()
+    if not role_super:
+        print("Role SUPER não existe. Rode: flask seed_roles")
+        return
+
+    if role_super not in user.roles:
+        user.roles.append(role_super)
+
+    database.session.add(AuditLog(
+        actor_user_id=None,
+        action="cli_make_super",
+        details=f"email={email}"
+    ))
+    database.session.commit()
+
+    print(f"OK! {email} agora é SUPER.")

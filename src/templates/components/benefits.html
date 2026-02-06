@@ -1,0 +1,52 @@
+<section class="mt-4">
+    <div class="p-4 rounded-4" style="background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div>
+                <div class="fw-black h4 mb-1" style="letter-spacing:-.02em;">Sua inscrição inclui</div>
+                <div style="color:rgba(255,255,255,.72)">Tudo isso já está incluso no valor da inscrição.</div>
+            </div>
+
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('inscricao') }}">
+                Fazer inscrição
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for item in inclui_itens %}
+            <div class="col-12 col-md-6">
+                <div class="d-flex gap-3 align-items-start p-3 rounded-4"
+                    style="background:rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.10);">
+                    <div class="flex-shrink-0 d-flex align-items-center justify-content-center"
+                        style="width:40px; height:40px; border-radius:14px; background:linear-gradient(90deg,#22d3ee,#d946ef); color:#07070f; font-weight:1000;">
+                        ✓
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="color:rgba(255,255,255,.92)">{{ item }}</div>
+                        <div style="color:rgba(255,255,255,.65); font-size:.95rem;">
+                            incluso na convenção
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div
+            class="mt-4 d-flex flex-column flex-md-row gap-3 align-items-start align-items-md-center justify-content-between">
+            <div class="p-3 rounded-4" style="background:rgba(0,0,0,.20); border:1px solid rgba(255,255,255,.12);">
+                <div class="fw-bold">Contato do pagamento</div>
+                <div style="color:rgba(255,255,255,.80)">
+                    <span class="fw-semibold">{{ contato_pagamento }}</span>
+                    <span style="color:rgba(255,255,255,.65)"> • {{ contato_pagamento_texto }}</span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-outline-light" href="{{ url_for('login') }}">Já tenho conta</a>
+                <a class="btn"
+                    style="background:linear-gradient(90deg,#22d3ee,#d946ef); border:none; color:#06060c; font-weight:1000;"
+                    href="{{ url_for('inscricao') }}">Inscrever-se</a>
+            </div>
+        </div>
+    </div>
+</section>

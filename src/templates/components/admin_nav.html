@@ -1,0 +1,23 @@
+<nav class="navbar navy">
+    <div class="container py-2">
+        <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="{{ url_for('admin_home') }}">
+            <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="36" height="36"
+                style="object-fit:contain" alt="Logo">
+            <span class="fw-bold">Admin • Convenção</span>
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-2 flex-wrap">
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin_home') }}">Dashboard</a>
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin_inscricoes') }}">Inscrições</a>
+
+            {% if current_user.is_authenticated and current_user.is_super %}
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('super_permissoes') }}">Permissões</a>
+            {% endif %}
+
+            <span class="vr opacity-50 mx-1"></span>
+
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('painel') }}">Painel do usuário</a>
+            <a class="btn btn-neon btn-sm" href="{{ url_for('logout') }}">Sair</a>
+        </div>
+    </div>
+</nav>

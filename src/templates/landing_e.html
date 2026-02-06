@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Convenção Jovem — Tempo de Resplandecer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #070711;
+            --card: rgba(255, 255, 255, .06);
+            --border: rgba(255, 255, 255, .14);
+            --muted: rgba(255, 255, 255, .70);
+            --pink: #d946ef;
+            --cyan: #22d3ee;
+        }
+
+        body {
+            background:
+                radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .20), transparent 60%),
+                radial-gradient(900px 500px at 80% 20%, rgba(217, 70, 239, .22), transparent 60%),
+                linear-gradient(180deg, #05050d, var(--bg));
+            color: #f4f4fb;
+        }
+
+        .navy {
+            background: rgba(0, 0, 0, .35);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .cardx {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .btn-neon {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            border: none;
+            color: #06060c;
+            font-weight: 1000;
+        }
+
+        .btn-neon:hover {
+            opacity: .92;
+        }
+
+        .pill {
+            display: inline-flex;
+            gap: .5rem;
+            align-items: center;
+            padding: .45rem .85rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .06);
+            color: var(--muted);
+            font-weight: 800;
+            font-size: .95rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 26px;
+        }
+
+        .timeline:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 10px;
+            width: 2px;
+            background: rgba(255, 255, 255, .18);
+        }
+
+        .titem {
+            position: relative;
+            padding: 14px 14px 14px 14px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(0, 0, 0, .18);
+        }
+
+        .titem:before {
+            content: "";
+            position: absolute;
+            left: -24px;
+            top: 18px;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            box-shadow: 0 0 18px rgba(217, 70, 239, .25);
+        }
+
+        .mystery {
+            border-radius: 18px;
+            border: 1px dashed rgba(255, 255, 255, .25);
+            background:
+                radial-gradient(55% 55% at 50% 35%, rgba(255, 255, 255, .18), transparent 60%),
+                linear-gradient(135deg, rgba(217, 70, 239, .20), rgba(34, 211, 238, .12));
+            position: relative;
+            overflow: hidden;
+            min-height: 180px;
+        }
+
+        .mystery:after {
+            content: "?";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            font-weight: 1000;
+            color: rgba(255, 255, 255, .92);
+            text-shadow: 0 0 32px rgba(217, 70, 239, .45);
+        }
+
+        .label {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .18);
+            font-weight: 900;
+            letter-spacing: .03em;
+            font-size: .9rem;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .18), transparent);
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navy">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="#">
+                <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="36" height="36"
+                    style="object-fit:contain" alt="Logo">
+                <span class="fw-bold">Tempo de Resplandecer</span>
+            </a>
+            <div class="ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Entrar</a>
+                <a class="btn btn-neon btn-sm" href="{{ url_for('inscricao') }}">Inscrever-se</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="py-5">
+        <div class="container">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-7">
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <span class="pill">20–22 Nov • 2026</span>
+                        <span class="pill">Chácara Paraíso Verde</span>
+                        <span class="pill">1º Lote • 50 vagas</span>
+                    </div>
+
+                    <h1 class="display-5 fw-black mb-2">Convenção Jovem</h1>
+                    <h2 class="display-6 fw-black mb-3"
+                        style="background:linear-gradient(90deg,var(--cyan),var(--pink)); -webkit-background-clip:text; color:transparent;">
+                        Tempo de Resplandecer
+                    </h2>
+
+                    <p class="lead" style="color:rgba(255,255,255,.86); max-width: 70ch;">
+                        Um tempo de adoração, palavra, comunhão e experiências transformadoras — crescimento espiritual
+                        e renovação da fé.
+                    </p>
+
+                    <div class="cardx p-3">
+                        <div class="fw-bold">Isaías 60:1</div>
+                        <div style="color:rgba(255,255,255,.86)">
+                            “Levanta-te, resplandece, porque já vem a tua luz, e a glória do Senhor vai nascendo sobre
+                            ti.”
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 flex-wrap">
+                        <a class="btn btn-neon btn-lg" href="{{ url_for('inscricao') }}">Fazer inscrição</a>
+                        <a class="btn btn-outline-light btn-lg" href="#agenda">Ver agenda</a>
+                    </div>
+
+                    <div class="mt-4" style="color:rgba(255,255,255,.78)">
+                        <ul class="mb-0">
+                            <li>{{ criancas_msg }}</li>
+                            <li>{{ pix_msg }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="cardx p-3">
+                        <img src="{{ url_for('static', filename='img/capa2.png') }}" class="img-fluid rounded-4"
+                            alt="Arte do evento">
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <section id="agenda">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="cardx p-4">
+                            <h3 class="h4 fw-bold mb-3">Agenda (resumo)</h3>
+                            <div class="timeline">
+                                <div class="titem">
+                                    <div class="fw-bold">20/11 • Quinta</div>
+                                    <div style="color:var(--muted)">Credenciamento • Abertura • Palavra • Comunhão</div>
+                                </div>
+                                <div class="titem">
+                                    <div class="fw-bold">21/11 • Sexta</div>
+                                    <div style="color:var(--muted)">Manhã de edificação • Tarde de comunhão • Noite de
+                                        celebração</div>
+                                </div>
+                                <div class="titem mb-0">
+                                    <div class="fw-bold">22/11 • Sábado</div>
+                                    <div style="color:var(--muted)">Culto final • Encerramento • Direcionamento</div>
+                                </div>
+                            </div>
+                            <div class="mt-3" style="color:var(--muted); font-size:.95rem;">
+                                *A programação detalhada pode sofrer ajustes.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="cardx p-4 h-100">
+                            <h3 class="h4 fw-bold mb-3">Inscrição • 1º Lote</h3>
+
+                            <div class="d-flex justify-content-between">
+                                <span>Vagas</span><span class="fw-bold">50</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Valor</span><span class="fw-bold">R$ 180,00</span>
+                            </div>
+                            <hr style="border-color:rgba(255,255,255,.12)">
+
+                            <div><b>Pagamento:</b> Pix ou Crédito (crédito com taxa)</div>
+                            <div><b>Parcelas:</b> à vista ou até 3x (Fev/Mar/Abr)</div>
+                            <div class="mt-2"><b>Importante:</b> sua inscrição só é garantida após pagamento da 1ª
+                                parcela.</div>
+
+                            <div class="mt-3 p-3 rounded-3"
+                                style="background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.12);">
+                                <div class="fw-semibold">Pix (CNPJ)</div>
+                                <div>17.739.576/0001-78</div>
+                                <div style="color:var(--muted); font-size:.95rem;">
+                                    Convencao Regional Amazonica Das Igrejas Adventista Da Promessa
+                                </div>
+                            </div>
+
+                            <a class="btn btn-neon w-100 mt-3" href="{{ url_for('inscricao') }}">Inscrever-se agora</a>
+                            <div class="mt-3" style="color:var(--muted)">Dúvidas: <b>(92) 98459-6369</b> — Gustavo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="row g-4">
+                    <div class="col-12">
+                        <h3 class="h4 fw-bold mb-0">Convidados especiais (revelação em breve)</h3>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="cardx p-3">
+                            <div class="mystery">
+                                <div class="label">CONVIDADA</div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="fw-bold">Mistério confirmado 👀</div>
+                                <div style="color:var(--muted)">Em breve vamos revelar o nome.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="cardx p-3">
+                            <div class="mystery">
+                                <div class="label">CONVIDADO</div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="fw-bold">Mistério confirmado 👀</div>
+                                <div style="color:var(--muted)">Em breve vamos revelar o nome.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="cardx p-4 h-100">
+                            <h4 class="h5 fw-bold mb-2">Confirmação no sistema</h4>
+                            <ol style="color:rgba(255,255,255,.85)">
+                                <li>Você cria sua conta ao se inscrever.</li>
+                                <li>Se pagar no Pix, envia o comprovante no painel.</li>
+                                <li>Admin valida e atualiza o status.</li>
+                            </ol>
+                            <a class="btn btn-neon w-100 mt-2" href="{{ url_for('inscricao') }}">Quero participar</a>
+                        </div>
+                    </div>
+                </div>
+                {% include "components/benefits.html" %}
+            </section>
+        </div>
+    </header>
+
+    {% include "components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

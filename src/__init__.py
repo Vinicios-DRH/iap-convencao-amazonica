@@ -38,9 +38,39 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'alert-info'
 
+PIX_PADRAO_MSG = (
+    "Informamos que todos os pagamentos realizados via Pix — seja em valor integral ou parcelado — "
+    "devem conter obrigatoriamente os centavos finalizados em 0,09. Essa padronização é necessária "
+    "para a correta identificação do pagamento. Agradecemos a compreensão."
+)
+
+CRIANCAS_MSG = "Crianças até 5 anos não pagam, desde que dividam cama com responsável."
+
+INCLUI_ITENS = [
+    "Dia 20 — Almoço e jantar",
+    "Dia 21 — Café da manhã, almoço e jantar",
+    "Dia 22 — Café da manhã",
+    "Transporte de ônibus (caso prefira) — Saída de Manaus",
+    "Quarto climatizado",
+    "Cama",
+    "Participação em todas as programações durante a convenção jovem",
+    "Momento de lazer",
+]
+
+CONTATO_PAGAMENTO = "+55 92 8459-6369"
+CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
+
 @app.context_processor
-def inject_now():
-    return {'now': datetime.utcnow}
+def inject_globals():
+    return {
+        "now": datetime.utcnow,
+        "pix_msg": PIX_PADRAO_MSG,
+        "criancas_msg": CRIANCAS_MSG,
+        "inclui_itens": INCLUI_ITENS,
+        "contato_pagamento": CONTATO_PAGAMENTO,
+        "contato_pagamento_texto": CONTATO_PAGAMENTO_TEXTO,
+    }
+
 
 from src import routes
 app.supabase = supabase

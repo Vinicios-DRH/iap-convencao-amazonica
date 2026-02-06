@@ -1,80 +1,70 @@
-# iap_laranjeiras/forms.py
 from flask_wtf import FlaskForm
-from wtforms import (
-    StringField,
-    PasswordField,
-    BooleanField,
-    SubmitField,
-    SelectField,
-)
-from wtforms.validators import DataRequired, Email, Length
+from wtforms import StringField, PasswordField, SelectField, SubmitField, FileField, TextAreaField
+from wtforms.validators import DataRequired, Email, Length, EqualTo
+from flask_wtf.file import FileAllowed
+from src.controllers.validators import validate_cpf
+
+
+class RegisterAndSignupForm(FlaskForm):
+    full_name = StringField("Nome completo", validators=[
+                            DataRequired(), Length(min=3, max=150)])
+    email = StringField(
+        "E-mail", validators=[DataRequired(), Email(), Length(max=120)])
+    cpf = StringField("CPF", validators=[
+                      DataRequired(), validate_cpf, Length(min=11, max=14)])
+    phone = StringField("Telefone", validators=[
+                        DataRequired(), Length(min=8, max=20)])
+    iap_local = StringField("IAP Local", validators=[
+                            DataRequired(), Length(min=2, max=120)])
+
+    transport = SelectField(
+        "Transporte",
+        choices=[("onibus", "Ônibus"), ("carro", "Carro")],
+        validators=[DataRequired()],
+    )
+
+    payment_type = SelectField(
+        "Forma de pagamento",
+        choices=[("pix", "Pix"), ("credito", "Crédito (com taxa)")],
+        validators=[DataRequired()],
+    )
+
+    installments = SelectField(
+        "Parcelas",
+        choices=[("1", "À vista (1x)"), ("2", "2x (Fev/Mar)"),
+                 ("3", "3x (Fev/Mar/Abr)")],
+        validators=[DataRequired()],
+    )
+
+    password = PasswordField("Senha", validators=[
+        DataRequired(), Length(min=6, max=128)])
+    confirm_password = PasswordField("Confirmar senha", validators=[
+        DataRequired(), EqualTo("password")])
+
+    submit = SubmitField("Finalizar inscrição")
 
 
 class LoginForm(FlaskForm):
     email = StringField("E-mail", validators=[DataRequired(), Email()])
-    senha = PasswordField("Senha", validators=[DataRequired()])
-    lembrar = BooleanField("Manter conectado")
+    password = PasswordField("Senha", validators=[DataRequired()])
     submit = SubmitField("Entrar")
 
 
-class FichaPasseForm(FlaskForm):
-    nome = StringField("Nome", validators=[DataRequired(), Length(max=150)])
-    endereco = StringField("Endereço", validators=[
-                           DataRequired(), Length(max=255)])
-    complemento = StringField("Complemento")
-    bairro = StringField("Bairro")
-    telefone = StringField("Telefone", validators=[Length(max=40)])
+class UploadProofForm(FlaskForm):
+    proof = FileField(
+        "Comprovante (PDF/JPG/PNG)",
+        validators=[DataRequired(), FileAllowed(
+            ["pdf", "jpg", "jpeg", "png"], "Envie PDF/JPG/PNG.")],
+    )
+    submit = SubmitField("Enviar comprovante")
 
-    servico = SelectField(
-        "Qual serviço?",
-        choices=[
-            (
-                "juridico_psicologico",
-                "Atendimento jurídico e psicológico voltado especialmente para mulheres e crianças."
-            ),
-            (
-                "programacao_criancas",
-                "Programação educativa e recreativa para crianças;"
-            ),
-            (
-                "cidadania_diversos",
-                "Serviços de cidadania diversos, conforme a disponibilidade da Secretaria;"
-            ),
-            (
-                "emissao_documentos",
-                "Emissão de carteiras de identificação como a CIPcD e a CIPTEA + orientação sobre passes de transporte."
-            ),
-            (
-                "programas_projetos",
-                "Programas e projetos: Acesso a financiamento, mobilidade 'Inclusão sobre Rodas' e 'Amazonas Eficiente'."
-            ),
-            (
-                "encaminhamento_trabalho",
-                "Encaminhamento para o mercado de trabalho + elaboração de currículos (parceria com Setrab)."
-            ),
-            (
-                "atendimento_especializado",
-                "Atendimento especializado: orientação jurídica, psicossocial, averiguação de denúncias e tradução em Libras."
-            ),
-        ],
+
+class ReviewRegistrationForm(FlaskForm):
+    decision = SelectField(
+        "Decisão",
+        choices=[("CONFIRMADA", "Confirmar"), ("NEGADA", "Negar")],
         validators=[DataRequired()],
     )
-
-    ja_conhecia = SelectField(
-        "Já conhecia a igreja?",
-        choices=[("sim", "Sim"), ("nao", "Não")],
-        validators=[DataRequired()],
-    )
-
-    quer_conhecer_mais = SelectField(
-        "Gostaria de conhecer um pouco mais?",
-        choices=[("sim", "Sim"), ("nao", "Não")],
-        validators=[DataRequired()],
-    )
-
-    submit = SubmitField("Salvar ficha")
-
-    # dentro da FichaPasseForm
-    @property
-    def choices_dict(self):
-        return dict(self.servico.choices)
+    note = TextAreaField("Observação (opcional)",
+                         validators=[Length(max=2000)])
+    submit = SubmitField("Salvar")

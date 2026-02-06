@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Convenção Jovem — Tempo de Resplandecer</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg1: #06060c;
+            --bg2: #130a2a;
+            --pink: #d946ef;
+            --cyan: #22d3ee;
+            --card: rgba(255, 255, 255, .06);
+            --border: rgba(255, 255, 255, .12);
+        }
+
+        body {
+            background: radial-gradient(1200px 600px at 20% 10%, rgba(34, 211, 238, .25), transparent 60%),
+                radial-gradient(900px 500px at 80% 30%, rgba(217, 70, 239, .28), transparent 55%),
+                linear-gradient(180deg, var(--bg1), var(--bg2));
+            color: #eaeaf0;
+            min-height: 100vh;
+        }
+
+        .nav-blur {
+            background: rgba(0, 0, 0, .35);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero {
+            padding: 5rem 0 2.5rem;
+        }
+
+        .badge-soft {
+            background: rgba(255, 255, 255, .10);
+            border: 1px solid var(--border);
+        }
+
+        .card-glass {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .btn-neon {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            border: none;
+            color: #080813;
+            font-weight: 700;
+        }
+
+        .btn-neon:hover {
+            opacity: .92;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .2), transparent);
+            margin: 2rem 0;
+        }
+
+        /* “Convidado mistério” */
+        .mystery {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 18px;
+            background:
+                radial-gradient(60% 60% at 50% 40%, rgba(255, 255, 255, .20), rgba(255, 255, 255, 0) 60%),
+                linear-gradient(135deg, rgba(217, 70, 239, .25), rgba(34, 211, 238, .18));
+            border: 1px dashed rgba(255, 255, 255, .25);
+            overflow: hidden;
+        }
+
+        .mystery:before {
+            content: "?";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, .85);
+            text-shadow: 0 0 30px rgba(217, 70, 239, .35);
+        }
+
+        .mystery small {
+            position: absolute;
+            left: 12px;
+            bottom: 12px;
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .18);
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .footer-note {
+            color: rgba(255, 255, 255, .7);
+            font-size: .95rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg nav-blur">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="#">
+                <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="36" height="36"
+                    style="object-fit:contain">
+                <span class="fw-bold">Tempo de Resplandecer</span>
+            </a>
+
+            <div class="ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('login') }}">Entrar</a>
+                <a class="btn btn-neon btn-sm" href="{{ url_for('inscricao') }}">Inscrever-se</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-6">
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <span class="badge badge-soft rounded-pill px-3 py-2">Convenção Jovem</span>
+                        <span class="badge badge-soft rounded-pill px-3 py-2">20–22 Nov • 2026</span>
+                        <span class="badge badge-soft rounded-pill px-3 py-2">Chácara Paraíso Verde</span>
+                    </div>
+
+                    <h1 class="display-5 fw-black mb-3">
+                        Levanta-te. <span
+                            style="background:linear-gradient(90deg,var(--cyan),var(--pink)); -webkit-background-clip:text; color:transparent;">Resplandece.</span>
+                    </h1>
+
+                    <p class="lead" style="color:rgba(255,255,255,.82);">
+                        Chegou o tempo de viver tudo aquilo que Deus já liberou sobre você. Esta convenção jovem é um
+                        convite
+                        para despertar, alinhar o coração e permitir que a luz do Senhor brilhe sem reservas através da
+                        sua vida.
+                    </p>
+
+                    <div class="card-glass p-3 mt-3">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold mb-1">Versículo tema</div>
+                                <div style="color:rgba(255,255,255,.82);">
+                                    “Levanta-te, resplandece, porque já vem a tua luz, e a glória do Senhor vai nascendo
+                                    sobre ti.”
+                                    <span class="fw-semibold">Isaías 60:1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 flex-wrap">
+                        <a class="btn btn-neon btn-lg" href="{{ url_for('inscricao') }}">Fazer inscrição</a>
+                        <a class="btn btn-outline-light btn-lg" href="#info">Ver informações</a>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="footer-note">
+                        <div class="fw-semibold mb-1">Avisos importantes</div>
+                        <ul class="mb-0">
+                            <li>{{ criancas_msg }}</li>
+                            <li>{{ pix_msg }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card-glass p-3">
+                        <img src="{{ url_for('static', filename='img/capa2.png') }}" class="img-fluid rounded-4"
+                            alt="Arte do evento">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="info" class="py-4">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card-glass p-4 h-100">
+                        <h2 class="h4 fw-bold mb-2">Sobre a Convenção</h2>
+                        <p style="color:rgba(255,255,255,.82);">
+                            Este será um tempo de adoração, palavra, comunhão e experiências transformadoras — um tempo
+                            de crescimento
+                            espiritual e renovação da fé. Cremos que Deus está levantando uma geração firme, cheia do
+                            Espírito e pronta
+                            para resplandecer Sua luz.
+                        </p>
+                        <p class="mb-0" style="color:rgba(255,255,255,.82);">
+                            Prepare-se para viver dias que marcarão sua história. O <b>Tempo de Resplandecer</b> começou
+                            — e você faz parte disso.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card-glass p-4 h-100">
+                        <h2 class="h4 fw-bold mb-3">Inscrição • 1º Lote</h2>
+
+                        <div class="d-flex justify-content-between">
+                            <span>Vagas</span><span class="fw-bold">50</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Valor</span><span class="fw-bold">R$ 180,00</span>
+                        </div>
+
+                        <hr style="border-color:rgba(255,255,255,.12)">
+
+                        <div class="mb-2"><span class="fw-semibold">Pagamento:</span> Pix ou Crédito (crédito com taxa)
+                        </div>
+                        <div class="mb-2"><span class="fw-semibold">Parcelas:</span> à vista ou até 3x (Fev/Mar/Abr)
+                        </div>
+                        <div class="mb-2"><span class="fw-semibold">Garantia:</span> inscrição só confirmada após
+                            pagamento da 1ª parcela</div>
+
+                        <div class="mt-3 p-3 rounded-3"
+                            style="background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.12);">
+                            <div class="fw-semibold">Pix (CNPJ)</div>
+                            <div>17.739.576/0001-78</div>
+                            <div style="color:rgba(255,255,255,.75); font-size:.95rem;">
+                                Convencao Regional Amazonica Das Igrejas Adventista Da Promessa
+                            </div>
+                        </div>
+
+                        <a class="btn btn-neon w-100 mt-3" href="{{ url_for('inscricao') }}">Inscrever-se agora</a>
+
+                        <div class="mt-3 footer-note">
+                            Dúvidas: <b>(92) 98459-6369</b> — Gustavo
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row g-4 align-items-stretch">
+                <div class="col-12">
+                    <h2 class="h4 fw-bold mb-3">Convidados especiais (revelação em breve)</h2>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card-glass p-3 h-100">
+                        <div class="mystery">
+                            <small>Convidada Especial</small>
+                        </div>
+                        <div class="mt-3">
+                            <div class="fw-bold">Mistério confirmado 👀</div>
+                            <div style="color:rgba(255,255,255,.75)">Em breve vamos revelar o nome.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card-glass p-3 h-100">
+                        <div class="mystery">
+                            <small>Convidado Especial</small>
+                        </div>
+                        <div class="mt-3">
+                            <div class="fw-bold">Mistério confirmado 👀</div>
+                            <div style="color:rgba(255,255,255,.75)">Em breve vamos revelar o nome.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card-glass p-4 h-100">
+                        <h3 class="h5 fw-bold mb-2">Como funciona a confirmação?</h3>
+                        <ol style="color:rgba(255,255,255,.82)">
+                            <li>Você faz sua inscrição e cria sua conta.</li>
+                            <li>Se pagar via Pix, envia o comprovante pelo sistema.</li>
+                            <li>Um administrador valida o comprovante.</li>
+                            <li>Status muda para <b>Confirmada</b> (verde) ou <b>Negada</b> (vermelho).</li>
+                        </ol>
+                        <a class="btn btn-neon w-100 mt-2" href="{{ url_for('inscricao') }}">Quero me inscrever</a>
+                    </div>
+                </div>
+            </div>
+            {% include "components/benefits.html" %}
+
+            <div class="divider"></div>
+            {% include "components/footer.html" %}
+
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
