@@ -1,11 +1,14 @@
 import os
 from datetime import datetime
 import uuid
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import render_template, request, redirect, url_for, flash, abort, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
-from src import app, database
+import qrcode
+from io import BytesIO
+from src.controllers.pix_emv import build_pix_payload
+from src import app, database, get_current_lot_info, split_installments
 from src.models import User, Role, Registration, AuditLog
 from src.forms import ChangePasswordForm, RegisterAndSignupForm, LoginForm, UploadProofForm, ReviewRegistrationForm
 from src.decorators import admin_required, payment_reviewer_required, super_required
@@ -56,6 +59,41 @@ def can_review():
 
 def inscricoes_suspensas() -> bool:
     return os.getenv("INSCRICOES_SUSPENSAS", "0") == "0"
+
+
+# ======================= PIX =======================
+PIX_KEY = "17739576000178"
+
+
+@app.route("/pix/qr/<int:n>")
+@login_required
+def pix_qr_n(n):
+    reg = Registration.query.filter_by(user_id=current_user.id).first()
+    if not reg:
+        abort(404)
+
+    if n not in (1, 2, 3):
+        abort(400)
+
+    lot = (reg.lot_value_cents or 18000) / 100.0
+    parcela = int(lot / n) + 0.09
+
+    payload = build_pix_payload(
+        pix_key=PIX_KEY,
+        merchant_name="CONVENCAO AMAZONICA",
+        merchant_city="MANAUS",
+        amount=parcela,
+        txid=f"{reg.id}-{n}"[:25]
+    )
+
+    img = qrcode.make(payload)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return Response(buf.getvalue(), mimetype="image/png")
+
+
+# ======================= ROUTES =======================
 
 
 @app.route("/")
@@ -216,15 +254,27 @@ def admin_login():
 @app.route("/painel")
 @login_required
 def painel():
-    reg = Registration.query.filter_by(user_id=current_user.id).first()
+    reg = current_user.registration  # você já usa 1:1
+
+    total_regs = Registration.query.count()
+    lot_info = get_current_lot_info(total_regs)
+
+    # preço "oficial de identificação", sempre terminando em ,09
+    price_id = lot_info["price"]  # já vem com .09 se você colocar no env assim
+    v1 = price_id
+    v2 = split_installments(price_id, 2)[0]  # mesma parcela repetida
+    v3 = split_installments(price_id, 3)[0]
+
+    credit_link = "https://link.infinitepay.io/senamarcos/VC1DLTAtUg-7EMh4AJ0qL-180,00"
     return render_template(
         "painel.html",
         reg=reg,
-        pix_msg=PIX_PADRAO_MSG,
-        criancas_msg=CRIANCAS_MSG,
-        inclui_itens=INCLUI_ITENS,
-        contato_pagamento=CONTATO_PAGAMENTO,
-        contato_pagamento_texto=CONTATO_PAGAMENTO_TEXTO,
+        lot_info=lot_info,
+        pix_prices={
+            "v1": v1,
+            "v2": v2,
+            "v3": v3,
+        }, credit_link=credit_link
     )
 
 

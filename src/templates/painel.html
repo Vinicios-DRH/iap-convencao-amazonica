@@ -81,6 +81,7 @@
             align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .pill {
@@ -165,29 +166,6 @@
             color: #fbbf24;
         }
 
-        .price-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .price-row {
-            border: 1px solid rgba(255, 255, 255, .12);
-            background: rgba(0, 0, 0, .16);
-            border-radius: 14px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .price-row b {
-            color: #fff;
-        }
-
         .tag-yellow {
             border: 1px solid rgba(251, 191, 36, .35);
             background: rgba(251, 191, 36, .10);
@@ -196,6 +174,113 @@
             border-radius: 999px;
             font-weight: 900;
             font-size: .82rem;
+        }
+
+        /* ========= NOVO: GRID DE QRs (1x/2x/3x) ========= */
+        .qr3-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 991.98px) {
+            .qr3-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .qr-mini {
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(0, 0, 0, .18);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .qr-mini .title {
+            font-weight: 1000;
+            margin-bottom: 6px;
+        }
+
+        .qr-mini .qr-white img {
+            width: 160px;
+            height: 160px;
+        }
+
+        .mini-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        /* ========= CARTÃO (INFINITEPAY) ========= */
+        .pay-card {
+            border: 1px solid rgba(255, 255, 255, .14);
+            background:
+                radial-gradient(520px 240px at 20% 20%, rgba(217, 70, 239, .18), transparent 60%),
+                radial-gradient(520px 240px at 80% 30%, rgba(34, 211, 238, .16), transparent 60%),
+                rgba(0, 0, 0, .18);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .pay-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pay-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pay-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(0, 0, 0, .22);
+            display: grid;
+            place-items: center;
+            font-weight: 1000;
+            color: #fff;
+        }
+
+        .btn-soft {
+            border: 1px solid rgba(255, 255, 255, .18);
+            background: rgba(0, 0, 0, .22);
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .btn-soft:hover {
+            opacity: .92;
+            color: #fff;
+        }
+
+        .linkbox {
+            margin-top: 12px;
+            border: 1px dashed rgba(255, 255, 255, .18);
+            background: rgba(0, 0, 0, .18);
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .linkbox code {
+            color: rgba(255, 255, 255, .92);
+            font-size: .9rem;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -302,111 +387,102 @@
                                 <div>
                                     <div class="fw-bold mb-1">Pagar com Pix</div>
                                     <div class="muted" style="font-size:.93rem;">
-                                        Use o QR Code ou copie a chave Pix (CNPJ).
+                                        Escolha abaixo: <b>à vista</b> ou <b>parcelado</b> (Pix parcelado =
+                                        transferências separadas).
                                     </div>
                                 </div>
                                 <span class="pill">PIX</span>
                             </div>
 
-                            <div class="pix-grid">
-                                <!-- COLUNA QR -->
-                                <div class="qr-card">
+                            <div class="kv mt-3">
+                                <div class="label">Regra de identificação</div>
+                                <div class="small-warn">
+                                    Para identificarmos o pagamento do evento, <b>todos os valores</b> devem terminar em
+                                    <b>,09</b>
+                                    (ex.: <b>180,09</b> / <b>90,09</b> / <b>60,09</b>).
+                                </div>
+                            </div>
+
+                            <!-- ✅ OPÇÃO B: 3 QR CODES (1x/2x/3x) -->
+                            <div class="mt-3 qr3-grid">
+                                <!-- 1x -->
+                                <div class="qr-mini">
+                                    <div class="title">À vista (1x)</div>
                                     <div class="qr-white">
-                                        <img src="{{ url_for('static', filename='img/qr_pix.jpeg') }}"
-                                            alt="QR Code Pix">
+                                        <img src="{{ url_for('pix_qr_n', n=1) }}" alt="Pix 1x">
                                     </div>
-
-                                    <div class="mt-3 d-grid gap-2">
-                                        <a class="btn btn-outline-light btn-sm"
-                                            href="{{ url_for('static', filename='img/qr_pix.jpeg') }}" target="_blank">
-                                            Abrir em tela cheia
-                                        </a>
+                                    <div class="small-note mt-2">
+                                        Valor: <b>R$ 180,09</b>
                                     </div>
-
-                                    <div class="small-note mt-3">
-                                        <div class="fw-bold mb-1">Chave Pix (CNPJ)</div>
-                                        <div>17.739.576/0001-78</div>
+                                    <div class="mini-actions">
+                                        <button class="btn btn-outline-light btn-sm" type="button"
+                                            onclick="copyValue('180,09')">Copiar valor</button>
+                                        <a class="btn btn-soft btn-sm" target="_blank"
+                                            href="{{ url_for('pix_qr_n', n=1) }}">Abrir QR</a>
                                     </div>
                                 </div>
 
-                                <!-- COLUNA INFO -->
-                                <div class="d-flex flex-column gap-3">
-                                    <div class="kv">
-                                        <div class="label">Chave Pix (CNPJ)</div>
-                                        <div class="input-group">
-                                            <input id="pixKey" class="form-control" value="17.739.576/0001-78" readonly>
-                                            <button class="btn btn-neon" type="button"
-                                                onclick="copyPixKey()">Copiar</button>
-                                        </div>
-
-                                        <div class="small-warn mt-2">
-                                            <b>Atenção:</b> Para identificarmos o pagamento do evento, <b>todos os
-                                                valores</b>
-                                            devem terminar em <b>,09</b> (ex.: <b>180,09</b> / <b>90,09</b> /
-                                            <b>60,09</b>).
-                                        </div>
+                                <!-- 2x -->
+                                <div class="qr-mini">
+                                    <div class="title">Parcelado (2x)</div>
+                                    <div class="qr-white">
+                                        <img src="{{ url_for('pix_qr_n', n=2) }}" alt="Pix 2x">
                                     </div>
-
-                                    <div class="tip-card">
-                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                            <div class="fw-bold">Valores oficiais do Pix (para identificação)</div>
-                                            <span class="tag-yellow">terminar em ,09</span>
-                                        </div>
-
-                                        <div class="small-note mt-2">
-                                            <b>Importante:</b> o valor de <b>R$ 180,09</b> é válido apenas para as
-                                            <b>primeiras 50 inscrições</b>.
-                                            Depois disso, o valor muda.
-                                        </div>
-
-                                        <div class="price-grid">
-                                            <div class="price-row">
-                                                <div>
-                                                    <div class="muted" style="font-size:.9rem;">À vista (1x)</div>
-                                                    <b>R$ 180,09</b>
-                                                </div>
-                                                <button class="btn btn-outline-light btn-sm" type="button"
-                                                    onclick="copyValue('180,09')">Copiar</button>
-                                            </div>
-
-                                            <div class="price-row">
-                                                <div>
-                                                    <div class="muted" style="font-size:.9rem;">2x</div>
-                                                    <b>R$ 90,09 + R$ 90,09</b>
-                                                </div>
-                                                <button class="btn btn-outline-light btn-sm" type="button"
-                                                    onclick="copyValue('90,09')">Copiar parcela</button>
-                                            </div>
-
-                                            <div class="price-row">
-                                                <div>
-                                                    <div class="muted" style="font-size:.9rem;">3x</div>
-                                                    <b>R$ 60,09 + R$ 60,09 + R$ 60,09</b>
-                                                </div>
-                                                <button class="btn btn-outline-light btn-sm" type="button"
-                                                    onclick="copyValue('60,09')">Copiar parcela</button>
-                                            </div>
-                                        </div>
-
-                                        <div class="small-note mt-2">
-                                            Se você escolheu parcelar, faça <b>transferências separadas</b> (uma por
-                                            parcela),
-                                            sempre terminando em <b>,09</b>.
-                                        </div>
+                                    <div class="small-note mt-2">
+                                        2 pagamentos de <b>R$ 90,09</b>
                                     </div>
-
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <a class="btn btn-neon" href="{{ url_for('enviar_comprovante') }}">
-                                            {% if reg.proof_file_path %}Enviar outro comprovante{% else %}Enviar
-                                            comprovante{% endif %}
-                                        </a>
-                                        <a class="btn btn-outline-light" href="{{ url_for('landing') }}">Voltar</a>
-                                    </div>
-
-                                    <div class="muted" style="font-size:.92rem;">
-                                        Dúvidas: <b>{{ contato_pagamento }}</b> — {{ contato_pagamento_texto }}
+                                    <div class="mini-actions">
+                                        <button class="btn btn-outline-light btn-sm" type="button"
+                                            onclick="copyValue('90,09')">Copiar parcela</button>
+                                        <a class="btn btn-soft btn-sm" target="_blank"
+                                            href="{{ url_for('pix_qr_n', n=2) }}">Abrir QR</a>
                                     </div>
                                 </div>
+
+                                <!-- 3x -->
+                                <div class="qr-mini">
+                                    <div class="title">Parcelado (3x)</div>
+                                    <div class="qr-white">
+                                        <img src="{{ url_for('pix_qr_n', n=3) }}" alt="Pix 3x">
+                                    </div>
+                                    <div class="small-note mt-2">
+                                        3 pagamentos de <b>R$ 60,09</b>
+                                    </div>
+                                    <div class="mini-actions">
+                                        <button class="btn btn-outline-light btn-sm" type="button"
+                                            onclick="copyValue('60,09')">Copiar parcela</button>
+                                        <a class="btn btn-soft btn-sm" target="_blank"
+                                            href="{{ url_for('pix_qr_n', n=3) }}">Abrir QR</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tip-card mt-3">
+                                <div class="fw-bold mb-1">Como funciona o parcelado no Pix?</div>
+                                <div class="small-note">
+                                    No Pix, parcelamento não é automático. Se você escolher 2x ou 3x, faça
+                                    <b>transferências separadas</b> (uma por parcela), sempre com final <b>,09</b>.
+                                </div>
+                            </div>
+
+                            <div class="kv mt-3">
+                                <div class="label">Chave Pix (CNPJ)</div>
+                                <div class="input-group">
+                                    <input id="pixKey" class="form-control" value="17.739.576/0001-78" readonly>
+                                    <button class="btn btn-neon" type="button" onclick="copyPixKey()">Copiar</button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap mt-3">
+                                <a class="btn btn-neon" href="{{ url_for('enviar_comprovante') }}">
+                                    {% if reg.proof_file_path %}Enviar outro comprovante{% else %}Enviar comprovante{%
+                                    endif %}
+                                </a>
+                                <a class="btn btn-outline-light" href="{{ url_for('landing') }}">Voltar</a>
+                            </div>
+
+                            <div class="muted mt-2" style="font-size:.92rem;">
+                                Dúvidas: <b>{{ contato_pagamento }}</b> — {{ contato_pagamento_texto }}
                             </div>
                         </div>
                         {% else %}
@@ -431,6 +507,41 @@
                             <div class="mt-2"><b>Aviso:</b> {{ criancas_msg }}</div>
                         </div>
                     </div>
+
+                    <!-- CARTÃO DO CARTÃO (InfinitePay) -->
+                    <div class="pay-card mt-3">
+                        <div class="pay-head">
+                            <div class="pay-left">
+                                <div class="pay-icon">💳</div>
+                                <div>
+                                    <div class="fw-bold">Pagar no cartão</div>
+                                    <div class="muted" style="font-size:.92rem;">
+                                        Link seguro da <b>InfinitePay</b>. Abre em nova aba.
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="pill">CRÉDITO</span>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <a class="btn btn-neon" target="_blank" rel="noopener noreferrer" href="{{ credit_link }}">
+                                Abrir pagamento no cartão
+                            </a>
+                            <button class="btn btn-soft" type="button" onclick="copyCreditLink()">
+                                Copiar link do cartão
+                            </button>
+                        </div>
+
+                        <div class="linkbox">
+                            <code id="creditLinkText">{{ credit_link }}</code>
+                            <span class="muted" id="creditCopyOk" style="display:none;">✅ Copiado!</span>
+                        </div>
+
+                        <div class="small-note mt-2">
+                            Se o link não abrir, copie e cole no navegador.
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -454,6 +565,20 @@
             } catch (e) {
                 alert("Não consegui copiar automaticamente. Copie manualmente: " + v);
             }
+        }
+
+        function copyCreditLink() {
+            const txt = (document.getElementById("creditLinkText")?.textContent || "").trim();
+            if (!txt) return;
+            navigator.clipboard.writeText(txt).then(() => {
+                const ok = document.getElementById("creditCopyOk");
+                if (ok) {
+                    ok.style.display = "inline";
+                    setTimeout(() => ok.style.display = "none", 1400);
+                }
+            }).catch(() => {
+                alert("Não consegui copiar automaticamente. Copie manualmente o link.");
+            });
         }
     </script>
 </body>

@@ -8,6 +8,7 @@ import os
 from supabase import create_client
 from src.controllers.b2_utils import get_b2_file_url
 import pytz
+from decimal import Decimal, ROUND_FLOOR
 
 
 # Carregar variáveis do .env
@@ -61,6 +62,64 @@ INCLUI_ITENS = [
 CONTATO_PAGAMENTO = "+55 92 8459-6369"
 CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)).strip())
+    except Exception:
+        return default
+
+def _env_dec(name: str, default: str) -> Decimal:
+    try:
+        return Decimal(str(os.getenv(name, default)).strip().replace(",", "."))
+    except Exception:
+        return Decimal(default)
+    
+LOT1_LIMIT = _env_int("LOT1_LIMIT", 50)
+LOT1_PRICE = _env_dec("LOT1_PRICE", "180.09")   # em reais
+LOT2_PRICE = _env_dec("LOT2_PRICE", "200.09")   # em reais
+PIX_SUFFIX = _env_dec("PIX_SUFFIX", "0.09")     # em reais (centavos)
+
+def money_br(value: Decimal) -> str:
+    # formata 1234.56 -> 1.234,56
+    s = f"{value:.2f}"
+    inteiro, dec = s.split(".")
+    inteiro = f"{int(inteiro):,}".replace(",", ".")
+    return f"{inteiro},{dec}"
+
+def with_suffix(value: Decimal, suffix: Decimal = PIX_SUFFIX) -> Decimal:
+    """
+    Força o valor a terminar com PIX_SUFFIX.
+    Ex: 180.00 -> 180.09
+    """
+    inteiro = value.quantize(Decimal("1"), rounding=ROUND_FLOOR)
+    return inteiro + suffix
+
+def split_installments(total: Decimal, n: int) -> list[Decimal]:
+    """
+    Divide em parcelas e força cada parcela a terminar em PIX_SUFFIX.
+    """
+    n = max(1, int(n or 1))
+    base = (total / Decimal(n))
+    parcela = with_suffix(base)
+    return [parcela for _ in range(n)]
+
+def get_current_lot_info(total_regs: int) -> dict:
+    """
+    Decide lote com base em quantidade total de inscrições (registros).
+    """
+    if total_regs < LOT1_LIMIT:
+        lot_name = "1_LOTE"
+        price = LOT1_PRICE
+        remaining = LOT1_LIMIT - total_regs
+    else:
+        lot_name = "2_LOTE"
+        price = LOT2_PRICE
+        remaining = 0
+    return {"lot_name": lot_name, "price": price, "remaining": remaining}
+
+# filtros e helpers para o Jinja
+app.jinja_env.filters["money_br"] = lambda v: money_br(Decimal(str(v))) if v is not None else "-"
+
 tz_manaus = pytz.timezone("America/Manaus")
 
 
@@ -82,7 +141,12 @@ def inject_globals():
         "inclui_itens": INCLUI_ITENS,
         "contato_pagamento": CONTATO_PAGAMENTO,
         "contato_pagamento_texto": CONTATO_PAGAMENTO_TEXTO,
+
+        # novos globais
+        "lot1_limit": LOT1_LIMIT,
+        "pix_suffix": str(PIX_SUFFIX).replace(".", ","),
     }
+
 
 from src import routes
 app.supabase = supabase
