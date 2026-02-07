@@ -176,8 +176,9 @@
 
                 <div class="col-lg-6">
                     <div class="card-glass p-3">
-                        <img src="{{ url_for('static', filename='img/capa2.webp') }}" class="img-fluid rounded-4"
-                            alt="Arte do evento">
+                        <img src="{{ url_for('static', filename='img/capa2.webp') }}"
+                            sizes="(max-width: 992px) 100vw, 50vw" class="img-fluid rounded-4" loading="lazy"
+                            decoding="async" alt="Arte do evento" />
                     </div>
                 </div>
             </div>
