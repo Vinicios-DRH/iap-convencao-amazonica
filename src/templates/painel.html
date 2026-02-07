@@ -72,24 +72,6 @@
         .pix-box {
             border: 1px solid rgba(255, 255, 255, .14);
             background: rgba(0, 0, 0, .20);
-            border-radius: 16px;
-            padding: 14px;
-        }
-
-        .pix-qr {
-            background: #fff;
-            border-radius: 14px;
-            padding: 10px;
-            display: inline-block;
-        }
-
-        .tiny {
-            font-size: .92rem;
-        }
-
-        .pix-box {
-            border: 1px solid rgba(255, 255, 255, .14);
-            background: rgba(0, 0, 0, .20);
             border-radius: 18px;
             padding: 18px;
         }
@@ -181,7 +163,39 @@
 
         .tip-card small {
             color: #fbbf24;
-            /* amarelinho igual teu estilo */
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .price-row {
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(0, 0, 0, .16);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .price-row b {
+            color: #fff;
+        }
+
+        .tag-yellow {
+            border: 1px solid rgba(251, 191, 36, .35);
+            background: rgba(251, 191, 36, .10);
+            color: rgba(255, 255, 255, .92);
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: .82rem;
         }
     </style>
 </head>
@@ -223,14 +237,8 @@
             </div>
             {% else %}
 
-            {# helpers para a dica extra de valores terminando em 0,09 #}
             {% set cents_total = reg.lot_value_cents or 18000 %}
-            {% set total = (cents_total / 100) %}
-            {% set n = reg.installments or 1 %}
-            {% set base = (total / n) %}
-            {# força terminar em .09: pega a parte inteira e soma 0.09 #}
-            {% set parcela_sugerida = ((base | round(0, 'floor')) + 0.09) %}
-            {% set total_sugerido = (parcela_sugerida * n) %}
+            {% set total_lote = (cents_total / 100) %}
 
             <div class="row g-4">
                 <div class="col-lg-7">
@@ -239,8 +247,10 @@
                             <div>
                                 <div class="badge-soft mb-2">MINHA INSCRIÇÃO</div>
                                 <h1 class="h3 mb-1">{{ reg.full_name }}</h1>
-                                <div class="muted">IAP: <b>{{ reg.iap_local }}</b> • Transporte: <b>{{ 'Ônibus' if
-                                        reg.transport=='onibus' else 'Carro' }}</b></div>
+                                <div class="muted">
+                                    IAP: <b>{{ reg.iap_local }}</b> • Transporte:
+                                    <b>{{ 'Ônibus' if reg.transport=='onibus' else 'Carro' }}</b>
+                                </div>
                             </div>
 
                             {% set st = reg.status %}
@@ -255,8 +265,9 @@
 
                         <hr style="border-color:rgba(255,255,255,.12)">
 
-                        <div class="muted mb-2"><b>Status:</b> {{ reg.status_message or 'Aguardando confirmação do
-                            pagamento.' }}</div>
+                        <div class="muted mb-2">
+                            <b>Status:</b> {{ reg.status_message or 'Aguardando confirmação do pagamento.' }}
+                        </div>
 
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -266,16 +277,18 @@
                                         <div>Tipo: <b>{{ 'Pix' if reg.payment_type=='pix' else 'Crédito' }}</b></div>
                                         <div>Parcelas: <b>{{ reg.installments }}x</b></div>
                                         <div>Lote: <b>{{ reg.lot_name }}</b></div>
-                                        <div>Valor do lote: <b>R$ {{ '%.2f'|format(total) }}</b></div>
+                                        <div>Valor do lote (sistema): <b>R$ {{ '%.2f'|format(total_lote) }}</b></div>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-md-6">
                                 <div class="cardx p-3">
                                     <div class="fw-bold">Comprovante</div>
                                     {% if reg.proof_file_path %}
-                                    <div class="muted">Enviado em: <b>{{ reg.proof_uploaded_at }}</b></div>
-                                    <div class="muted">Arquivo: <b>OK</b></div>
+                                    <div class="muted">Enviado em: <b>{{ reg.proof_uploaded_at|fmt_manaus if
+                                            reg.proof_uploaded_at else '-' }}</b></div>
+                                    <div class="muted">Comprovante: <b>OK</b></div>
                                     {% else %}
                                     <div class="muted">Ainda não enviado.</div>
                                     {% endif %}
@@ -288,7 +301,9 @@
                             <div class="pix-head">
                                 <div>
                                     <div class="fw-bold mb-1">Pagar com Pix</div>
-                                    <div class="muted tiny">Use o QR Code ou copie a chave Pix (CNPJ).</div>
+                                    <div class="muted" style="font-size:.93rem;">
+                                        Use o QR Code ou copie a chave Pix (CNPJ).
+                                    </div>
                                 </div>
                                 <span class="pill">PIX</span>
                             </div>
@@ -325,28 +340,58 @@
                                         </div>
 
                                         <div class="small-warn mt-2">
-                                            <b>Atenção:</b> {{ pix_msg if pix_msg else 'Pix deve terminar em 0,09.' }}
+                                            <b>Atenção:</b> Para identificarmos o pagamento do evento, <b>todos os
+                                                valores</b>
+                                            devem terminar em <b>,09</b> (ex.: <b>180,09</b> / <b>90,09</b> /
+                                            <b>60,09</b>).
                                         </div>
                                     </div>
 
                                     <div class="tip-card">
-                                        <div class="fw-bold mb-1">Dica extra (valores sugeridos)</div>
-                                        <div class="small-note">
-                                            Para facilitar a identificação, sugerimos que cada pagamento termine em
-                                            <b>0,09</b>.
-                                            <div class="mt-2">
-                                                <div>Seu plano atual: <b>{{ n }}x</b></div>
-                                                <div>Parcela sugerida: <b>R$ {{ '%.2f'|format(parcela_sugerida) }}</b>
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                            <div class="fw-bold">Valores oficiais do Pix (para identificação)</div>
+                                            <span class="tag-yellow">terminar em ,09</span>
+                                        </div>
+
+                                        <div class="small-note mt-2">
+                                            <b>Importante:</b> o valor de <b>R$ 180,09</b> é válido apenas para as
+                                            <b>primeiras 50 inscrições</b>.
+                                            Depois disso, o valor muda.
+                                        </div>
+
+                                        <div class="price-grid">
+                                            <div class="price-row">
+                                                <div>
+                                                    <div class="muted" style="font-size:.9rem;">À vista (1x)</div>
+                                                    <b>R$ 180,09</b>
                                                 </div>
-                                                <div>Total sugerido: <b>R$ {{ '%.2f'|format(total_sugerido) }}</b></div>
+                                                <button class="btn btn-outline-light btn-sm" type="button"
+                                                    onclick="copyValue('180,09')">Copiar</button>
                                             </div>
-                                            <div class="mt-2">
-                                                <small>
-                                                    * O total sugerido pode variar alguns centavos do valor do lote por
-                                                    causa da regra do <b>0,09</b>.
-                                                    Se tiver dúvida, chame no contato do pagamento.
-                                                </small>
+
+                                            <div class="price-row">
+                                                <div>
+                                                    <div class="muted" style="font-size:.9rem;">2x</div>
+                                                    <b>R$ 90,09 + R$ 90,09</b>
+                                                </div>
+                                                <button class="btn btn-outline-light btn-sm" type="button"
+                                                    onclick="copyValue('90,09')">Copiar parcela</button>
                                             </div>
+
+                                            <div class="price-row">
+                                                <div>
+                                                    <div class="muted" style="font-size:.9rem;">3x</div>
+                                                    <b>R$ 60,09 + R$ 60,09 + R$ 60,09</b>
+                                                </div>
+                                                <button class="btn btn-outline-light btn-sm" type="button"
+                                                    onclick="copyValue('60,09')">Copiar parcela</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="small-note mt-2">
+                                            Se você escolheu parcelar, faça <b>transferências separadas</b> (uma por
+                                            parcela),
+                                            sempre terminando em <b>,09</b>.
                                         </div>
                                     </div>
 
@@ -358,7 +403,7 @@
                                         <a class="btn btn-outline-light" href="{{ url_for('landing') }}">Voltar</a>
                                     </div>
 
-                                    <div class="muted tiny">
+                                    <div class="muted" style="font-size:.92rem;">
                                         Dúvidas: <b>{{ contato_pagamento }}</b> — {{ contato_pagamento_texto }}
                                     </div>
                                 </div>
@@ -388,6 +433,7 @@
                     </div>
                 </div>
             </div>
+
             {% endif %}
         </div>
     </main>
@@ -400,6 +446,14 @@
             const el = document.getElementById("pixKey");
             if (!el) return;
             navigator.clipboard.writeText(el.value);
+        }
+
+        function copyValue(v) {
+            try {
+                navigator.clipboard.writeText(v);
+            } catch (e) {
+                alert("Não consegui copiar automaticamente. Copie manualmente: " + v);
+            }
         }
     </script>
 </body>
