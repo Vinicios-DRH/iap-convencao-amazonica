@@ -12,6 +12,8 @@
 
             {% if current_user.is_authenticated and current_user.is_super %}
             <a class="btn btn-outline-light btn-sm" href="{{ url_for('super_permissoes') }}">Permissões</a>
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin_config_inscricoes') }}">Controle de
+                Inscrições</a>
             {% endif %}
 
             <span class="vr opacity-50 mx-1"></span>

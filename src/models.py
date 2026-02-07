@@ -45,8 +45,9 @@ class User(database.Model, UserMixin):
         120), unique=True, nullable=False, index=True)
     password_hash = database.Column(database.String(255), nullable=False)
 
-    must_change_password = database.Column(database.Boolean, default=False)  # NOVO
-    password_reset_at = database.Column(database.DateTime, nullable=True)  
+    must_change_password = database.Column(
+        database.Boolean, default=False)  # NOVO
+    password_reset_at = database.Column(database.DateTime, nullable=True)
 
     is_active = database.Column(database.Boolean, default=True)
     created_at = database.Column(database.DateTime, default=datetime.utcnow)
@@ -164,3 +165,13 @@ class AuditLog(database.Model):
     created_at = database.Column(database.DateTime, default=datetime.utcnow)
 
     actor = database.relationship("User", foreign_keys=[actor_user_id])
+
+
+class AppSetting(database.Model):
+    __tablename__ = "app_settings"
+
+    id = database.Column(database.Integer, primary_key=True)
+    key = database.Column(database.String(80), unique=True, nullable=False)
+    value = database.Column(database.String(255), nullable=False)
+    updated_at = database.Column(
+        database.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -110,6 +110,46 @@
             display: inline-block;
         }
 
+        .hero-head {
+            display: flex;
+            align-items: center;
+            /* <- alinha ícone e texto no meio */
+            gap: 16px;
+            flex-wrap: nowrap;
+        }
+
+        .hero-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, .16);
+            background: rgba(0, 0, 0, .22);
+            display: grid;
+            place-items: center;
+            font-size: 26px;
+            flex: 0 0 auto;
+        }
+
+        .hero-text {
+            min-width: 0;
+            /* <- evita quebrar layout */
+        }
+
+        .hero-badges {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 575.98px) {
+            .hero-head {
+                align-items: flex-start;
+                flex-wrap: wrap;
+                /* no mobile pode quebrar */
+            }
+        }
+
         @keyframes pulse {
 
             0%,
@@ -143,18 +183,21 @@
     <main class="hero-wrap py-5">
         <div class="container">
             <div class="cardx glow p-4 p-lg-5">
-                <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon pulse">⏳</div>
-                        <div>
-                            <span class="badge-soft mb-2">INSCRIÇÕES EM BREVE</span>
-                            <h1 class="h3 mb-2">As inscrições ainda não foram abertas.</h1>
-                            <p class="muted mb-0">
-                                Aguarde um pouco — assim que liberarmos, o botão de inscrição aparecerá aqui.
-                            </p>
+                <div class="hero-head">
+                    <div class="hero-icon pulse" aria-hidden="true">⏳</div>
+
+                    <div class="hero-text">
+                        <div class="hero-badges">
+                            <span class="badge-soft">INSCRIÇÕES EM BREVE</span>
                         </div>
+
+                        <h1 class="h3 mb-2">As inscrições ainda não foram abertas.</h1>
+                        <p class="muted mb-0">
+                            Aguarde um pouco — assim que liberarmos, o botão de inscrição aparecerá aqui.
+                        </p>
                     </div>
                 </div>
+
 
                 <hr class="hrx my-4">
 

@@ -9,7 +9,7 @@ import qrcode
 from io import BytesIO
 from src.controllers.pix_emv import build_pix_payload
 from src import app, database, get_current_lot_info, split_installments
-from src.models import User, Role, Registration, AuditLog
+from src.models import AppSetting, User, Role, Registration, AuditLog
 from src.forms import ChangePasswordForm, RegisterAndSignupForm, LoginForm, UploadProofForm, ReviewRegistrationForm
 from src.decorators import admin_required, payment_reviewer_required, super_required
 from src.controllers.b2_utils import upload_to_b2
@@ -58,7 +58,20 @@ def can_review():
 
 
 def inscricoes_suspensas() -> bool:
-    return os.getenv("INSCRICOES_SUSPENSAS", "0") == "0"
+    return os.getenv("INSCRICOES_SUSPENSAS", "0") == "1"
+
+
+def inscricoes_abertas() -> bool:
+    return os.getenv("INSCRICOES_ABERTAS", "0") == "1"
+
+
+def get_setting(key: str, default: str = "") -> str:
+    s = AppSetting.query.filter_by(key=key).first()
+    return (s.value if s else default) or default
+
+
+def inscricoes_status() -> str:
+    return get_setting("INSCRICOES_STATUS", "embreve").strip().lower()
 
 
 # ======================= PIX =======================
@@ -117,14 +130,25 @@ def landing():
         inclui_itens=INCLUI_ITENS,
         contato_pagamento=CONTATO_PAGAMENTO,
         contato_pagamento_texto=CONTATO_PAGAMENTO_TEXTO,
+        inscricoes_status=inscricoes_status(),
     )
 
 
 @app.route("/inscricao", methods=["GET", "POST"])
 def inscricao():
-    if inscricoes_suspensas():
-        return render_template("inscricoes_suspensas.html")
+    st = inscricoes_status()
 
+    if st == "embreve":
+        return render_template("inscricoes_em_breve.html",
+                               contato_pagamento=CONTATO_PAGAMENTO,
+                               contato_pagamento_texto=CONTATO_PAGAMENTO_TEXTO)
+
+    if st == "suspensas":
+        return render_template("inscricoes_suspensas.html",
+                               contato_pagamento=CONTATO_PAGAMENTO,
+                               contato_pagamento_texto=CONTATO_PAGAMENTO_TEXTO)
+
+    # abertas
     form = RegisterAndSignupForm()
 
     if form.validate_on_submit():
@@ -598,3 +622,35 @@ def admin_reset_password(user_id):
 
     # Renderiza uma tela que mostra a senha UMA VEZ
     return render_template("admin/reset_password_result.html", user=user, temp_pass=temp_pass)
+
+
+@app.route("/admin/config/inscricoes", methods=["GET", "POST"])
+@super_required
+def admin_config_inscricoes():
+    key = "INSCRICOES_STATUS"
+    current = get_setting(key, "embreve")
+
+    if request.method == "POST":
+        new_status = (request.form.get("status") or "").strip().lower()
+        if new_status not in ("abertas", "suspensas", "embreve"):
+            flash("Status inválido.", "danger")
+            return redirect(url_for("admin_config_inscricoes"))
+
+        s = AppSetting.query.filter_by(key=key).first()
+        if not s:
+            s = AppSetting(key=key, value=new_status)
+            database.session.add(s)
+        else:
+            s.value = new_status
+
+        database.session.add(AuditLog(
+            actor_user_id=current_user.id,
+            action="update_inscricoes_status",
+            details=f"status={new_status}"
+        ))
+        database.session.commit()
+
+        flash("Status das inscrições atualizado!", "success")
+        return redirect(url_for("admin_config_inscricoes"))
+
+    return render_template("admin/config_inscricoes.html", current=current)

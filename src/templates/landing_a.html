@@ -159,7 +159,28 @@
                     </div>
 
                     <div class="d-flex gap-2 mt-4 flex-wrap">
-                        <a class="btn btn-neon btn-lg" href="{{ url_for('inscricao') }}">Fazer inscrição</a>
+                        {% set st = (inscricoes_status or 'embreve')|lower %}
+
+                        {% if st == 'abertas' %}
+                        <a class="btn btn-neon btn-lg" href="{{ url_for('inscricao') }}">
+                            Fazer inscrição
+                        </a>
+                        {% elif st == 'suspensas' %}
+                        <a class="btn btn-outline-light btn-lg" href="{{ url_for('inscricao') }}">
+                            Inscrições suspensas
+                        </a>
+                        <div class="muted mt-2" style="font-size:.95rem;">
+                            As inscrições estão temporariamente suspensas. Tente novamente mais tarde.
+                        </div>
+                        {% else %}
+                        <button class="btn btn-outline-light btn-lg" type="button" disabled style="opacity:.75;">
+                            Inscrições em breve
+                        </button>
+                        <div class="muted mt-2" style="font-size:.95rem;">
+                            Aguarde — assim que liberarmos, o botão de inscrição ficará disponível.
+                        </div>
+                        {% endif %}
+
                         <a class="btn btn-outline-light btn-lg" href="#info">Ver informações</a>
                     </div>
 

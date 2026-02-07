@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin — Controle de Inscrições</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --pink: #d946ef;
+            --cyan: #22d3ee;
+            --bg: #070711;
+            --card: rgba(255, 255, 255, .06);
+            --border: rgba(255, 255, 255, .14);
+            --muted: rgba(255, 255, 255, .72);
+        }
+
+        body {
+            background:
+                radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .18), transparent 60%),
+                radial-gradient(900px 500px at 80% 20%, rgba(217, 70, 239, .20), transparent 60%),
+                linear-gradient(180deg, #05050d, var(--bg));
+            color: #f4f4fb;
+            min-height: 100vh;
+        }
+
+        .navy {
+            background: rgba(0, 0, 0, .35);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .cardx {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .badge-soft {
+            border: 1px solid rgba(255, 255, 255, .16);
+            background: rgba(0, 0, 0, .22);
+            border-radius: 999px;
+            padding: .35rem .7rem;
+            font-weight: 900;
+            letter-spacing: .03em;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .btn-neon {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            border: none;
+            color: #06060c;
+            font-weight: 1000;
+        }
+
+        .btn-neon:hover {
+            opacity: .92;
+        }
+
+        .btn-soft {
+            border: 1px solid rgba(255, 255, 255, .18);
+            background: rgba(0, 0, 0, .22);
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .btn-soft:hover {
+            opacity: .92;
+            color: #fff;
+        }
+
+        /* opções */
+        .opt {
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(0, 0, 0, .18);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: transform .08s ease, border-color .12s ease;
+            user-select: none;
+        }
+
+        .opt:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, .22);
+        }
+
+        .opt input {
+            margin-top: .25rem;
+            transform: scale(1.15);
+            accent-color: #22d3ee;
+        }
+
+        .opt .title {
+            font-weight: 1000;
+            line-height: 1.1;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            font-size: .78rem;
+            font-weight: 900;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .16);
+            background: rgba(0, 0, 0, .22);
+        }
+
+        .chip-ok {
+            border-color: rgba(34, 211, 238, .35);
+            background: rgba(34, 211, 238, .10);
+        }
+
+        .chip-warn {
+            border-color: rgba(251, 191, 36, .35);
+            background: rgba(251, 191, 36, .10);
+        }
+
+        .chip-bad {
+            border-color: rgba(239, 68, 68, .35);
+            background: rgba(239, 68, 68, .10);
+        }
+
+        .tip {
+            border: 1px dashed rgba(255, 255, 255, .18);
+            background: rgba(0, 0, 0, .16);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .divider {
+            border-color: rgba(255, 255, 255, .12);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- NAV -->
+    <nav class="navbar navy">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-white" href="{{ url_for('admin_home') }}">
+                <span class="badge-soft">🛠️ ADMIN</span>
+                <span class="fw-bold">Controle de Inscrições</span>
+            </a>
+
+            <div class="ms-auto d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin_home') }}">Dashboard</a>
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-5">
+        <div class="container" style="max-width: 880px;">
+
+            <!-- FLASH MESSAGES -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mb-3" role="alert">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div class="cardx p-4 p-lg-5">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <div class="badge-soft mb-2">⚙️ CONFIG</div>
+                        <h1 class="h4 mb-1">Controle de inscrições</h1>
+                        <div class="muted">
+                            Defina se a página de inscrição está <b>aberta</b>, <b>suspensa</b> ou <b>em breve</b>.
+                        </div>
+                    </div>
+
+                    {% set current = (current or 'embreve')|lower %}
+                    <div class="text-end">
+                        <div class="muted" style="font-size:.9rem;">Status atual</div>
+                        {% if current == 'abertas' %}
+                        <span class="badge text-bg-success">ABERTAS</span>
+                        {% elif current == 'suspensas' %}
+                        <span class="badge text-bg-danger">SUSPENSAS</span>
+                        {% else %}
+                        <span class="badge text-bg-warning">EM BREVE</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr class="divider my-4">
+
+                <form method="POST" class="d-grid gap-3">
+                    <!-- ABERTAS -->
+                    <label class="opt">
+                        <input type="radio" name="status" value="abertas" {% if current=='abertas' %}checked{% endif %}>
+                        <div>
+                            <div class="title">
+                                Abertas
+                                <span class="chip chip-ok">LIVE</span>
+                            </div>
+                            <div class="muted mt-1">
+                                Permite novas inscrições normalmente (botão ativo na landing).
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- SUSPENSAS -->
+                    <label class="opt">
+                        <input type="radio" name="status" value="suspensas" {% if current=='suspensas' %}checked{% endif
+                            %}>
+                        <div>
+                            <div class="title">
+                                Suspensas
+                                <span class="chip chip-bad">OFF</span>
+                            </div>
+                            <div class="muted mt-1">
+                                Bloqueia inscrição e mostra a página “Inscrições suspensas”.
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- EM BREVE -->
+                    <label class="opt">
+                        <input type="radio" name="status" value="embreve" {% if current=='embreve' %}checked{% endif %}>
+                        <div>
+                            <div class="title">
+                                Em breve
+                                <span class="chip chip-warn">SOON</span>
+                            </div>
+                            <div class="muted mt-1">
+                                Mostra a página “Inscrições em breve / aguarde”.
+                            </div>
+                        </div>
+                    </label>
+
+                    <div class="tip">
+                        <div class="fw-bold mb-1">Dica</div>
+                        <div class="muted" style="font-size:.95rem;">
+                            A landing pode mostrar automaticamente o botão correto com base nesse status
+                            (abertas/suspensas/embreve), sem você ter que editar template.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                        <button class="btn btn-neon btn-lg" type="submit">Salvar</button>
+                        <a class="btn btn-soft btn-lg" href="{{ url_for('admin_home') }}">Voltar</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="muted mt-3" style="font-size:.9rem;">
+                * Recomendado: registrar log (AuditLog) sempre que mudar esse status.
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
