@@ -1,28 +1,38 @@
-{# components/cta_inscricao.html #}
+{# templates/components/cta_inscricao.html #}
 {% set st = (inscricoes_status or 'embreve')|lower %}
+{% set wrap_class = wrap_class or "d-flex gap-2 mt-4 flex-wrap align-items-center" %}
 
-{% if st == 'abertas' %}
-<a class="{{ btn_class }}" href="{{ url_for('inscricao') }}">
-    {{ label_abertas or 'Fazer inscrição' }}
-</a>
+<div class="{{ wrap_class }}">
+    {% if st == 'abertas' %}
+    <a class="{{ btn_class }}" href="{{ url_for('inscricao') }}">
+        {{ label_abertas or 'Fazer inscrição' }}
+    </a>
 
-{% elif st == 'suspensas' %}
-<a class="{{ btn_class_alt or 'btn btn-outline-light' }}" href="{{ url_for('incricao') }}">
-    {{ label_suspensas or 'Inscrições suspensas' }}
-</a>
-{% if show_hint %}
-<div class="muted mt-2" style="font-size:.95rem;">
-    As inscrições estão temporariamente suspensas. Tente novamente mais tarde.
+    {% elif st == 'suspensas' %}
+    <a class="{{ btn_class_alt or 'btn btn-outline-light' }}" href="{{ url_for('inscricao') }}">
+        {{ label_suspensas or 'Inscrições suspensas' }}
+    </a>
+
+    {% if show_hint %}
+    <div class="muted" style="font-size:.95rem;">
+        As inscrições estão temporariamente suspensas. Tente novamente mais tarde.
+    </div>
+    {% endif %}
+
+    {% else %}
+    <a class="{{ btn_class_alt or 'btn btn-outline-light' }}" href="{{ url_for('inscricao') }}">
+        {{ label_embreve or 'Inscrições em breve' }}
+    </a>
+
+    {% if show_hint %}
+    <div class="muted" style="font-size:.95rem;">
+        Aguarde — assim que liberarmos, o botão de inscrição ficará disponível.
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {# opcional: segundo botão ao lado (ex: "Ver informações") #}
+    {% if extra_html %}
+    {{ extra_html|safe }}
+    {% endif %}
 </div>
-{% endif %}
-
-{% else %}
-<a class="{{ btn_class_alt or 'btn btn-outline-light' }}" href="{{ url_for('inscricao') }}">
-    {{ label_embreve or 'Inscrições em breve' }}
-</a>
-{% if show_hint %}
-<div class="muted mt-2" style="font-size:.95rem;">
-    Aguarde — assim que liberarmos, o botão de inscrição ficará disponível.
-</div>
-{% endif %}
-{% endif %}
