@@ -1,3 +1,4 @@
+from decimal import ROUND_HALF_UP, Decimal
 import os
 from datetime import datetime
 import uuid
@@ -81,29 +82,55 @@ PIX_KEY = "17739576000178"
 @app.route("/pix/qr/<int:n>")
 @login_required
 def pix_qr_n(n):
-    reg = Registration.query.filter_by(user_id=current_user.id).first()
-    if not reg:
-        abort(404)
+    reg = Registration.query.filter_by(user_id=current_user.id).first_or_404()
 
     if n not in (1, 2, 3):
         abort(400)
 
-    lot = (reg.lot_value_cents or 18000) / 100.0
-    parcela = int(lot / n) + 0.09
+    lot = Decimal(reg.lot_value_cents or 18000) / Decimal("100")  # ex: 180.00
+    parcela = (lot / Decimal(n)).quantize(Decimal("0.01"),
+                                          rounding=ROUND_HALF_UP)
+
+    # regra do seu evento: terminar em ,09
+    parcela = Decimal(int(parcela)) + Decimal("0.09")  # 90.09 / 60.09 etc.
 
     payload = build_pix_payload(
         pix_key=PIX_KEY,
         merchant_name="CONVENCAO AMAZONICA",
         merchant_city="MANAUS",
-        amount=parcela,
+        amount=float(parcela),  # ou str(parcela) se seu builder aceitar string
         txid=f"{reg.id}-{n}"[:25]
     )
-
     img = qrcode.make(payload)
     buf = BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
     return Response(buf.getvalue(), mimetype="image/png")
+
+
+@app.route("/pix/copia-cola/<int:n>")
+@login_required
+def pix_copia_cola(n):
+    reg = Registration.query.filter_by(user_id=current_user.id).first_or_404()
+
+    if n not in (1, 2, 3):
+        abort(400)
+
+    from decimal import Decimal, ROUND_HALF_UP
+    lot = Decimal(reg.lot_value_cents or 18000) / Decimal("100")
+    parcela = (lot / Decimal(n)).quantize(Decimal("0.01"),
+                                          rounding=ROUND_HALF_UP)
+    parcela = Decimal(int(parcela)) + Decimal("0.09")
+
+    payload = build_pix_payload(
+        pix_key=PIX_KEY,
+        merchant_name="CONVENCAO AMAZONICA",
+        merchant_city="MANAUS",
+        amount=float(parcela),
+        txid=f"{reg.id}-{n}"[:25]
+    )
+
+    return {"payload": payload, "valor": str(parcela)}
 
 
 # ======================= ROUTES =======================
@@ -405,7 +432,7 @@ def admin_home():
 
 
 @app.route("/admin/inscricoes")
-@login_required
+@payment_reviewer_required
 def admin_inscricoes():
     if not can_admin():
         abort(403)
@@ -555,7 +582,7 @@ def seed_roles():
     upsert("SUPER", is_super=True, can_access_admin=True,
            can_review_payments=True)
     upsert("ADMIN", is_super=False, can_access_admin=True,
-           can_review_payments=False)
+           can_review_payments=True)
     upsert("REVISOR_PAGAMENTOS", is_super=False,
            can_access_admin=True, can_review_payments=True)
     database.session.commit()

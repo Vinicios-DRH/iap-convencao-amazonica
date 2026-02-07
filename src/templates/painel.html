@@ -452,7 +452,9 @@
                                     </div>
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="copyValue('180,09')">Copiar valor</button>
+                                            onclick="copyPixCopiaCola(1)">
+                                            Copiar Pix
+                                        </button>
                                         <a class="btn btn-soft btn-sm" target="_blank"
                                             href="{{ url_for('pix_qr_n', n=1) }}">Abrir QR</a>
                                     </div>
@@ -469,7 +471,9 @@
                                     </div>
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="copyValue('90,09')">Copiar parcela</button>
+                                            onclick="copyPixCopiaCola(1)">
+                                            Copiar Pix
+                                        </button>
                                         <a class="btn btn-soft btn-sm" target="_blank"
                                             href="{{ url_for('pix_qr_n', n=2) }}">Abrir QR</a>
                                     </div>
@@ -486,7 +490,9 @@
                                     </div>
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="copyValue('60,09')">Copiar parcela</button>
+                                            onclick="copyPixCopiaCola(1)">
+                                            Copiar Pix
+                                        </button>
                                         <a class="btn btn-soft btn-sm" target="_blank"
                                             href="{{ url_for('pix_qr_n', n=3) }}">Abrir QR</a>
                                     </div>
@@ -617,6 +623,19 @@
             });
         }
     </script>
+    <script>
+        async function copyPixCopiaCola(n) {
+            try {
+                const r = await fetch(`/pix/copia-cola/${n}`);
+                const j = await r.json();
+                await navigator.clipboard.writeText(j.payload);
+                alert("Pix Copia e Cola copiado! Cole no seu banco para pagar.");
+            } catch (e) {
+                alert("Não consegui copiar automaticamente. Tente novamente ou use a chave Pix.");
+            }
+        }
+    </script>
+
 </body>
 
 </html>

@@ -15,9 +15,18 @@ def admin_required(fn):
 def payment_reviewer_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.can_review_payments:
+        if not current_user.is_authenticated:
             abort(403)
-        return fn(*args, **kwargs)
+
+        # SUPER sempre pode
+        if getattr(current_user, "is_super", False):
+            return fn(*args, **kwargs)
+
+        # Quem tem flag de revisão pode
+        if getattr(current_user, "can_review_payments", False):
+            return fn(*args, **kwargs)
+
+        abort(403)
     return wrapper
 
 
