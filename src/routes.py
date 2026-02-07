@@ -7,9 +7,12 @@ from werkzeug.utils import secure_filename
 
 from src import app, database
 from src.models import User, Role, Registration, AuditLog
-from src.forms import RegisterAndSignupForm, LoginForm, UploadProofForm, ReviewRegistrationForm
+from src.forms import ChangePasswordForm, RegisterAndSignupForm, LoginForm, UploadProofForm, ReviewRegistrationForm
 from src.decorators import admin_required, payment_reviewer_required, super_required
 from src.controllers.b2_utils import upload_to_b2
+import secrets
+import string
+from sqlalchemy import func
 
 PIX_PADRAO_MSG = (
     "Informamos que todos os pagamentos realizados via Pix — seja em valor integral ou parcelado — "
@@ -145,6 +148,10 @@ def login():
             return render_template("login.html", form=form)
 
         login_user(user)
+
+        if getattr(user, "must_change_password", False):
+            flash("Por segurança, você precisa definir uma nova senha.", "warning")
+            return redirect(url_for("change_password"))
         flash("Bem-vindo!", "success")
         return redirect(url_for("painel"))
 
@@ -157,6 +164,27 @@ def logout():
     logout_user()
     flash("Você saiu da sua conta.", "info")
     return redirect(url_for("landing"))
+
+
+@app.route("/minha-senha", methods=["GET", "POST"])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        current_user.set_password(form.new_password.data)
+        current_user.must_change_password = False
+
+        database.session.add(AuditLog(
+            actor_user_id=current_user.id,
+            action="user_change_password",
+            details=f"user_id={current_user.id}"
+        ))
+        database.session.commit()
+
+        flash("Senha atualizada com sucesso!", "success")
+        return redirect(url_for("painel"))
+
+    return render_template("change_password.html", form=form)
 
 
 @app.route("/admin/login", methods=["GET", "POST"])
@@ -247,7 +275,59 @@ def enviar_comprovante():
 @app.route("/admin")
 @admin_required
 def admin_home():
-    return render_template("admin/home.html")
+    # KPIs principais
+    total = database.session.query(func.count(Registration.id)).scalar() or 0
+
+    aguardando = (
+        database.session.query(func.count(Registration.id))
+        .filter(Registration.status == "AGUARDANDO_CONFIRMACAO")
+        .scalar()
+        or 0
+    )
+
+    confirmadas = (
+        database.session.query(func.count(Registration.id))
+        .filter(Registration.status == "CONFIRMADA")
+        .scalar()
+        or 0
+    )
+
+    negadas = (
+        database.session.query(func.count(Registration.id))
+        .filter(Registration.status == "NEGADA")
+        .scalar()
+        or 0
+    )
+
+    # Extra: quantas inscrições Pix estão aguardando e já enviaram comprovante
+    pendentes_comprovante = (
+        database.session.query(func.count(Registration.id))
+        .filter(
+            Registration.payment_type == "pix",
+            Registration.status == "AGUARDANDO_CONFIRMACAO",
+            Registration.proof_file_path.isnot(None),
+        )
+        .scalar()
+        or 0
+    )
+
+    # Extra: últimas 8 inscrições (para visão rápida)
+    ultimas = (
+        Registration.query
+        .order_by(Registration.created_at.desc())
+        .limit(8)
+        .all()
+    )
+
+    return render_template(
+        "admin/home.html",
+        kpi_total=total,
+        kpi_aguardando=aguardando,
+        kpi_confirmadas=confirmadas,
+        kpi_negadas=negadas,
+        kpi_pendentes_comprovante=pendentes_comprovante,
+        ultimas=ultimas,
+    )
 
 
 @app.route("/admin/inscricoes")
@@ -318,6 +398,12 @@ def admin_inscricao_detalhe(reg_id):
 # =======================
 
 
+def gerar_senha_temporaria(tamanho: int = 10) -> str:
+    # senha simples e copiável (letras+numeros). Se quiser mais forte, aumento e boto símbolos.
+    alfabeto = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alfabeto) for _ in range(tamanho))
+
+
 @app.route("/admin/permissoes", methods=["GET", "POST"])
 @super_required
 def super_permissoes():
@@ -326,10 +412,35 @@ def super_permissoes():
 
     if request.method == "POST":
         user_id = int(request.form.get("user_id") or 0)
-        role_id = int(request.form.get("role_id") or 0)
-        action = request.form.get("action")  # "add" ou "remove"
+        # add | remove | reset_password
+        action = (request.form.get("action") or "").strip().lower()
 
         user = User.query.get_or_404(user_id)
+
+        # =========================
+        # RESET SENHA
+        # =========================
+        if action == "reset_password":
+            nova_senha = gerar_senha_temporaria(10)
+            user.set_password(nova_senha)
+
+            user.must_change_password = True
+            user.password_reset_at = datetime.utcnow()
+
+            database.session.add(AuditLog(
+                actor_user_id=current_user.id,
+                action="super_reset_password",
+                details=f"user_id={user_id}"
+            ))
+            database.session.commit()
+
+            # abre modal no front
+            return redirect(url_for("super_permissoes", pw=nova_senha, email=user.email))
+
+        # =========================
+        # ADD / REMOVE ROLE
+        # =========================
+        role_id = int(request.form.get("role_id") or 0)
         role = Role.query.get_or_404(role_id)
 
         if action == "add" and role not in user.roles:
@@ -411,3 +522,29 @@ def make_super():
     database.session.commit()
 
     print(f"OK! {email} agora é SUPER.")
+
+
+def generate_temp_password(length=12) -> str:
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+
+@app.route("/admin/users/<int:user_id>/reset_password", methods=["POST"])
+@super_required
+def admin_reset_password(user_id):
+    user = User.query.get_or_404(user_id)
+
+    temp_pass = generate_temp_password(12)
+    user.set_password(temp_pass)
+    user.must_change_password = True
+    user.password_reset_at = datetime.utcnow()
+
+    database.session.add(AuditLog(
+        actor_user_id=current_user.id,
+        action="admin_reset_password",
+        details=f"user_id={user.id} email={user.email}"
+    ))
+    database.session.commit()
+
+    # Renderiza uma tela que mostra a senha UMA VEZ
+    return render_template("admin/reset_password_result.html", user=user, temp_pass=temp_pass)

@@ -45,6 +45,9 @@ class User(database.Model, UserMixin):
         120), unique=True, nullable=False, index=True)
     password_hash = database.Column(database.String(255), nullable=False)
 
+    must_change_password = database.Column(database.Boolean, default=False)  # NOVO
+    password_reset_at = database.Column(database.DateTime, nullable=True)  
+
     is_active = database.Column(database.Boolean, default=True)
     created_at = database.Column(database.DateTime, default=datetime.utcnow)
 

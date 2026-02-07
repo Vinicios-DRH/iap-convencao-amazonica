@@ -167,10 +167,10 @@
                                 </td>
 
                                 <td>
-                                    <div class="d-flex gap-2 flex-wrap">
+                                    <div class="d-flex gap-2 flex-wrap align-items-center">
 
                                         <!-- ADD role -->
-                                        <form method="POST" class="d-flex gap-2 align-items-center">
+                                        <form method="POST" class="d-flex gap-2 align-items-center m-0">
                                             <input type="hidden" name="user_id" value="{{ u.id }}">
                                             <input type="hidden" name="action" value="add">
                                             <select class="form-select" name="role_id" style="min-width: 170px;">
@@ -183,19 +183,27 @@
 
                                         <!-- REMOVE role (um por botão) -->
                                         {% if u.roles %}
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            {% for rr in u.roles %}
-                                            <form method="POST">
-                                                <input type="hidden" name="user_id" value="{{ u.id }}">
-                                                <input type="hidden" name="role_id" value="{{ rr.id }}">
-                                                <input type="hidden" name="action" value="remove">
-                                                <button class="btn btn-outline-light btn-sm" type="submit">
-                                                    Remover {{ rr.name }}
-                                                </button>
-                                            </form>
-                                            {% endfor %}
-                                        </div>
+                                        {% for rr in u.roles %}
+                                        <form method="POST" class="m-0">
+                                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                                            <input type="hidden" name="role_id" value="{{ rr.id }}">
+                                            <input type="hidden" name="action" value="remove">
+                                            <button class="btn btn-outline-light btn-sm" type="submit">
+                                                Remover {{ rr.name }}
+                                            </button>
+                                        </form>
+                                        {% endfor %}
                                         {% endif %}
+
+                                        <!-- RESET SENHA (um por usuário) -->
+                                        <form method="POST" class="m-0"
+                                            onsubmit="return confirm('Resetar a senha deste usuário? Uma senha temporária será gerada.');">
+                                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                                            <input type="hidden" name="action" value="reset_password">
+                                            <button class="btn btn-warning btn-sm" type="submit">
+                                                Resetar senha
+                                            </button>
+                                        </form>
 
                                     </div>
                                 </td>
@@ -213,6 +221,75 @@
 
         </div>
     </main>
+
+    {% set temp_pw = request.args.get('pw') %}
+    {% set temp_email = request.args.get('email') %}
+
+    <div class="modal fade" id="pwModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="background: rgba(10,10,18,.92); border: 1px solid rgba(255,255,255,.14); border-radius: 18px;">
+                <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.12);">
+                    <h5 class="modal-title fw-bold">Senha temporária gerada</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="muted mb-2">
+                        Usuário: <b>{{ temp_email }}</b><br>
+                        Copie a senha abaixo e envie para o usuário. No próximo login ele será obrigado a trocar.
+                    </div>
+
+                    <div class="cardx p-3 d-flex align-items-center justify-content-between gap-2">
+                        <code id="pwText" style="font-size: 1.05rem; color:#fff;">{{ temp_pw }}</code>
+                        <button class="btn btn-neon btn-sm" id="btnCopy" type="button">Copiar</button>
+                    </div>
+
+                    <div id="copyOk" class="small mt-2" style="display:none; color: rgba(34,211,238,.95);">
+                        ✅ Copiado!
+                    </div>
+
+                    <div class="muted small mt-3">
+                        Dica: após copiar, feche este modal. A senha não ficará salva no sistema.
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.12);">
+                    <a class="btn btn-outline-light btn-sm" href="{{ url_for('super_permissoes') }}">
+                        Fechar e limpar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Copiar senha
+        const btnCopy = document.getElementById("btnCopy");
+        if (btnCopy) {
+            btnCopy.addEventListener("click", async () => {
+                const txt = (document.getElementById("pwText")?.textContent || "").trim();
+                try {
+                    await navigator.clipboard.writeText(txt);
+                    document.getElementById("copyOk").style.display = "block";
+                    setTimeout(() => document.getElementById("copyOk").style.display = "none", 1400);
+                } catch (e) {
+                    alert("Não consegui copiar automaticamente. Selecione e copie manualmente.");
+                }
+            });
+        }
+
+        // Abre modal se veio senha na URL
+        (function () {
+            const hasPw = "{{ '1' if temp_pw else '' }}";
+            if (hasPw) {
+                const modal = new bootstrap.Modal(document.getElementById('pwModal'));
+                modal.show();
+            }
+        })();
+    </script>
+
 
     {% include "components/footer.html" %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

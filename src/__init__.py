@@ -7,6 +7,7 @@ from datetime import datetime
 import os
 from supabase import create_client
 from src.controllers.b2_utils import get_b2_file_url
+import pytz
 
 
 # Carregar variáveis do .env
@@ -60,6 +61,18 @@ INCLUI_ITENS = [
 CONTATO_PAGAMENTO = "+55 92 8459-6369"
 CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
 
+tz_manaus = pytz.timezone("America/Manaus")
+
+
+@app.template_filter("fmt_manaus")
+def fmt_manaus(dt):
+    if not dt:
+        return "-"
+    if dt.tzinfo is None:
+        dt = pytz.utc.localize(dt)
+    return dt.astimezone(tz_manaus).strftime("%d/%m/%Y %H:%M")
+
+
 @app.context_processor
 def inject_globals():
     return {
@@ -71,7 +84,5 @@ def inject_globals():
         "contato_pagamento_texto": CONTATO_PAGAMENTO_TEXTO,
     }
 
-
 from src import routes
 app.supabase = supabase
-

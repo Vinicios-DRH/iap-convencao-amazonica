@@ -50,6 +50,14 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Entrar")
 
 
+class ChangePasswordForm(FlaskForm):
+    new_password = PasswordField("Nova senha", validators=[
+                                 DataRequired(), Length(min=6, max=128)])
+    confirm_password = PasswordField("Confirmar nova senha", validators=[
+                                     DataRequired(), EqualTo("new_password")])
+    submit = SubmitField("Salvar nova senha")
+
+
 class UploadProofForm(FlaskForm):
     proof = FileField(
         "Comprovante (PDF/JPG/PNG)",

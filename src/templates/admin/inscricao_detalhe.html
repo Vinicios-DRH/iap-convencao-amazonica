@@ -56,15 +56,8 @@
 </head>
 
 <body>
-    <nav class="navbar navy">
-        <div class="container py-2">
-            <a class="navbar-brand text-white fw-bold" href="{{ url_for('admin_inscricoes') }}">Admin • Revisão</a>
-            <div class="ms-auto d-flex gap-2">
-                <a class="btn btn-outline-light btn-sm" href="{{ url_for('admin_inscricoes') }}">Voltar</a>
-                <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Sair</a>
-            </div>
-        </div>
-    </nav>
+
+    {% include "components/admin_nav.html" %}
 
     <main class="py-5">
         <div class="container">
