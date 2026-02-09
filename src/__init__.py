@@ -20,6 +20,7 @@ app.jinja_env.globals['get_b2_file_url'] = get_b2_file_url
 
 # Carrega as configurações do .env
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 app.jinja_env.globals.update(enumerate=enumerate)
 
