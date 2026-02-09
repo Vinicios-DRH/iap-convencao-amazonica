@@ -1,8 +1,8 @@
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 import os
 from datetime import datetime
 import uuid
-from flask import render_template, request, redirect, url_for, flash, abort, Response
+from flask import jsonify, render_template, request, redirect, url_for, flash, abort, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -87,20 +87,23 @@ def pix_qr_n(n):
     if n not in (1, 2, 3):
         abort(400)
 
-    lot = Decimal(reg.lot_value_cents or 18000) / Decimal("100")  # ex: 180.00
-    parcela = (lot / Decimal(n)).quantize(Decimal("0.01"),
-                                          rounding=ROUND_HALF_UP)
+    lot = Decimal(reg.lot_value_cents or 18000) / Decimal(100)
 
-    # regra do seu evento: terminar em ,09
-    parcela = Decimal(int(parcela)) + Decimal("0.09")  # 90.09 / 60.09 etc.
+    # parcela inteira (ex: 180/2 = 90) + 0.09
+    parcela = (lot / Decimal(n)).quantize(Decimal("0"),
+                                          rounding=ROUND_DOWN) + Decimal("0.09")
+    parcela = parcela.quantize(Decimal("0.00"))  # garante 2 casas
+
+    txid = f"R{reg.id}N{n}"[:25]  # alfanumérico
 
     payload = build_pix_payload(
         pix_key=PIX_KEY,
         merchant_name="CONVENCAO AMAZONICA",
         merchant_city="MANAUS",
-        amount=float(parcela),  # ou str(parcela) se seu builder aceitar string
-        txid=f"{reg.id}-{n}"[:25]
+        amount=str(parcela),   # <-- manda como string "90.09"
+        txid=txid
     )
+
     img = qrcode.make(payload)
     buf = BytesIO()
     img.save(buf, format="PNG")
@@ -108,30 +111,20 @@ def pix_qr_n(n):
     return Response(buf.getvalue(), mimetype="image/png")
 
 
+PIX_COPIA_COLA = {
+    1: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com5204000053039865406180.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS62250521nNy6i6O8IW9s02P2H3xUy6304452F",
+    2: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540590.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605222naahyV62ub2ssFa6pm5z763048CD0",
+    3: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540560.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605223KP4V0Sju0cQ0txYqAWnCu6304E6C0",
+}
+
+
 @app.route("/pix/copia-cola/<int:n>")
 @login_required
-def pix_copia_cola(n):
-    reg = Registration.query.filter_by(user_id=current_user.id).first_or_404()
-
-    if n not in (1, 2, 3):
-        abort(400)
-
-    from decimal import Decimal, ROUND_HALF_UP
-    lot = Decimal(reg.lot_value_cents or 18000) / Decimal("100")
-    parcela = (lot / Decimal(n)).quantize(Decimal("0.01"),
-                                          rounding=ROUND_HALF_UP)
-    parcela = Decimal(int(parcela)) + Decimal("0.09")
-
-    payload = build_pix_payload(
-        pix_key=PIX_KEY,
-        merchant_name="CONVENCAO AMAZONICA",
-        merchant_city="MANAUS",
-        amount=float(parcela),
-        txid=f"{reg.id}-{n}"[:25]
-    )
-
-    return {"payload": payload, "valor": str(parcela)}
-
+def pix_copia_cola(n: int):
+    payload = PIX_COPIA_COLA.get(n)
+    if not payload:
+        abort(404)
+    return jsonify({"payload": payload})
 
 # ======================= ROUTES =======================
 
@@ -179,6 +172,9 @@ def inscricao():
     form = RegisterAndSignupForm()
 
     if form.validate_on_submit():
+        if form.has_kids_u5.data == "sim" and not (form.kids_u5_names.data or "").strip():
+            flash("Informe o nome do(a) filho(a) (5 anos ou menos).", "warning")
+            return render_template("inscricao.html", form=form)
         email = form.email.data.strip().lower()
 
         # evita duplicar conta
@@ -208,6 +204,13 @@ def inscricao():
             lot_value_cents=18000,
             status=status,
             status_message=status_msg,
+
+            # ===== NOVOS CAMPOS =====
+            age=form.age.data,
+            has_kids_u5=(form.has_kids_u5.data == "sim"),
+            kids_u5_names=(form.kids_u5_names.data or "").strip() or None,
+            is_church_member=(form.is_church_member.data == "sim"),
+            agree_no_refund=bool(form.agree_no_refund.data),
         )
 
         database.session.add(user)
@@ -329,49 +332,16 @@ def painel():
     )
 
 
-@app.route("/comprovante", methods=["GET", "POST"])
+@app.route("/comprovante")
 @login_required
 def enviar_comprovante():
-    reg = Registration.query.filter_by(user_id=current_user.id).first()
-    if not reg:
-        flash("Você ainda não possui inscrição. Faça sua inscrição primeiro.", "warning")
-        return redirect(url_for("inscricao"))
-
-    if not is_pix(reg):
-        flash("Envio de comprovante é apenas para pagamento via Pix.", "warning")
-        return redirect(url_for("painel"))
-
-    form = UploadProofForm()
-    if form.validate_on_submit():
-        file = form.proof.data
-        ext = os.path.splitext(file.filename or "")[1].lower().replace(".", "")
-        safe_ext = ext if ext in ("pdf", "jpg", "jpeg", "png") else "pdf"
-
-        # caminho único no B2
-        key = f"comprovantes/{reg.id}/{uuid.uuid4().hex}.{safe_ext}"
-
-        upload_to_b2(filename=key, fileobj=file.stream)
-        reg.proof_file_path = key
-        reg.proof_uploaded_at = datetime.utcnow()
-        reg.status = "AGUARDANDO_CONFIRMACAO"
-        reg.status_message = "Comprovante enviado. Aguardando validação do administrador."
-
-        database.session.add(AuditLog(
-            actor_user_id=current_user.id,
-            action="upload_proof",
-            details=f"registration_id={reg.id} key={key}"
-        ))
-        database.session.commit()
-
-        flash("Comprovante enviado! Agora é só aguardar a confirmação.", "success")
-        return redirect(url_for("painel"))
-
-    return render_template("upload_comprovante.html", form=form, reg=reg)
-
+    # redireciona pro WhatsApp (se quiser)
+    return redirect("https://wa.me/559284596369")
 
 # =======================
 # ADMIN
 # =======================
+
 
 @app.route("/admin")
 @admin_required

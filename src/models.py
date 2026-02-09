@@ -123,6 +123,18 @@ class Registration(database.Model):
         30), nullable=False, default="AGUARDANDO_CONFIRMACAO")
     status_message = database.Column(database.String(255), nullable=True)
 
+    age = database.Column(database.Integer, nullable=True)  # 4.2
+
+    has_kids_u5 = database.Column(
+        database.Boolean, default=False, nullable=False)  # 4.1
+    kids_u5_names = database.Column(
+        database.String(255), nullable=True)  # 4.1 (nome(s))
+
+    agree_no_refund = database.Column(
+        database.Boolean, default=False, nullable=False)  # 4.3
+    is_church_member = database.Column(
+        database.Boolean, default=False, nullable=False)  # 4.4
+
     # comprovante pix
     proof_file_path = database.Column(database.String(255), nullable=True)
     proof_uploaded_at = database.Column(database.DateTime, nullable=True)

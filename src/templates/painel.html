@@ -21,7 +21,6 @@
     <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
         :root {
             --pink: #d946ef;
@@ -32,7 +31,8 @@
         }
 
         body {
-            background: radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .18), transparent 60%),
+            background:
+                radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .18), transparent 60%),
                 radial-gradient(900px 500px at 80% 20%, rgba(217, 70, 239, .20), transparent 60%),
                 linear-gradient(180deg, #05050d, var(--bg));
             color: #f4f4fb;
@@ -84,11 +84,18 @@
             border-color: rgba(217, 70, 239, .55);
         }
 
+        /* ===== PIX BOX ===== */
         .pix-box {
             border: 1px solid rgba(255, 255, 255, .14);
             background: rgba(0, 0, 0, .20);
             border-radius: 18px;
             padding: 18px;
+        }
+
+        @media (max-width:575.98px) {
+            .pix-box {
+                padding: 14px;
+            }
         }
 
         .pix-head {
@@ -109,43 +116,26 @@
             font-size: .85rem;
         }
 
-        .pix-grid {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 18px;
-            margin-top: 14px;
-        }
-
-        @media (max-width: 991.98px) {
-            .pix-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .qr-card {
-            border: 1px solid rgba(255, 255, 255, .14);
-            background: rgba(0, 0, 0, .18);
-            border-radius: 18px;
-            padding: 14px;
-            text-align: center;
-        }
-
-        .qr-white {
-            background: #fff;
-            border-radius: 16px;
-            padding: 10px;
+        /* ===== NEON HIGHLIGHT ===== */
+        .neon-highlight {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            color: #06060c;
+            font-weight: 1000;
+            border-radius: 999px;
+            padding: .35rem .75rem;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            gap: .5rem;
+            line-height: 1;
+            box-shadow: 0 10px 26px rgba(34, 211, 238, .12), 0 10px 26px rgba(217, 70, 239, .12);
         }
 
-        .qr-white img {
-            width: 230px;
-            height: 230px;
-            object-fit: contain;
-            display: block;
+        .neon-highlight small {
+            font-weight: 900;
+            opacity: .9;
         }
 
+        /* ===== KV / TIP ===== */
         .kv {
             border: 1px solid rgba(255, 255, 255, .14);
             background: rgba(0, 0, 0, .18);
@@ -191,67 +181,113 @@
             font-size: .82rem;
         }
 
-        /* ========= NOVO: GRID DE QRs (1x/2x/3x) ========= */
+        /* ===== QR GRID (RESPONSIVO, ALINHADO) ===== */
         .qr3-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            align-items: stretch;
         }
 
-        @media (max-width: 991.98px) {
+        /* tablet: 2 colunas + 3º ocupa a linha toda */
+        @media (min-width:576px) and (max-width:991.98px) {
             .qr3-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .qr3-grid .qr-mini:nth-child(3) {
+                grid-column: 1 / -1;
             }
         }
 
-        @media (max-width: 575.98px) {
+        /* mobile: 1 coluna */
+        @media (max-width:575.98px) {
+            .qr3-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+        }
+
+        /* ===== QR CARD ===== */
+        .qr-mini {
+            border: 1px solid rgba(255, 255, 255, .14);
+            background: rgba(0, 0, 0, .18);
+            border-radius: 18px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            min-height: 100%;
+        }
+
+        .qr-mini .title {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .qr-mini .small-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 44px;
+            width: 100%;
+        }
+
+        /* ===== QR WHITE BOX + IMG RESPONSIVA ===== */
+        .qr-white {
+            background: #fff;
+            border-radius: 16px;
+            padding: 10px;
+            width: 100%;
+            max-width: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qr-white img {
+            width: 100%;
+            height: auto;
+            max-width: 190px;
+            display: block;
+        }
+
+        @media (max-width:575.98px) {
+            .qr-white {
+                max-width: 100%;
+            }
+
+            .qr-white img {
+                max-width: 220px;
+            }
+        }
+
+        /* ===== MINI ACTIONS ===== */
+        .mini-actions {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .mini-actions .btn {
+            width: 100%;
+            white-space: normal;
+            /* ✅ não estoura */
+            padding-left: .65rem;
+            padding-right: .65rem;
+        }
+
+        @media (max-width:575.98px) {
             .mini-actions {
                 grid-template-columns: 1fr;
             }
         }
 
-        .qr-mini {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .qr-mini .title {
-            font-weight: 1000;
-            margin-bottom: 6px;
-        }
-
-        .qr-mini .qr-white img {
-            width: 160px;
-            height: 160px;
-        }
-
-        .mini-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 10px;
-            width: 100%;
-        }
-
-        .mini-actions .btn {
-            width: 100%;
-            white-space: nowrap;
-            padding-left: .55rem;
-            padding-right: .55rem;
-        }
-
-        .qr-mini .small-note {
-            min-height: 44px;
-            /* garante que o texto (1x/2x/3x) ocupe o mesmo espaço */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-
-        /* ========= CARTÃO (INFINITEPAY) ========= */
+        /* ===== INFINITEPAY CARD ===== */
         .pay-card {
             border: 1px solid rgba(255, 255, 255, .14);
             background:
@@ -318,7 +354,32 @@
             font-size: .9rem;
             word-break: break-all;
         }
+
+        /* ===== SELEÇÃO: SOME COM OS OUTROS E CENTRALIZA ===== */
+        #pixOptions.is-selected .qr-mini:not(.is-active) {
+            display: none;
+        }
+
+        #pixOptions.is-selected {
+            display: flex;
+            /* troca grid por flex */
+            justify-content: center;
+        }
+
+        #pixOptions.is-selected .qr-mini.is-active {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        #pixOptions.is-selected .qr-mini.is-active .qr-white img {
+            max-width: 240px;
+        }
+
+        .selected-bar {
+            background: rgba(0, 0, 0, .22);
+        }
     </style>
+
 </head>
 
 <body>
@@ -440,61 +501,116 @@
                             </div>
 
                             <!-- ✅ OPÇÃO B: 3 QR CODES (1x/2x/3x) -->
-                            <div class="mt-3 qr3-grid">
+                            <div class="mt-3 qr3-grid" id="pixOptions">
                                 <!-- 1x -->
-                                <div class="qr-mini">
-                                    <div class="title">À vista (1x)</div>
+                                <div class="qr-mini" data-pay="1">
+                                    <div class="title"><span class="neon-highlight">À vista <small>(1x)</small></span>
+                                    </div>
+
                                     <div class="qr-white">
-                                        <img src="{{ url_for('pix_qr_n', n=1) }}" alt="Pix 1x">
+                                        <img src="{{ url_for('static', filename='img/qr_code_180.jpeg') }}"
+                                            alt="Pix 1x">
                                     </div>
-                                    <div class="small-note mt-2">
-                                        Valor: <b>R$ 180,09</b>
+
+                                    <div class="small-note">
+                                        <span class="neon-highlight">R$ {{ '%.2f'|format(pix_prices.v1) }}</span>
                                     </div>
+
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="copyPixCopiaCola(1)">
+                                            onclick="selectPixOption(1); copyPixCopiaCola(1)">
                                             Copiar e Colar
                                         </button>
+
                                         <a class="btn btn-soft btn-sm" target="_blank"
-                                            href="{{ url_for('pix_qr_n', n=1) }}">Abrir QR</a>
+                                            href="{{ url_for('static', filename='img/qr_code_180.jpeg') }}"
+                                            onclick="selectPixOption(1)">
+                                            Abrir QR
+                                        </a>
                                     </div>
+
+                                    <button class="btn btn-neon btn-sm mt-2 w-100" type="button"
+                                        onclick="selectPixOption(1)">
+                                        Usar este Pix
+                                    </button>
                                 </div>
 
                                 <!-- 2x -->
-                                <div class="qr-mini">
-                                    <div class="title">Parcelado (2x)</div>
+                                <div class="qr-mini" data-pay="2">
+                                    <div class="title"><span class="neon-highlight">Parcelado <small>(2x)</small></span>
+                                    </div>
+
                                     <div class="qr-white">
-                                        <img src="{{ url_for('pix_qr_n', n=2) }}" alt="Pix 2x">
+                                        <img src="{{ url_for('static', filename='img/qr_code_90.jpeg') }}" alt="Pix 2x">
                                     </div>
-                                    <div class="small-note mt-2">
-                                        2 pagamentos de <b>R$ 90,09</b>
+
+                                    <div class="small-note">
+                                        <span class="neon-highlight">2x de R$ {{ '%.2f'|format(pix_prices.v2) }}</span>
                                     </div>
+
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="copyPixCopiaCola(1)">
+                                            onclick="selectPixOption(2); copyPixCopiaCola(2)">
                                             Copiar e Colar
                                         </button>
+
                                         <a class="btn btn-soft btn-sm" target="_blank"
-                                            href="{{ url_for('pix_qr_n', n=2) }}">Abrir QR</a>
+                                            href="{{ url_for('static', filename='img/qr_code_90.jpeg') }}"
+                                            onclick="selectPixOption(2)">
+                                            Abrir QR
+                                        </a>
                                     </div>
+
+                                    <button class="btn btn-neon btn-sm mt-2 w-100" type="button"
+                                        onclick="selectPixOption(2)">
+                                        Usar este Pix
+                                    </button>
                                 </div>
 
                                 <!-- 3x -->
-                                <div class="qr-mini">
-                                    <div class="title">Parcelado (3x)</div>
+                                <div class="qr-mini" data-pay="3">
+                                    <div class="title"><span class="neon-highlight">Parcelado <small>(3x)</small></span>
+                                    </div>
+
                                     <div class="qr-white">
-                                        <img src="{{ url_for('pix_qr_n', n=3) }}" alt="Pix 3x">
+                                        <img src="{{ url_for('static', filename='img/qr_code_60.jpeg') }}" alt="Pix 3x">
                                     </div>
-                                    <div class="small-note mt-2">
-                                        3 pagamentos de <b>R$ 60,09</b>
+
+                                    <div class="small-note">
+                                        <span class="neon-highlight">3x de R$ {{ '%.2f'|format(pix_prices.v3) }}</span>
                                     </div>
+
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="copyPixCopiaCola(1)">
+                                            onclick="selectPixOption(3); copyPixCopiaCola(3)">
                                             Copiar e Colar
                                         </button>
+
                                         <a class="btn btn-soft btn-sm" target="_blank"
-                                            href="{{ url_for('pix_qr_n', n=3) }}">Abrir QR</a>
+                                            href="{{ url_for('static', filename='img/qr_code_60.jpeg') }}"
+                                            onclick="selectPixOption(3)">
+                                            Abrir QR
+                                        </a>
+                                    </div>
+
+                                    <button class="btn btn-neon btn-sm mt-2 w-100" type="button"
+                                        onclick="selectPixOption(3)">
+                                        Usar este Pix
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ✅ Barra fora do grid (não bagunça alinhamento) -->
+                            <div class="d-none mt-3" id="pixSelectedBar">
+                                <div class="selected-bar cardx p-3">
+                                    <div class="d-flex gap-2 flex-wrap align-items-center justify-content-between">
+                                        <div class="muted">
+                                            Você escolheu: <b id="pixChosenText">—</b>
+                                        </div>
+                                        <button class="btn btn-outline-light btn-sm" type="button"
+                                            onclick="resetPixOptions()">
+                                            Trocar opção
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -516,11 +632,84 @@
                             </div>
 
                             <div class="d-flex gap-2 flex-wrap mt-3">
-                                <a class="btn btn-neon" href="{{ url_for('enviar_comprovante') }}">
-                                    {% if reg.proof_file_path %}Enviar outro comprovante{% else %}Enviar comprovante{%
-                                    endif %}
-                                </a>
-                                <a class="btn btn-outline-light" href="{{ url_for('landing') }}">Voltar</a>
+                                {% set wa_number = "5592992055349" %} {# só números #}
+
+                                {# ====== WHATSAPP: 3 botões (1x/2x/3x) com ID da inscrição ====== #}
+                                {% set wa_number = "559284596369" %} {# só números #}
+
+                                {# valores (ajusta pra suas variáveis atuais) #}
+                                {% set v1 = pix_prices.v1 %}
+                                {% set v2 = pix_prices.v2 %}
+                                {% set v3 = pix_prices.v3 %}
+
+                                {# label de cada opção #}
+                                {% set label1 = "À vista (1x)" %}
+                                {% set label2 = "Parcelado (2x)" %}
+                                {% set label3 = "Parcelado (3x)" %}
+
+                                {# textos prontos (URL-encoded usando %0A para quebra de linha) #}
+                                {% set msg1 =
+                                "Olá! Estou enviando o comprovante da Convenção Jovem — Tempo de Resplandecer.%0A%0A"
+                                ~ "ID da inscrição: " ~ (reg.id|string) ~ "%0A"
+                                ~ "Nome: " ~ (reg.full_name or '-') ~ "%0A"
+                                ~ "CPF: " ~ (reg.cpf or '-') ~ "%0A"
+                                ~ "IAP: " ~ (reg.iap_local or '-') ~ "%0A"
+                                ~ "Telefone: " ~ (reg.phone or '-') ~ "%0A%0A"
+                                ~ "Pix escolhido: " ~ label1 ~ "%0A"
+                                ~ "Valor: R$ " ~ ('%.2f'|format(v1)) ~ "%0A%0A"
+                                ~ "Vou anexar o comprovante nesta conversa."
+                                %}
+
+                                {% set msg2 =
+                                "Olá! Estou enviando o comprovante da Convenção Jovem — Tempo de Resplandecer.%0A%0A"
+                                ~ "ID da inscrição: " ~ (reg.id|string) ~ "%0A"
+                                ~ "Nome: " ~ (reg.full_name or '-') ~ "%0A"
+                                ~ "CPF: " ~ (reg.cpf or '-') ~ "%0A"
+                                ~ "IAP: " ~ (reg.iap_local or '-') ~ "%0A"
+                                ~ "Telefone: " ~ (reg.phone or '-') ~ "%0A%0A"
+                                ~ "Pix escolhido: " ~ label2 ~ "%0A"
+                                ~ "Parcela: R$ " ~ ('%.2f'|format(v2)) ~ " (enviar 2x)%0A%0A"
+                                ~ "Vou anexar o comprovante nesta conversa."
+                                %}
+
+                                {% set msg3 =
+                                "Olá! Estou enviando o comprovante da Convenção Jovem — Tempo de Resplandecer.%0A%0A"
+                                ~ "ID da inscrição: " ~ (reg.id|string) ~ "%0A"
+                                ~ "Nome: " ~ (reg.full_name or '-') ~ "%0A"
+                                ~ "CPF: " ~ (reg.cpf or '-') ~ "%0A"
+                                ~ "IAP: " ~ (reg.iap_local or '-') ~ "%0A"
+                                ~ "Telefone: " ~ (reg.phone or '-') ~ "%0A%0A"
+                                ~ "Pix escolhido: " ~ label3 ~ "%0A"
+                                ~ "Parcela: R$ " ~ ('%.2f'|format(v3)) ~ " (enviar 3x)%0A%0A"
+                                ~ "Vou anexar o comprovante nesta conversa."
+                                %}
+
+                                {% set wa1 = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg1 %}
+                                {% set wa2 = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg2 %}
+                                {% set wa3 = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg3 %}
+
+                                {# ====== UI: 3 botões (responsivo) ====== #}
+                                <div class="mt-3">
+                                    <div class="d-grid gap-2">
+                                        <a class="btn btn-neon" href="{{ wa1 }}" target="_blank" rel="noopener">
+                                            Enviar comprovante — {{ label1 }}
+                                        </a>
+                                        <a class="btn btn-neon" href="{{ wa2 }}" target="_blank" rel="noopener">
+                                            Enviar comprovante — {{ label2 }}
+                                        </a>
+                                        <a class="btn btn-neon" href="{{ wa3 }}" target="_blank" rel="noopener">
+                                            Enviar comprovante — {{ label3 }}
+                                        </a>
+                                    </div>
+
+                                    <div class="muted mt-2" style="font-size:.92rem;">
+                                        Depois que abrir o WhatsApp, <b>anexe o comprovante</b> (imagem ou PDF) e envie.
+                                    </div>
+
+                                    <div class="d-grid d-sm-flex gap-2 mt-3">
+                                        <a class="btn btn-outline-light" href="{{ url_for('landing') }}">Voltar</a>
+                                    </div>
+                                </div> 
                             </div>
 
                             <div class="muted mt-2" style="font-size:.92rem;">
@@ -633,6 +822,35 @@
             } catch (e) {
                 alert("Não consegui copiar automaticamente. Tente novamente ou use a chave Pix.");
             }
+        }
+    </script>
+
+    <script>
+        const PIX_LABELS = { 1: "À vista (1x)", 2: "Parcelado (2x)", 3: "Parcelado (3x)" };
+
+        function selectPixOption(n) {
+            const wrap = document.getElementById("pixOptions");
+            if (!wrap) return;
+
+            wrap.querySelectorAll(".qr-mini").forEach(c => c.classList.remove("is-active"));
+            const active = wrap.querySelector(`.qr-mini[data-pay="${n}"]`);
+            if (active) active.classList.add("is-active");
+
+            wrap.classList.add("is-selected");
+
+            document.getElementById("pixChosenText").textContent = PIX_LABELS[n] || `Opção ${n}`;
+            document.getElementById("pixSelectedBar").classList.remove("d-none");
+
+            active?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function resetPixOptions() {
+            const wrap = document.getElementById("pixOptions");
+            if (!wrap) return;
+
+            wrap.classList.remove("is-selected");
+            wrap.querySelectorAll(".qr-mini").forEach(c => c.classList.remove("is-active"));
+            document.getElementById("pixSelectedBar").classList.add("d-none");
         }
     </script>
 

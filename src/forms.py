@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, SubmitField, FileField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length, EqualTo
+from wtforms import StringField, PasswordField, SelectField, SubmitField, FileField, TextAreaField, BooleanField, IntegerField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange
+
 from flask_wtf.file import FileAllowed
 from src.controllers.validators import validate_cpf
 
@@ -40,6 +41,35 @@ class RegisterAndSignupForm(FlaskForm):
         DataRequired(), Length(min=6, max=128)])
     confirm_password = PasswordField("Confirmar senha", validators=[
         DataRequired(), EqualTo("password")])
+
+    age = IntegerField(
+        "Idade",
+        validators=[Optional(), NumberRange(min=10, max=120)],
+    )
+
+    has_kids_u5 = SelectField(
+        "Vai levar filhos com 5 anos ou menos?",
+        choices=[("nao", "Não"), ("sim", "Sim")],
+        validators=[DataRequired()],
+        default="nao",
+    )
+
+    kids_u5_names = StringField(
+        "Nome do(a) filho(a) (5 anos ou menos)",
+        validators=[Optional(), Length(max=255)],
+    )
+
+    is_church_member = SelectField(
+        "É membro da igreja?",
+        choices=[("nao", "Não"), ("sim", "Sim")],
+        validators=[DataRequired()],
+        default="sim",
+    )
+
+    agree_no_refund = BooleanField(
+        "Concordo que, em caso de desistência, os valores já enviados não serão reembolsados",
+        validators=[DataRequired()],
+    )
 
     submit = SubmitField("Finalizar inscrição")
 

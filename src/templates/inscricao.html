@@ -255,6 +255,69 @@
                                     {% for e in form.confirm_password.errors %}<div class="text-warning small mt-1">{{ e
                                         }}</div>{% endfor %}
                                 </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">{{ form.age.label.text }}</label>
+                                        {{ form.age(class="form-control", placeholder="Ex: 25") }}
+                                        {% for e in form.age.errors %}<div class="text-danger small">{{ e }}</div>{%
+                                        endfor %}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">{{ form.is_church_member.label.text }}</label>
+                                        {{ form.is_church_member(class="form-select") }}
+                                        {% for e in form.is_church_member.errors %}<div class="text-danger small">{{ e
+                                            }}</div>{% endfor %}
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">{{ form.has_kids_u5.label.text }}</label>
+                                        {{ form.has_kids_u5(class="form-select", id="hasKidsU5") }}
+                                        {% for e in form.has_kids_u5.errors %}<div class="text-danger small">{{ e }}
+                                        </div>{% endfor %}
+                                    </div>
+
+                                    <div class="col-12 d-none" id="kidsNamesWrap">
+                                        <label class="form-label">{{ form.kids_u5_names.label.text }}</label>
+                                        {{ form.kids_u5_names(class="form-control", placeholder="Nome do(a) filho(a)")
+                                        }}
+                                        <div class="form-text text-light" style="opacity:.75">
+                                            Se for mais de um, separe por vírgula.
+                                        </div>
+                                        {% for e in form.kids_u5_names.errors %}<div class="text-danger small">{{ e }}
+                                        </div>{% endfor %}
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            {{ form.agree_no_refund(class="form-check-input", id="agreeNoRefund") }}
+                                            <label class="form-check-label" for="agreeNoRefund">
+                                                {{ form.agree_no_refund.label.text }}
+                                            </label>
+                                        </div>
+                                        {% for e in form.agree_no_refund.errors %}<div class="text-danger small">{{ e }}
+                                        </div>{% endfor %}
+                                    </div>
+                                </div>
+
+                                <script>
+                                    (function () {
+                                        const sel = document.getElementById("hasKidsU5");
+                                        const wrap = document.getElementById("kidsNamesWrap");
+
+                                        function syncKids() {
+                                            const yes = (sel && sel.value === "sim");
+                                            if (!wrap) return;
+                                            wrap.classList.toggle("d-none", !yes);
+                                        }
+
+                                        if (sel) {
+                                            sel.addEventListener("change", syncKids);
+                                            syncKids(); // init
+                                        }
+                                    })();
+                                </script>
+
                             </div>
 
                             <div class="divider"></div>
