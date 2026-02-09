@@ -44,7 +44,7 @@ class RegisterAndSignupForm(FlaskForm):
 
     age = IntegerField(
         "Idade",
-        validators=[Optional(), NumberRange(min=10, max=120)],
+        validators=[Optional(), NumberRange(min=6, max=120)],
     )
 
     has_kids_u5 = SelectField(
