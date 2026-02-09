@@ -709,7 +709,7 @@
                                     <div class="d-grid d-sm-flex gap-2 mt-3">
                                         <a class="btn btn-outline-light" href="{{ url_for('landing') }}">Voltar</a>
                                     </div>
-                                </div> 
+                                </div>
                             </div>
 
                             <div class="muted mt-2" style="font-size:.92rem;">
@@ -813,14 +813,77 @@
         }
     </script>
     <script>
+        async function copyToClipboardSmart(text) {
+            // 1) Tentativa moderna (melhor) - precisa HTTPS e permissão
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {
+                    // cai pro fallback
+                }
+            }
+
+            // 2) Fallback iOS/Safari: textarea + execCommand
+            try {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.setAttribute("readonly", "");
+                ta.style.position = "fixed";
+                ta.style.top = "-1000px";
+                ta.style.left = "-1000px";
+                document.body.appendChild(ta);
+
+                ta.focus();
+                ta.select();
+                ta.setSelectionRange(0, ta.value.length); // iOS
+
+                const ok = document.execCommand("copy");
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
+        }
+
         async function copyPixCopiaCola(n) {
             try {
-                const r = await fetch(`/pix/copia-cola/${n}`);
+                const r = await fetch(`/pix/copia-cola/${n}`, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" },
+                    cache: "no-store",
+                    credentials: "same-origin"
+                });
+
+                // Se voltou redirect pro login (muito comum), aqui vai dar falso positivo
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}`);
+                }
+
+                const ct = (r.headers.get("content-type") || "").toLowerCase();
+                if (!ct.includes("application/json")) {
+                    // Provavelmente retornou HTML (login/erro). Pega o texto pra debug.
+                    const t = await r.text();
+                    console.error("Resposta não-JSON:", t.slice(0, 500));
+                    throw new Error("Resposta não é JSON (provável redirect/login).");
+                }
+
                 const j = await r.json();
-                await navigator.clipboard.writeText(j.payload);
-                alert("Pix Copia e Cola copiado! Cole no seu banco para pagar.");
+                const payload = (j && j.payload) ? String(j.payload).trim() : "";
+
+                if (!payload) throw new Error("Payload vazio.");
+
+                const ok = await copyToClipboardSmart(payload);
+
+                if (ok) {
+                    alert("✅ Pix Copia e Cola copiado! Agora cole no app do banco.");
+                } else {
+                    // Fallback final: mostra pra pessoa copiar manualmente
+                    prompt("Não consegui copiar automaticamente. Copie manualmente:", payload);
+                }
             } catch (e) {
-                alert("Não consegui copiar automaticamente. Tente novamente ou use a chave Pix.");
+                console.error(e);
+                alert("Não consegui copiar automaticamente. Abra o QR ou use a chave Pix.");
             }
         }
     </script>

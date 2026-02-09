@@ -111,7 +111,7 @@ def pix_qr_n(n):
     return Response(buf.getvalue(), mimetype="image/png")
 
 
-PIX_COPIA_COLA = {
+PIX_PAYLOADS = {
     1: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com5204000053039865406180.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS62250521nNy6i6O8IW9s02P2H3xUy6304452F",
     2: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540590.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605222naahyV62ub2ssFa6pm5z763048CD0",
     3: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540560.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605223KP4V0Sju0cQ0txYqAWnCu6304E6C0",
@@ -120,10 +120,10 @@ PIX_COPIA_COLA = {
 
 @app.route("/pix/copia-cola/<int:n>")
 @login_required
-def pix_copia_cola(n: int):
-    payload = PIX_COPIA_COLA.get(n)
+def pix_copia_cola(n):
+    payload = PIX_PAYLOADS.get(n)
     if not payload:
-        abort(404)
+        abort(400)
     return jsonify({"payload": payload})
 
 # ======================= ROUTES =======================
