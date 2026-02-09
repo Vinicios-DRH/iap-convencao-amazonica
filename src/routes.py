@@ -328,7 +328,8 @@ def painel():
             "v1": v1,
             "v2": v2,
             "v3": v3,
-        }, credit_link=credit_link
+        }, credit_link=credit_link,
+        pix_payloads=PIX_PAYLOADS,
     )
 
 

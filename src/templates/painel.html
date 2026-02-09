@@ -518,10 +518,9 @@
 
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="selectPixOption(1); copyPixCopiaCola(1)">
+                                            data-payload="{{ pix_payloads[1] }}" onclick="openPixModalAndCopy(this)">
                                             Copiar e Colar
                                         </button>
-
                                         <a class="btn btn-soft btn-sm" target="_blank"
                                             href="{{ url_for('static', filename='img/qr_code_180.jpeg') }}"
                                             onclick="selectPixOption(1)">
@@ -550,10 +549,9 @@
 
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="selectPixOption(2); copyPixCopiaCola(2)">
+                                            data-payload="{{ pix_payloads[2] }}" onclick="openPixModalAndCopy(this)">
                                             Copiar e Colar
                                         </button>
-
                                         <a class="btn btn-soft btn-sm" target="_blank"
                                             href="{{ url_for('static', filename='img/qr_code_90.jpeg') }}"
                                             onclick="selectPixOption(2)">
@@ -582,7 +580,7 @@
 
                                     <div class="mini-actions">
                                         <button class="btn btn-outline-light btn-sm" type="button"
-                                            onclick="selectPixOption(3); copyPixCopiaCola(3)">
+                                            data-payload="{{ pix_payloads[3] }}" onclick="openPixModalAndCopy(this)">
                                             Copiar e Colar
                                         </button>
 
@@ -779,6 +777,39 @@
             {% endif %}
         </div>
     </main>
+    <!-- Modal Pix Copia e Cola -->
+    <div class="modal fade" id="pixModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content"
+                style="background: rgba(0,0,0,.92); color:#fff; border:1px solid rgba(255,255,255,.14); border-radius:18px;">
+                <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.12);">
+                    <h5 class="modal-title fw-bold">Pix Copia e Cola</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="muted mb-2" style="font-size:.92rem;">
+                        Toque em <b>Copiar</b>. Se o iPhone bloquear, toque no texto e segure para copiar.
+                    </div>
+
+                    <textarea id="pixPayloadBox" class="form-control" rows="6" readonly
+                        style="font-size:.92rem; background: rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.14); color:#fff;"></textarea>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="button" class="btn btn-neon" onclick="copyFromModal()">
+                            Copiar agora
+                        </button>
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                            Fechar
+                        </button>
+                    </div>
+
+                    <div class="muted mt-2" id="pixCopyOk" style="display:none;">✅ Copiado!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Toastzinho de feedback (iPhone-friendly) -->
     <div id="toast" style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
@@ -819,47 +850,37 @@
             });
         }
     </script>
+    
     <script>
-        function showToast(msg) {
-            const t = document.getElementById("toast");
-            if (!t) return;
-            t.textContent = msg;
-            t.style.display = "block";
-            clearTimeout(window.__toastTimer);
-            window.__toastTimer = setTimeout(() => {
-                t.style.display = "none";
-            }, 1800);
+        let lastPixPayload = "";
+
+        function selectText(el) {
+            el.focus();
+            el.select();
+            el.setSelectionRange(0, el.value.length); // iOS
         }
 
         async function copyToClipboardSmart(text) {
-            text = (text || "").toString().trim();
-
-            // 1) Moderno (Chrome/Android/desktop, alguns iOS em HTTPS)
+            // 1) clipboard API (melhor) - precisa HTTPS e permissão
             if (navigator.clipboard && window.isSecureContext) {
                 try {
                     await navigator.clipboard.writeText(text);
                     return true;
-                } catch (e) {
-                    // cai no fallback
-                }
+                } catch (e) { }
             }
 
-            // 2) Fallback Safari/iOS: textarea + execCommand
+            // 2) fallback iOS/Safari
             try {
                 const ta = document.createElement("textarea");
                 ta.value = text;
                 ta.setAttribute("readonly", "");
-                // iOS precisa estar "visível" no layout (mas fora da tela)
-                ta.style.position = "absolute";
-                ta.style.left = "-9999px";
+                ta.style.position = "fixed";
                 ta.style.top = "0";
+                ta.style.left = "0";
                 ta.style.opacity = "0";
                 document.body.appendChild(ta);
 
-                ta.focus();
-                ta.select();
-                ta.setSelectionRange(0, ta.value.length); // iOS
-
+                selectText(ta);
                 const ok = document.execCommand("copy");
                 document.body.removeChild(ta);
                 return ok;
@@ -868,43 +889,54 @@
             }
         }
 
-        async function copyPixCopiaCola(n) {
-            // IMPORTANTÍSSIMO: isso precisa rodar a partir do clique do usuário.
-            try {
-                const r = await fetch(`/pix/copia-cola/${n}`, {
-                    method: "GET",
-                    headers: { "Accept": "application/json" },
-                    cache: "no-store",
-                    credentials: "same-origin"
-                });
+        function openPixModalAndCopy(btn) {
+            const payload = (btn?.dataset?.payload || "").trim();
+            if (!payload) {
+                alert("Payload Pix não encontrado.");
+                return;
+            }
 
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            lastPixPayload = payload;
 
-                const ct = (r.headers.get("content-type") || "").toLowerCase();
-                if (!ct.includes("application/json")) {
-                    // se retornar HTML (redirect pro login), vai falhar aqui
-                    throw new Error("Resposta não é JSON (provável redirect/login).");
-                }
+            // abre modal
+            const box = document.getElementById("pixPayloadBox");
+            if (box) {
+                box.value = payload;
+                // seleciona pra facilitar "segurar e copiar" se precisar
+                setTimeout(() => selectText(box), 50);
+            }
 
-                const j = await r.json();
-                const payload = (j && j.payload) ? String(j.payload).trim() : "";
-                if (!payload) throw new Error("Payload vazio.");
+            const modalEl = document.getElementById("pixModal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
 
+            // tenta copiar imediatamente (ainda dentro do clique)
+            setTimeout(async () => {
                 const ok = await copyToClipboardSmart(payload);
-
-                if (ok) {
-                    // NÃO use alert() aqui (iPhone às vezes quebra o gesto)
-                    showToast("✅ Pix Copia e Cola copiado! Agora cole no app do banco.");
-                } else {
-                    // fallback final: prompt (o usuário copia manualmente)
-                    prompt("Copie e cole este Pix:", payload);
+                const okEl = document.getElementById("pixCopyOk");
+                if (okEl) {
+                    okEl.style.display = ok ? "block" : "none";
                 }
-            } catch (e) {
-                console.error(e);
-                showToast("Não consegui copiar. Tente 'Abrir QR' ou copie a chave Pix.");
+            }, 0);
+        }
+
+        async function copyFromModal() {
+            if (!lastPixPayload) return;
+            const ok = await copyToClipboardSmart(lastPixPayload);
+
+            const okEl = document.getElementById("pixCopyOk");
+            if (okEl) {
+                okEl.style.display = ok ? "block" : "none";
+            }
+
+            if (!ok) {
+                // se bloquear, pelo menos já tá selecionado no textarea pro cara segurar e copiar
+                const box = document.getElementById("pixPayloadBox");
+                if (box) selectText(box);
             }
         }
     </script>
+
 
     <script>
         const PIX_LABELS = { 1: "À vista (1x)", 2: "Parcelado (2x)", 3: "Parcelado (3x)" };
