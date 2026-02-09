@@ -780,6 +780,13 @@
         </div>
     </main>
 
+    <!-- Toastzinho de feedback (iPhone-friendly) -->
+    <div id="toast" style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+  background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.16);
+  color:#fff;padding:10px 14px;border-radius:14px;backdrop-filter:blur(10px);
+  font-weight:800;display:none;z-index:9999;max-width:92vw;text-align:center;">
+    </div>
+
     {% include "components/footer.html" %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -813,25 +820,40 @@
         }
     </script>
     <script>
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            if (!t) return;
+            t.textContent = msg;
+            t.style.display = "block";
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => {
+                t.style.display = "none";
+            }, 1800);
+        }
+
         async function copyToClipboardSmart(text) {
-            // 1) Tentativa moderna (melhor) - precisa HTTPS e permissão
+            text = (text || "").toString().trim();
+
+            // 1) Moderno (Chrome/Android/desktop, alguns iOS em HTTPS)
             if (navigator.clipboard && window.isSecureContext) {
                 try {
                     await navigator.clipboard.writeText(text);
                     return true;
                 } catch (e) {
-                    // cai pro fallback
+                    // cai no fallback
                 }
             }
 
-            // 2) Fallback iOS/Safari: textarea + execCommand
+            // 2) Fallback Safari/iOS: textarea + execCommand
             try {
                 const ta = document.createElement("textarea");
                 ta.value = text;
                 ta.setAttribute("readonly", "");
-                ta.style.position = "fixed";
-                ta.style.top = "-1000px";
-                ta.style.left = "-1000px";
+                // iOS precisa estar "visível" no layout (mas fora da tela)
+                ta.style.position = "absolute";
+                ta.style.left = "-9999px";
+                ta.style.top = "0";
+                ta.style.opacity = "0";
                 document.body.appendChild(ta);
 
                 ta.focus();
@@ -847,6 +869,7 @@
         }
 
         async function copyPixCopiaCola(n) {
+            // IMPORTANTÍSSIMO: isso precisa rodar a partir do clique do usuário.
             try {
                 const r = await fetch(`/pix/copia-cola/${n}`, {
                     method: "GET",
@@ -855,35 +878,30 @@
                     credentials: "same-origin"
                 });
 
-                // Se voltou redirect pro login (muito comum), aqui vai dar falso positivo
-                if (!r.ok) {
-                    throw new Error(`HTTP ${r.status}`);
-                }
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
 
                 const ct = (r.headers.get("content-type") || "").toLowerCase();
                 if (!ct.includes("application/json")) {
-                    // Provavelmente retornou HTML (login/erro). Pega o texto pra debug.
-                    const t = await r.text();
-                    console.error("Resposta não-JSON:", t.slice(0, 500));
+                    // se retornar HTML (redirect pro login), vai falhar aqui
                     throw new Error("Resposta não é JSON (provável redirect/login).");
                 }
 
                 const j = await r.json();
                 const payload = (j && j.payload) ? String(j.payload).trim() : "";
-
                 if (!payload) throw new Error("Payload vazio.");
 
                 const ok = await copyToClipboardSmart(payload);
 
                 if (ok) {
-                    alert("✅ Pix Copia e Cola copiado! Agora cole no app do banco.");
+                    // NÃO use alert() aqui (iPhone às vezes quebra o gesto)
+                    showToast("✅ Pix Copia e Cola copiado! Agora cole no app do banco.");
                 } else {
-                    // Fallback final: mostra pra pessoa copiar manualmente
-                    prompt("Não consegui copiar automaticamente. Copie manualmente:", payload);
+                    // fallback final: prompt (o usuário copia manualmente)
+                    prompt("Copie e cole este Pix:", payload);
                 }
             } catch (e) {
                 console.error(e);
-                alert("Não consegui copiar automaticamente. Abra o QR ou use a chave Pix.");
+                showToast("Não consegui copiar. Tente 'Abrir QR' ou copie a chave Pix.");
             }
         }
     </script>

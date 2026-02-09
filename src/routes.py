@@ -462,7 +462,13 @@ def admin_inscricao_detalhe(reg_id):
         flash("Decisão salva com sucesso!", "success")
         return redirect(url_for("admin_inscricoes", status=request.args.get("status", "")))
 
-    return render_template("admin/inscricao_detalhe.html", reg=reg, form=form)
+    return render_template(
+        "admin/inscricao_detalhe.html",
+        reg=reg,
+        user=reg.user,
+        reviewer=reg.reviewer,
+        form=form
+    )
 
 # =======================
 # SUPER USER - PERMISSÕES

@@ -1,3 +1,5 @@
+
+from pathlib import Path
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -11,15 +13,21 @@ import pytz
 from decimal import Decimal, ROUND_FLOOR
 
 
-# Carregar variáveis do .env
-load_dotenv()
+# ajusta se seu src estiver em outro nível
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 
 app = Flask(__name__)
 app.jinja_env.globals['get_b2_file_url'] = get_b2_file_url
 
-# Carrega as configurações do .env
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+db_mode = (os.getenv("DB_MODE") or "").lower().strip()
+
+if db_mode == "sqlite":
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 app.jinja_env.globals.update(enumerate=enumerate)
 
@@ -62,22 +70,26 @@ INCLUI_ITENS = [
 CONTATO_PAGAMENTO = "+55 92 8459-6369"
 CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
 
+
 def _env_int(name: str, default: int) -> int:
     try:
         return int(os.getenv(name, str(default)).strip())
     except Exception:
         return default
 
+
 def _env_dec(name: str, default: str) -> Decimal:
     try:
         return Decimal(str(os.getenv(name, default)).strip().replace(",", "."))
     except Exception:
         return Decimal(default)
-    
+
+
 LOT1_LIMIT = _env_int("LOT1_LIMIT", 50)
 LOT1_PRICE = _env_dec("LOT1_PRICE", "180.09")   # em reais
 LOT2_PRICE = _env_dec("LOT2_PRICE", "200.09")   # em reais
 PIX_SUFFIX = _env_dec("PIX_SUFFIX", "0.09")     # em reais (centavos)
+
 
 def money_br(value: Decimal) -> str:
     # formata 1234.56 -> 1.234,56
@@ -85,6 +97,7 @@ def money_br(value: Decimal) -> str:
     inteiro, dec = s.split(".")
     inteiro = f"{int(inteiro):,}".replace(",", ".")
     return f"{inteiro},{dec}"
+
 
 def with_suffix(value: Decimal, suffix: Decimal = PIX_SUFFIX) -> Decimal:
     """
@@ -94,6 +107,7 @@ def with_suffix(value: Decimal, suffix: Decimal = PIX_SUFFIX) -> Decimal:
     inteiro = value.quantize(Decimal("1"), rounding=ROUND_FLOOR)
     return inteiro + suffix
 
+
 def split_installments(total: Decimal, n: int) -> list[Decimal]:
     """
     Divide em parcelas e força cada parcela a terminar em PIX_SUFFIX.
@@ -102,6 +116,7 @@ def split_installments(total: Decimal, n: int) -> list[Decimal]:
     base = (total / Decimal(n))
     parcela = with_suffix(base)
     return [parcela for _ in range(n)]
+
 
 def get_current_lot_info(total_regs: int) -> dict:
     """
@@ -117,8 +132,10 @@ def get_current_lot_info(total_regs: int) -> dict:
         remaining = 0
     return {"lot_name": lot_name, "price": price, "remaining": remaining}
 
+
 # filtros e helpers para o Jinja
-app.jinja_env.filters["money_br"] = lambda v: money_br(Decimal(str(v))) if v is not None else "-"
+app.jinja_env.filters["money_br"] = lambda v: money_br(
+    Decimal(str(v))) if v is not None else "-"
 
 tz_manaus = pytz.timezone("America/Manaus")
 
@@ -146,7 +163,6 @@ def inject_globals():
         "lot1_limit": LOT1_LIMIT,
         "pix_suffix": str(PIX_SUFFIX).replace(".", ","),
     }
-
 
 from src import routes
 app.supabase = supabase
