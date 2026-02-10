@@ -2,7 +2,7 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 import os
 from datetime import datetime
 import uuid
-from flask import jsonify, render_template, request, redirect, url_for, flash, abort, Response
+from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, abort, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -17,6 +17,10 @@ from src.controllers.b2_utils import upload_to_b2
 import secrets
 import string
 from sqlalchemy import func, or_
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 
 PIX_PADRAO_MSG = (
     "Informamos que todos os pagamentos realizados via Pix — seja em valor integral ou parcelado — "
@@ -399,6 +403,325 @@ def admin_home():
         kpi_negadas=negadas,
         kpi_pendentes_comprovante=pendentes_comprovante,
         ultimas=ultimas,
+    )
+
+
+@app.route("/admin/relatorio-inscritos.xlsx")
+@login_required
+@admin_required
+def admin_relatorio_inscritos_xlsx():
+    """
+    Relatório completasso em Excel.
+    Suporta filtros opcionais via querystring:
+      - ?status=CONFIRMADA
+      - ?payment_type=pix
+      - ?from=2026-02-01&to=2026-02-10 (YYYY-MM-DD)
+    """
+    q = Registration.query
+
+    status = (request.args.get("status") or "").strip()
+    if status:
+        q = q.filter(Registration.status == status)
+
+    payment_type = (request.args.get("payment_type") or "").strip()
+    if payment_type:
+        q = q.filter(Registration.payment_type == payment_type)
+
+    dt_from = (request.args.get("from") or "").strip()
+    dt_to = (request.args.get("to") or "").strip()
+
+    def parse_date(s: str):
+        try:
+            return datetime.strptime(s, "%Y-%m-%d")
+        except Exception:
+            return None
+
+    d1 = parse_date(dt_from)
+    d2 = parse_date(dt_to)
+    if d1:
+        q = q.filter(Registration.created_at >= d1)
+    if d2:
+        # inclui o dia final (até 23:59:59)
+        q = q.filter(Registration.created_at < datetime(
+            d2.year, d2.month, d2.day, 23, 59, 59))
+
+    regs = q.order_by(Registration.created_at.desc()).all()
+
+    # ===== Helpers =====
+    def fmt_dt(dt):
+        if not dt:
+            return ""
+        return dt.strftime("%d/%m/%Y %H:%M")
+
+    def yn(b):
+        return "SIM" if b else "NÃO"
+
+    def money_from_cents(cents):
+        return float((cents or 0) / 100.0)
+
+    def safe_text(v):
+        return (v or "").strip() if isinstance(v, str) else (v if v is not None else "")
+
+    def count_by(items, key_fn):
+        d = {}
+        for it in items:
+            k = key_fn(it)
+            d[k] = d.get(k, 0) + 1
+        return d
+
+    def sort_count_dict(d):
+        return sorted(d.items(), key=lambda x: (-x[1], str(x[0])))
+
+    # ===== Workbook styles =====
+    wb = Workbook()
+
+    # remove sheet padrão
+    wb.remove(wb.active)
+
+    title_font = Font(bold=True, size=14)
+    h_font = Font(bold=True, size=11, color="FFFFFF")
+    h_fill = PatternFill("solid", fgColor="111827")  # quase preto (dark)
+    thin = Side(style="thin", color="2D3748")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    def style_header_row(ws, row=1):
+        for col in range(1, ws.max_column + 1):
+            c = ws.cell(row=row, column=col)
+            c.font = h_font
+            c.fill = h_fill
+            c.alignment = Alignment(vertical="center")
+            c.border = border
+
+    def apply_table_style(ws, start_row, start_col, end_row, end_col, freeze_panes="A2", auto_filter=True):
+        ws.freeze_panes = freeze_panes
+        if auto_filter:
+            ws.auto_filter.ref = f"{get_column_letter(start_col)}{start_row}:{get_column_letter(end_col)}{end_row}"
+        for r in range(start_row, end_row + 1):
+            for c in range(start_col, end_col + 1):
+                ws.cell(row=r, column=c).border = border
+                ws.cell(row=r, column=c).alignment = Alignment(
+                    vertical="top", wrap_text=True)
+
+    def set_widths(ws, widths: dict):
+        for col_letter, w in widths.items():
+            ws.column_dimensions[col_letter].width = w
+
+    # ===== 1) Resumo =====
+    ws_sum = wb.create_sheet("Resumo")
+    ws_sum["A1"] = "Relatório de Inscrições — Tempo de Resplandecer"
+    ws_sum["A1"].font = title_font
+
+    ws_sum["A3"] = "Gerado em:"
+    ws_sum["B3"] = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    ws_sum["A4"] = "Filtros:"
+    filtros = []
+    if status:
+        filtros.append(f"status={status}")
+    if payment_type:
+        filtros.append(f"payment_type={payment_type}")
+    if dt_from:
+        filtros.append(f"from={dt_from}")
+    if dt_to:
+        filtros.append(f"to={dt_to}")
+    ws_sum["B4"] = ", ".join(filtros) if filtros else "—"
+
+    total = len(regs)
+    by_status = count_by(regs, lambda r: safe_text(r.status))
+    by_pay = count_by(
+        regs, lambda r: "Pix" if r.payment_type == "pix" else "Crédito")
+    by_inst = count_by(regs, lambda r: f"{int(r.installments or 1)}x")
+    by_kids = count_by(regs, lambda r: "SIM" if r.has_kids_u5 else "NÃO")
+    by_transport = count_by(
+        regs, lambda r: "Ônibus" if r.transport == "onibus" else "Carro")
+    by_proof = count_by(
+        [r for r in regs if r.payment_type == "pix"],
+        lambda r: "SIM" if r.proof_file_path else "NÃO"
+    )
+
+    # KPIs em cards simples (linhas)
+    ws_sum["A6"] = "KPIs"
+    ws_sum["A6"].font = Font(bold=True, size=12)
+
+    kpi_rows = [
+        ("Total de inscrições", total),
+        ("Confirmadas", by_status.get("CONFIRMADA", 0)),
+        ("Aguardando confirmação", by_status.get("AGUARDANDO_CONFIRMACAO", 0)),
+        ("Negadas", by_status.get("NEGADA", 0)),
+        ("Pagamentos Pix", by_pay.get("Pix", 0)),
+        ("Pagamentos Crédito", by_pay.get("Crédito", 0)),
+        ("Tem filhos até 5 (SIM)", by_kids.get("SIM", 0)),
+        ("Tem filhos até 5 (NÃO)", by_kids.get("NÃO", 0)),
+        ("Pix com comprovante (SIM)", by_proof.get("SIM", 0)),
+        ("Pix sem comprovante (NÃO)", by_proof.get("NÃO", 0)),
+    ]
+
+    start = 8
+    ws_sum.append(["Métrica", "Valor"])
+    ws_sum["A7"] = "Métrica"
+    ws_sum["B7"] = "Valor"
+    ws_sum["A7"].font = h_font
+    ws_sum["B7"].font = h_font
+    ws_sum["A7"].fill = h_fill
+    ws_sum["B7"].fill = h_fill
+    ws_sum["A7"].border = border
+    ws_sum["B7"].border = border
+
+    r0 = 8
+    for name, val in kpi_rows:
+        ws_sum.cell(row=r0, column=1, value=name)
+        ws_sum.cell(row=r0, column=2, value=val)
+        ws_sum.cell(row=r0, column=1).border = border
+        ws_sum.cell(row=r0, column=2).border = border
+        r0 += 1
+
+    set_widths(ws_sum, {"A": 36, "B": 16})
+
+    # ===== 2) Inscritos (tabela completa) =====
+    ws = wb.create_sheet("Inscritos")
+
+    headers = [
+        "ID",
+        "Nome",
+        "CPF",
+        "Telefone",
+        "IAP",
+        "Transporte",
+        "Lote",
+        "Valor Lote (R$)",
+        "Tipo Pagamento",
+        "Parcelas",
+        "Status",
+        "Mensagem Status",
+        "Tem filhos até 5?",
+        "Nomes filhos até 5",
+        "Idade",
+        "Membro da igreja?",
+        "Aceitou sem reembolso?",
+        "Comprovante Pix enviado?",
+        "Comprovante enviado em",
+        "Revisado por (user_id)",
+        "Revisado em",
+        "Nota revisão",
+        "Criado em",
+        "Atualizado em",
+    ]
+    ws.append(headers)
+    style_header_row(ws, 1)
+
+    for r in regs:
+        ws.append([
+            r.id,
+            r.full_name,
+            r.cpf,
+            r.phone,
+            r.iap_local,
+            "Ônibus" if r.transport == "onibus" else "Carro",
+            r.lot_name,
+            money_from_cents(r.lot_value_cents),
+            "Pix" if r.payment_type == "pix" else "Crédito",
+            int(r.installments or 1),
+            r.status,
+            safe_text(r.status_message),
+            yn(r.has_kids_u5),
+            safe_text(r.kids_u5_names),
+            r.age if r.age is not None else "",
+            yn(r.is_church_member),
+            yn(r.agree_no_refund),
+            ("SIM" if r.proof_file_path else "NÃO") if r.payment_type == "pix" else "N/A",
+            fmt_dt(r.proof_uploaded_at) if r.payment_type == "pix" else "",
+            r.reviewed_by_user_id or "",
+            fmt_dt(r.reviewed_at),
+            safe_text(r.review_note),
+            fmt_dt(r.created_at),
+            fmt_dt(r.updated_at),
+        ])
+
+    # formata coluna de dinheiro
+    for row in range(2, ws.max_row + 1):
+        ws[f"H{row}"].number_format = '0.00'
+
+    # widths
+    set_widths(ws, {
+        "A": 8,   "B": 30, "C": 16, "D": 16, "E": 24, "F": 12,
+        "G": 12,  "H": 14, "I": 14, "J": 10, "K": 22, "L": 30,
+        "M": 16,  "N": 32, "O": 8,  "P": 18, "Q": 22, "R": 22,
+        "S": 18,  "T": 18, "U": 18, "V": 28, "W": 18, "X": 18,
+    })
+
+    apply_table_style(ws, 1, 1, ws.max_row, ws.max_column,
+                      freeze_panes="A2", auto_filter=True)
+
+    # ===== Abas de agregação =====
+    def make_count_sheet(title, pairs, col1="Categoria", col2="Qtd"):
+        s = wb.create_sheet(title)
+        s.append([col1, col2])
+        style_header_row(s, 1)
+        for k, v in pairs:
+            s.append([k, v])
+        set_widths(s, {"A": 36, "B": 10})
+        apply_table_style(s, 1, 1, s.max_row, 2,
+                          freeze_panes="A2", auto_filter=True)
+        return s
+
+    # 3) Status
+    make_count_sheet("Status", sort_count_dict(by_status), "Status", "Qtd")
+
+    # 4) Pagamentos (tipo + parcelas)
+    ws_pay = wb.create_sheet("Pagamentos")
+    ws_pay.append(["Tipo", "Qtd"])
+    ws_pay.append(["Pix", by_pay.get("Pix", 0)])
+    ws_pay.append(["Crédito", by_pay.get("Crédito", 0)])
+    style_header_row(ws_pay, 1)
+    apply_table_style(ws_pay, 1, 1, ws_pay.max_row, 2,
+                      freeze_panes="A2", auto_filter=False)
+    set_widths(ws_pay, {"A": 20, "B": 10})
+
+    # tabela por parcelas
+    ws_pay["D1"] = "Parcelas"
+    ws_pay["D1"].font = Font(bold=True, size=12)
+    ws_pay.append([])  # só pra manter simples (não afeta)
+    ws_pay2_row = 3
+    ws_pay.cell(row=2, column=4, value="Parcelas").font = h_font
+    ws_pay.cell(row=2, column=5, value="Qtd").font = h_font
+    ws_pay.cell(row=2, column=4).fill = h_fill
+    ws_pay.cell(row=2, column=5).fill = h_fill
+    ws_pay.cell(row=2, column=4).border = border
+    ws_pay.cell(row=2, column=5).border = border
+
+    for k, v in sort_count_dict(by_inst):
+        ws_pay.cell(row=ws_pay2_row, column=4, value=k).border = border
+        ws_pay.cell(row=ws_pay2_row, column=5, value=v).border = border
+        ws_pay2_row += 1
+
+    set_widths(ws_pay, {"D": 14, "E": 10})
+
+    # 5) Kids U5
+    make_count_sheet("Kids U5", sort_count_dict(
+        by_kids), "Tem filhos até 5?", "Qtd")
+
+    # 6) IAP ranking
+    by_iap = count_by(regs, lambda r: safe_text(r.iap_local) or "—")
+    make_count_sheet("IAP", sort_count_dict(by_iap), "IAP", "Qtd")
+
+    # 7) Lotes
+    by_lot = count_by(regs, lambda r: safe_text(r.lot_name) or "—")
+    make_count_sheet("Lotes", sort_count_dict(by_lot), "Lote", "Qtd")
+
+    # 8) Transporte
+    make_count_sheet("Transporte", sort_count_dict(
+        by_transport), "Transporte", "Qtd")
+
+    # ===== Export =====
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="relatorio_inscritos_completo.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 

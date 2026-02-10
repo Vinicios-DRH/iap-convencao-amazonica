@@ -211,7 +211,18 @@
                             </a>
                             <a class="btn btn-outline-light" href="{{ url_for('admin_inscricoes', status='NEGADA') }}">
                                 Ver negadas
-                            </a>
+                                <a class="btn btn-neon" href="{{ url_for('admin_relatorio_inscritos_xlsx') }}">
+                                    Baixar relatório Excel
+                                </a>
+                                <a class="btn btn-outline-light"
+                                    href="{{ url_for('admin_relatorio_inscritos_xlsx', status='AGUARDANDO_CONFIRMACAO') }}">
+                                    Excel — Pendentes
+                                </a>
+
+                                <a class="btn btn-outline-light"
+                                    href="{{ url_for('admin_relatorio_inscritos_xlsx', payment_type='pix') }}">
+                                    Excel — Apenas Pix
+                                </a>
                         </div>
 
                         <div class="mt-3 muted">
