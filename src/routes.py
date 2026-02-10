@@ -16,7 +16,7 @@ from src.decorators import admin_required, payment_reviewer_required, super_requ
 from src.controllers.b2_utils import upload_to_b2
 import secrets
 import string
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 PIX_PADRAO_MSG = (
     "Informamos que todos os pagamentos realizados via Pix — seja em valor integral ou parcelado — "
@@ -411,23 +411,38 @@ def admin_inscricoes():
     status = request.args.get("status", "").strip()
     q = request.args.get("q", "").strip()
 
+    # paginação
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 25, type=int)
+    per_page = max(10, min(per_page, 100))  # trava entre 10 e 100
+
     query = Registration.query
 
     if status:
         query = query.filter(Registration.status == status)
 
     if q:
-        like = f"%{q.lower()}%"
-        query = query.filter(
-            (Registration.full_name.ilike(like)) |
-            (Registration.email.ilike(like) if hasattr(Registration, "email") else False) |
-            (Registration.cpf.ilike(like)) |
-            (Registration.phone.ilike(like)) |
-            (Registration.iap_local.ilike(like))
-        )
+        like = f"%{q}%"
+        query = query.filter(or_(
+            Registration.full_name.ilike(like),
+            Registration.cpf.ilike(like),
+            Registration.phone.ilike(like),
+            Registration.iap_local.ilike(like),
+        ))
 
-    regs = query.order_by(Registration.created_at.desc()).all()
-    return render_template("admin/inscricoes.html", regs=regs, status=status, q=q)
+    query = query.order_by(Registration.created_at.desc())
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    regs = pagination.items
+
+    return render_template(
+        "admin/inscricoes.html",
+        regs=regs,
+        pagination=pagination,
+        status=status,
+        q=q,
+        per_page=per_page
+    )
 
 
 @app.route("/admin/inscricoes/<int:reg_id>", methods=["GET", "POST"])

@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Painel — Minha Inscrição</title>
+
     <!-- Favicon básico -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
 
@@ -21,6 +22,7 @@
     <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         :root {
             --pink: #d946ef;
@@ -379,7 +381,6 @@
             background: rgba(0, 0, 0, .22);
         }
     </style>
-
 </head>
 
 <body>
@@ -630,12 +631,10 @@
                             </div>
 
                             <div class="d-flex gap-2 flex-wrap mt-3">
-                                {% set wa_number = "5592992055349" %} {# só números #}
-
-                                {# ====== WHATSAPP: 3 botões (1x/2x/3x) com ID da inscrição ====== #}
+                                {# ====== WHATSAPP único (mesmo número do cartão) ====== #}
                                 {% set wa_number = "559284596369" %} {# só números #}
 
-                                {# valores (ajusta pra suas variáveis atuais) #}
+                                {# valores vindos da rota (painel) #}
                                 {% set v1 = pix_prices.v1 %}
                                 {% set v2 = pix_prices.v2 %}
                                 {% set v3 = pix_prices.v3 %}
@@ -689,13 +688,22 @@
                                 {# ====== UI: 3 botões (responsivo) ====== #}
                                 <div class="mt-3">
                                     <div class="d-grid gap-2">
-                                        <a class="btn btn-neon" href="{{ wa1 }}" target="_blank" rel="noopener">
+                                        <a class="btn btn-neon" href="{{ wa1 }}" target="_blank" rel="noopener"
+                                            data-proof-btn data-proof-kind="pix" data-pix-opt="1"
+                                            data-reg-id="{{ reg.id }}" data-payment-type="{{ reg.payment_type }}"
+                                            data-installments="{{ reg.installments }}" onclick="onProofBtnClick(this)">
                                             Enviar comprovante — {{ label1 }}
                                         </a>
-                                        <a class="btn btn-neon" href="{{ wa2 }}" target="_blank" rel="noopener">
+                                        <a class="btn btn-neon" href="{{ wa2 }}" target="_blank" rel="noopener"
+                                            data-proof-btn data-proof-kind="pix" data-pix-opt="2"
+                                            data-reg-id="{{ reg.id }}" data-payment-type="{{ reg.payment_type }}"
+                                            data-installments="{{ reg.installments }}" onclick="onProofBtnClick(this)">
                                             Enviar comprovante — {{ label2 }}
                                         </a>
-                                        <a class="btn btn-neon" href="{{ wa3 }}" target="_blank" rel="noopener">
+                                        <a class="btn btn-neon" href="{{ wa3 }}" target="_blank" rel="noopener"
+                                            data-proof-btn data-proof-kind="pix" data-pix-opt="3"
+                                            data-reg-id="{{ reg.id }}" data-payment-type="{{ reg.payment_type }}"
+                                            data-installments="{{ reg.installments }}" onclick="onProofBtnClick(this)">
                                             Enviar comprovante — {{ label3 }}
                                         </a>
                                     </div>
@@ -769,6 +777,36 @@
                         <div class="small-note mt-2">
                             Se o link não abrir, copie e cole no navegador.
                         </div>
+
+                        {# ====== WHATSAPP do cartão: mesmo número do Pix ====== #}
+                        {% set wa_number = "559284596369" %}
+
+                        {% set msg_credit =
+                        "Olá! Estou enviando o comprovante da Convenção Jovem — Tempo de Resplandecer.%0A%0A"
+                        ~ "ID da inscrição: " ~ (reg.id|string) ~ "%0A"
+                        ~ "Nome: " ~ (reg.full_name or '-') ~ "%0A"
+                        ~ "CPF: " ~ (reg.cpf or '-') ~ "%0A"
+                        ~ "IAP: " ~ (reg.iap_local or '-') ~ "%0A"
+                        ~ "Telefone: " ~ (reg.phone or '-') ~ "%0A%0A"
+                        ~ "Pagamento: Cartão de Crédito%0A"
+                        ~ "Parcelas: " ~ (reg.installments|string) ~ "x%0A%0A"
+                        ~ "Vou anexar o comprovante nesta conversa."
+                        %}
+
+                        {% set wa_credit = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg_credit %}
+
+                        <div class="d-grid gap-2 mt-3">
+                            <a class="btn btn-neon" href="{{ wa_credit }}" target="_blank" rel="noopener" data-proof-btn
+                                data-proof-kind="credit" data-reg-id="{{ reg.id }}"
+                                data-payment-type="{{ reg.payment_type }}" data-installments="{{ reg.installments }}"
+                                onclick="onProofBtnClick(this)">
+                                Enviar comprovante — Cartão ({{ reg.installments }}x)
+                            </a>
+                            <div class="muted" style="font-size:.92rem;">
+                                Depois que abrir o WhatsApp, <b>anexe o comprovante</b> (imagem ou PDF) e envie.
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
@@ -777,6 +815,7 @@
             {% endif %}
         </div>
     </main>
+
     <!-- Modal Pix Copia e Cola -->
     <div class="modal fade" id="pixModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -810,7 +849,6 @@
         </div>
     </div>
 
-
     <!-- Toastzinho de feedback (iPhone-friendly) -->
     <div id="toast" style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
   background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.16);
@@ -819,6 +857,7 @@
     </div>
 
     {% include "components/footer.html" %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -850,7 +889,8 @@
             });
         }
     </script>
-    
+
+    <!-- ✅ iPhone/Safari-safe Pix Copy (mantido) -->
     <script>
         let lastPixPayload = "";
 
@@ -937,7 +977,6 @@
         }
     </script>
 
-
     <script>
         const PIX_LABELS = { 1: "À vista (1x)", 2: "Parcelado (2x)", 3: "Parcelado (3x)" };
 
@@ -955,6 +994,15 @@
             document.getElementById("pixSelectedBar").classList.remove("d-none");
 
             active?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+            // ✅ opcional: se escolher 2x/3x, mantém só o botão de comprovante correspondente
+            try {
+                const regId = document.querySelector('[data-proof-btn]')?.getAttribute('data-reg-id');
+                if (regId && (n === 2 || n === 3)) {
+                    localStorage.setItem(`pix_choice:${regId}`, String(n));
+                    showOnlyPixChoice(regId, String(n));
+                }
+            } catch (e) { }
         }
 
         function resetPixOptions() {
@@ -965,6 +1013,90 @@
             wrap.querySelectorAll(".qr-mini").forEach(c => c.classList.remove("is-active"));
             document.getElementById("pixSelectedBar").classList.add("d-none");
         }
+    </script>
+
+    <!-- ✅ REGRA: esconder botões de comprovante (front-only) -->
+    <script>
+        function keyProofSent(regId) {
+            return `proof_sent:${regId}`;
+        }
+        function keyPixChoice(regId) {
+            return `pix_choice:${regId}`; // 1..3
+        }
+
+        function hideAllProofButtons() {
+            document.querySelectorAll('[data-proof-btn]').forEach(el => {
+                el.classList.add('d-none');
+            });
+        }
+
+        function showOnlyPixChoice(regId, choice) {
+            // esconde todos os botões pix, mostra só o escolhido
+            document.querySelectorAll('[data-proof-btn][data-proof-kind="pix"]').forEach(el => {
+                const opt = el.getAttribute('data-pix-opt');
+                if (String(opt) === String(choice)) el.classList.remove('d-none');
+                else el.classList.add('d-none');
+            });
+        }
+
+        function onProofBtnClick(el) {
+            try {
+                const regId = el.getAttribute('data-reg-id');
+                const kind = el.getAttribute('data-proof-kind'); // pix | credit
+                const pixOpt = el.getAttribute('data-pix-opt'); // 1..3 (se pix)
+
+                // ✅ Pix parcelado (2x/3x): NÃO some — mantém só o escolhido
+                if (kind === 'pix' && (pixOpt === '2' || pixOpt === '3')) {
+                    localStorage.setItem(keyPixChoice(regId), pixOpt);
+                    showOnlyPixChoice(regId, pixOpt);
+
+                    // aplica o layout selecionado (se existir)
+                    if (typeof selectPixOption === "function") {
+                        selectPixOption(parseInt(pixOpt, 10));
+                    }
+                    return true;
+                }
+
+                // ✅ Caso contrário (Pix 1x ou Cartão): marca como enviado e esconde geral
+                localStorage.setItem(keyProofSent(regId), "1");
+                hideAllProofButtons();
+                return true;
+            } catch (e) {
+                return true;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const anyBtn = document.querySelector('[data-proof-btn]');
+            if (!anyBtn) return;
+
+            const regId = anyBtn.getAttribute('data-reg-id');
+
+            // ✅ se o servidor já tem comprovante, some tudo
+            const serverHasProof = {{ 'true' if reg.proof_file_path else 'false' }}
+        };
+        if (serverHasProof) {
+            hideAllProofButtons();
+            return;
+        }
+
+        // ✅ se já marcou como enviado (pix 1x ou cartão), esconde tudo
+        if (localStorage.getItem(keyProofSent(regId)) === "1") {
+            hideAllProofButtons();
+            return;
+        }
+
+        // ✅ se foi pix parcelado e já tinha escolha, mantém só a escolhida
+        const choice = localStorage.getItem(keyPixChoice(regId));
+        if (choice === "2" || choice === "3") {
+            showOnlyPixChoice(regId, choice);
+
+            // aplica seu layout "selecionado"
+            if (typeof selectPixOption === "function") {
+                selectPixOption(parseInt(choice, 10));
+            }
+        }
+        });
     </script>
 
 </body>

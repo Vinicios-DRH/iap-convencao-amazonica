@@ -92,6 +92,14 @@
                             <option value="NEGADA" {{ 'NEGADA'==status and 'selected' or '' }}>Negada</option>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Por página</label>
+                        <select class="form-select" name="per_page">
+                            {% for n in [10,25,50,100] %}
+                            <option value="{{ n }}" {{ n==per_page and 'selected' or '' }}>{{ n }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="col-md-2 d-grid">
                         <button class="btn btn-neon">Filtrar</button>
                     </div>
@@ -156,6 +164,73 @@
                     </table>
                 </div>
             </div>
+            {% if pagination.pages > 1 %}
+            <div class="cardx p-3 mt-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="muted">
+                        Mostrando {{ pagination.total and ((pagination.page-1)*pagination.per_page + 1) or 0 }}
+                        –
+                        {{ ((pagination.page-1)*pagination.per_page + regs|length) }}
+                        de {{ pagination.total }}
+                    </div>
+
+                    <nav aria-label="Paginação">
+                        <ul class="pagination pagination-sm mb-0">
+
+                            <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                                <a class="page-link"
+                                    href="{{ url_for('admin_inscricoes', page=pagination.prev_num, q=q, status=status, per_page=per_page) }}">
+                                    «
+                                </a>
+                            </li>
+
+                            {# janela de páginas (não mostra 200 botões) #}
+                            {% set start = pagination.page - 2 %}
+                            {% set end = pagination.page + 2 %}
+                            {% if start < 1 %}{% set start=1 %}{% endif %} {% if end> pagination.pages %}{% set end =
+                                pagination.pages %}{% endif %}
+
+                                {% if start > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="{{ url_for('admin_inscricoes', page=1, q=q, status=status, per_page=per_page) }}">1</a>
+                                </li>
+                                {% if start > 2 %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                                {% endif %}
+
+                                {% for p in range(start, end+1) %}
+                                <li class="page-item {{ 'active' if p==pagination.page else '' }}">
+                                    <a class="page-link"
+                                        href="{{ url_for('admin_inscricoes', page=p, q=q, status=status, per_page=per_page) }}">{{
+                                        p }}</a>
+                                </li>
+                                {% endfor %}
+
+                                {% if end < pagination.pages %} {% if end < pagination.pages - 1 %} <li
+                                    class="page-item disabled"><span class="page-link">…</span></li>
+                                    {% endif %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                            href="{{ url_for('admin_inscricoes', page=pagination.pages, q=q, status=status, per_page=per_page) }}">
+                                            {{ pagination.pages }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+
+                                    <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                                        <a class="page-link"
+                                            href="{{ url_for('admin_inscricoes', page=pagination.next_num, q=q, status=status, per_page=per_page) }}">
+                                            »
+                                        </a>
+                                    </li>
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </main>
 
