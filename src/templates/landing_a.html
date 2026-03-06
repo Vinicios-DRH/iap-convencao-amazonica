@@ -5,6 +5,27 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Convenção Jovem — Tempo de Resplandecer</title>
+
+    <!-- ===== Open Graph (preview do WhatsApp) ===== -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Convenção Jovem — Tempo de Resplandecer">
+    <meta property="og:description" content="20–22 Nov • 2026 • Chácara Paraíso Verde. Faça sua inscrição e participe!">
+    <meta property="og:url" content="{{ request.url_root.rstrip('/') }}{{ url_for('landing') }}">
+    <meta property="og:image"
+        content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/capa2.webp') }}">
+    <meta property="og:image:secure_url"
+        content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/capa2.webp') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter (alguns apps usam também) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Convenção Jovem — Tempo de Resplandecer">
+    <meta name="twitter:description"
+        content="20–22 Nov • 2026 • Chácara Paraíso Verde. Faça sua inscrição e participe!">
+    <meta name="twitter:image"
+        content="{{ request.url_root.rstrip('/') }}{{ url_for('static', filename='img/capa2.webp') }}">
+
     <!-- Favicon básico -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
 
