@@ -11,7 +11,6 @@ def agora_manaus():
     return datetime.now(fuso_am)
 
 
-# ====== TABELA ASSOCIATIVA (User <-> Role) ======
 user_roles = database.Table(
     "user_roles",
     database.Column("user_id", database.Integer,
