@@ -11,7 +11,6 @@ import pytz
 from decimal import Decimal, ROUND_FLOOR
 
 
-# Carregar variáveis do .env
 load_dotenv()
 
 
