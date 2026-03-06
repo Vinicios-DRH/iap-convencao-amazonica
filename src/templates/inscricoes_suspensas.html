@@ -4,23 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Inscrições em breve</title>
-    
-    <!-- Favicon básico -->
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-
-    <!-- PNGs (Chrome/Edge/Safari) -->
-    <link rel="icon" type="image/png" sizes="32x32"
-        href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16"
-        href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
-
-    <!-- iOS -->
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
-
-    <!-- PWA (opcional) -->
-    <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
-
+    <title>Inscrições suspensas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -53,6 +37,7 @@
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 18px;
+            overflow: hidden;
         }
 
         .badge-soft {
@@ -120,25 +105,6 @@
         .hrx {
             border-color: rgba(255, 255, 255, .12)
         }
-
-        .pulse {
-            animation: pulse 1.6s infinite ease-in-out;
-            display: inline-block;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: .9
-            }
-
-            50% {
-                transform: scale(1.05);
-                opacity: 1
-            }
-        }
     </style>
 </head>
 
@@ -161,12 +127,13 @@
             <div class="cardx glow p-4 p-lg-5">
                 <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="icon pulse">⏳</div>
+                        <div class="icon">⏸️</div>
                         <div>
-                            <span class="badge-soft mb-2">INSCRIÇÕES EM BREVE</span>
-                            <h1 class="h3 mb-2">As inscrições ainda não foram abertas.</h1>
+                            <span class="badge-soft mb-2">INSCRIÇÕES SUSPENSAS</span>
+                            <h1 class="h3 mb-2">As inscrições estão temporariamente suspensas.</h1>
                             <p class="muted mb-0">
-                                Aguarde um pouco — assim que liberarmos, o botão de inscrição aparecerá aqui.
+                                Estamos fazendo ajustes/validações e em breve abriremos novamente.
+                                Obrigado pela compreensão 🙏
                             </p>
                         </div>
                     </div>
@@ -177,10 +144,12 @@
                 <div class="row g-3">
                     <div class="col-lg-7">
                         <div class="muted">
-                            <b>Dica:</b> volte mais tarde ou acompanhe pelo nosso canal oficial / rede social.
-                            <div class="mt-2" style="font-size:.92rem;">
-                                Se você já possui cadastro (quando abrir), poderá acompanhar tudo pelo painel.
-                            </div>
+                            <b>O que posso fazer agora?</b>
+                            <ul class="mt-2">
+                                <li>Voltar para a página inicial e acompanhar as atualizações.</li>
+                                <li>Se você já tem cadastro, faça login para ver seu status.</li>
+                                <li>Em caso de dúvida, fale no contato do pagamento.</li>
+                            </ul>
                         </div>
                     </div>
                     <div class="col-lg-5">
@@ -196,8 +165,8 @@
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap mt-4">
-                    <a class="btn btn-neon" href="{{ url_for('landing') }}">Voltar ao início</a>
-                    <a class="btn btn-soft" href="{{ url_for('login') }}">Já tenho conta</a>
+                    <a class="btn btn-neon" href="{{ url_for('landing') }}">Ir para o início</a>
+                    <a class="btn btn-soft" href="{{ url_for('login') }}">Tenho conta / Login</a>
                 </div>
             </div>
         </div>
