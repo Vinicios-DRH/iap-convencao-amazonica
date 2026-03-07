@@ -186,3 +186,14 @@ class AppSetting(database.Model):
     value = database.Column(database.String(255), nullable=False)
     updated_at = database.Column(
         database.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class CoracaoNome(database.Model):
+    __tablename__ = "coracao_nome"
+
+    id = database.Column(database.Integer, primary_key=True)
+    nome = database.Column(database.String(120), nullable=False)
+    nome_normalizado = database.Column(database.String(
+        120), nullable=False, unique=True, index=True)
+    created_at = database.Column(
+        database.DateTime, default=datetime.utcnow, nullable=False)

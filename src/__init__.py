@@ -149,4 +149,7 @@ def inject_globals():
 
 
 from src import routes
+from src.routes_coracao import bp_coracao
+
+app.register_blueprint(bp_coracao)
 app.supabase = supabase

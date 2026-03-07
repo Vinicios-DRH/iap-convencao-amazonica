@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apresentação Final</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --rosa-3: #ff7c99;
+            --rosa-4: #e03d66;
+            --rosa-5: #a91c43;
+            --muted: #7c6570;
+            --texto: #2d1a22;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(255, 124, 153, 0.16), transparent 28%),
+                radial-gradient(circle at top right, rgba(224, 61, 102, 0.12), transparent 24%),
+                linear-gradient(180deg, #fff7f9 0%, #fff 100%);
+            color: var(--texto);
+            overflow-x: hidden;
+        }
+
+        .pagina {
+            min-height: 100vh;
+            padding: 24px 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #fff;
+            color: var(--rosa-4);
+            border: 1px solid rgba(224, 61, 102, 0.14);
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: .94rem;
+            box-shadow: 0 10px 24px rgba(224, 61, 102, 0.08);
+        }
+
+        h1 {
+            margin: 18px 0 8px;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 1.08;
+        }
+
+        .subtitulo {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin: 0 auto 22px;
+            max-width: 680px;
+        }
+
+        .acoes {
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .acoes button {
+            border: 1px solid rgba(224, 61, 102, 0.16);
+            background: #fff;
+            color: var(--rosa-5);
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .acoes button:hover {
+            transform: translateY(-1px);
+        }
+
+        .coracao-wrap {
+            position: relative;
+            width: min(92vw, 760px);
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+            animation: heartBeat 2.4s ease-in-out infinite;
+            transform-origin: center;
+            will-change: transform, filter;
+        }
+
+        .coracao-shape {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.35), transparent 18%),
+                linear-gradient(135deg, #ff8ca6 0%, #e03d66 58%, #aa1c44 100%);
+            clip-path: path("M 380 700 C 235 605, 40 420, 40 205 C 40 82, 140 28, 235 28 C 305 28, 355 74, 380 128 C 405 74, 455 28, 525 28 C 620 28, 720 82, 720 205 C 720 420, 525 605, 380 700 Z");
+            filter: drop-shadow(0 28px 80px rgba(224, 61, 102, 0.28));
+            animation: heartGlow 2.4s ease-in-out infinite;
+        }
+
+        .conteudo-coracao {
+            position: absolute;
+            inset: 12% 12% 18% 12%;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            justify-content: center;
+            gap: 10px;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .nome-chip {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--rosa-5);
+            border-radius: 999px;
+            padding: 9px 15px;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.88);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+            font-size: clamp(0.85rem, 1.2vw, 1rem);
+            animation: chipFloat 4.5s ease-in-out infinite;
+        }
+
+        .nome-chip:nth-child(2n) {
+            animation-delay: 0.4s;
+        }
+
+        .nome-chip:nth-child(3n) {
+            animation-delay: 0.8s;
+        }
+
+        .nome-chip:nth-child(4n) {
+            animation-delay: 1.2s;
+        }
+
+        .vazio {
+            background: rgba(255, 255, 255, .96);
+            padding: 20px 24px;
+            border-radius: 20px;
+            font-weight: 700;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, .08);
+        }
+
+        .versiculo {
+            margin-top: 24px;
+            color: var(--rosa-4);
+            font-size: clamp(1.05rem, 2vw, 1.35rem);
+            font-weight: 800;
+        }
+
+        .total {
+            margin-top: 10px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        @keyframes heartBeat {
+            0% {
+                transform: scale(1);
+            }
+
+            8% {
+                transform: scale(1.035);
+            }
+
+            16% {
+                transform: scale(1);
+            }
+
+            24% {
+                transform: scale(1.02);
+            }
+
+            32% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes heartGlow {
+            0% {
+                filter: drop-shadow(0 20px 55px rgba(224, 61, 102, 0.20));
+            }
+
+            8% {
+                filter: drop-shadow(0 28px 85px rgba(224, 61, 102, 0.34));
+            }
+
+            16% {
+                filter: drop-shadow(0 22px 60px rgba(224, 61, 102, 0.22));
+            }
+
+            24% {
+                filter: drop-shadow(0 30px 90px rgba(224, 61, 102, 0.30));
+            }
+
+            32% {
+                filter: drop-shadow(0 22px 60px rgba(224, 61, 102, 0.22));
+            }
+
+            100% {
+                filter: drop-shadow(0 20px 55px rgba(224, 61, 102, 0.20));
+            }
+        }
+
+        @keyframes chipFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .conteudo-coracao {
+                inset: 14% 10% 20% 10%;
+                gap: 8px;
+            }
+
+            .nome-chip {
+                padding: 8px 12px;
+                font-size: 0.82rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .coracao-wrap,
+            .coracao-shape,
+            .nome-chip {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pagina">
+        <div class="wrap">
+            <div class="badge">❤ Conclusão da dinâmica</div>
+            <h1>Todos cabem no coração de Deus</h1>
+            <p class="subtitulo">
+                Seu amor é imerecido e incansável.
+            </p>
+
+            <div class="acoes">
+                <button onclick="window.location.reload()">Atualizar agora</button>
+                <button onclick="toggleFullscreen()">Tela cheia</button>
+            </div>
+
+            <div class="coracao-wrap">
+                <div class="coracao-shape"></div>
+
+                <div class="conteudo-coracao">
+                    {% if nomes %}
+                    {% for item in nomes %}
+                    <span class="nome-chip">{{ item.nome }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <div class="vazio">Nenhum nome registrado ainda.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="versiculo">
+                “Eu vos tenho amado, diz o Senhor.” — Malaquias 1:2
+            </div>
+
+            <div class="total">
+                Total de nomes: {{ nomes|length }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => { });
+            } else {
+                document.exitFullscreen().catch(() => { });
+            }
+        }
+
+        setInterval(() => {
+            window.location.reload();
+        }, 15000);
+    </script>
+</body>
+
+</html>
