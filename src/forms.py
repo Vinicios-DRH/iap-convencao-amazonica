@@ -32,8 +32,8 @@ class RegisterAndSignupForm(FlaskForm):
 
     installments = SelectField(
         "Parcelas",
-        choices=[("1", "À vista (1x)"), ("2", "2x (Fev/Mar)"),
-                 ("3", "3x (Fev/Mar/Abr)")],
+        choices=[("1", "À vista (1x)"), ("2", "2x"),
+                 ("4", "4x")],
         validators=[DataRequired()],
     )
 

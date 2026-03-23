@@ -109,7 +109,7 @@ def get_current_lot_info(total_regs: int) -> dict:
     """
     if total_regs < LOT1_LIMIT:
         lot_name = "1_LOTE"
-        price = LOT1_PRICE
+        price = LOT2_PRICE
         remaining = LOT1_LIMIT - total_regs
     else:
         lot_name = "2_LOTE"

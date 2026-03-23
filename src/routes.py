@@ -88,7 +88,7 @@ PIX_KEY = "17739576000178"
 def pix_qr_n(n):
     reg = Registration.query.filter_by(user_id=current_user.id).first_or_404()
 
-    if n not in (1, 2, 3):
+    if n not in (1, 2, 4):
         abort(400)
 
     lot = Decimal(reg.lot_value_cents or 18000) / Decimal(100)
@@ -116,9 +116,9 @@ def pix_qr_n(n):
 
 
 PIX_PAYLOADS = {
-    1: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com5204000053039865406180.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS62250521nNy6i6O8IW9s02P2H3xUy6304452F",
-    2: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540590.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605222naahyV62ub2ssFa6pm5z763048CD0",
-    3: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540560.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605223KP4V0Sju0cQ0txYqAWnCu6304E6C0",
+    1: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com5204000053039865406200.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605224FUieu9XhujOBxKlhc4Fl0630428FD",
+    2: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com5204000053039865406100.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS622605226AO0b6MMKJb3EbxlKCgc5863046D2C",
+    4: "00020126500014BR.GOV.BCB.PIX0128convencaoamazonica@gmail.com520400005303986540550.095802BR5925CONVENCAO REGIONAL AMAZON6006MANAUS62250521D1GCrRAr22LDxyydZOIt16304C231",
 }
 
 
@@ -204,8 +204,8 @@ def inscricao():
             transport=form.transport.data,
             payment_type=form.payment_type.data,
             installments=int(form.installments.data),
-            lot_name="1_LOTE",
-            lot_value_cents=18000,
+            lot_name="LOTE_UNICO",
+            lot_value_cents=20000,
             status=status,
             status_message=status_msg,
 
@@ -319,19 +319,19 @@ def painel():
 
     # preço "oficial de identificação", sempre terminando em ,09
     price_id = lot_info["price"]  # já vem com .09 se você colocar no env assim
-    v1 = price_id
-    v2 = split_installments(price_id, 2)[0]  # mesma parcela repetida
-    v3 = split_installments(price_id, 3)[0]
+    v1 = 200.09
+    v2 = 100.09
+    v4 = 50.09
 
-    credit_link = "https://link.infinitepay.io/senamarcos/VC1DLTAtUg-7EMh4AJ0qL-180,00"
+    credit_link = "https://link.infinitepay.io/senamarcos/VC1DLTAtUg-7QQz9P8uAx-200,09"
     return render_template(
         "painel.html",
         reg=reg,
-        lot_info=lot_info,
+        lot_info='R$200,09',
         pix_prices={
             "v1": v1,
             "v2": v2,
-            "v3": v3,
+            "v4": v4,
         }, credit_link=credit_link,
         pix_payloads=PIX_PAYLOADS,
     )
