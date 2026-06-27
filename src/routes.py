@@ -996,3 +996,8 @@ def admin_config_inscricoes():
         return redirect(url_for("admin_config_inscricoes"))
 
     return render_template("admin/config_inscricoes.html", current=current)
+
+
+@app.route('/quiz-licao')
+def quiz_licao():
+    return render_template('quiz_licao.html')

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Quiz - A Luta Contra o Pecado</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, .85), rgba(0, 0, 0, .90)),
+            url('{{ url_for("static", filename="img/laranjeiras/banner_luta_contra_pecado.png") }}');
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 350px;
+        }
+
+        .capa {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .capa img {
+            width: 280px;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(255, 255, 255, .2);
+        }
+
+        .titulo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .titulo h1 {
+            font-size: 3rem;
+            color: #f1d84b;
+        }
+
+        .titulo p {
+            opacity: .8;
+        }
+
+        .quiz-card {
+            background: rgba(20, 20, 20, .95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, .4);
+        }
+
+        .progress {
+            width: 100%;
+            height: 12px;
+            background: #333;
+            border-radius: 50px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #f1d84b;
+            transition: .5s;
+        }
+
+        .question-number {
+            color: #f1d84b;
+            margin-bottom: 10px;
+        }
+
+        .question {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .question {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .question em,
+        .question blockquote {
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .answers {
+            display: grid;
+            gap: 15px;
+        }
+
+        .answer {
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            background: #2d2d2d;
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 1rem;
+        }
+
+        .answer:hover {
+            background: #f1d84b;
+            color: black;
+            transform: translateX(8px);
+        }
+
+        .result {
+            text-align: center;
+            display: none;
+        }
+
+        .result h2 {
+            font-size: 3rem;
+            color: #f1d84b;
+        }
+
+        .result p {
+            font-size: 1.4rem;
+            margin-top: 20px;
+        }
+
+        .restart {
+            margin-top: 30px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            background: #f1d84b;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+
+        .correct {
+            background: #198754 !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background: #dc3545 !important;
+            color: white !important;
+        }
+
+        .feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .feedback-success {
+            background: #19875422;
+            border: 1px solid #198754;
+        }
+
+        .feedback-error {
+            background: #dc354522;
+            border: 1px solid #dc3545;
+        }
+
+        .next-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            background: #f1d84b;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media(max-width:768px) {
+
+            .titulo h1 {
+                font-size: 2rem;
+            }
+
+            .question {
+                font-size: 1.2rem;
+            }
+
+            .quiz-card {
+                padding: 25px;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/laranjeiras/Logo_colorida.png') }}">
+        </div>
+
+        <div class="capa">
+            <img src="{{ url_for('static', filename='img/laranjeiras/Cartaz_A4_LB 355.jpg') }}">
+        </div>
+
+        <div class="titulo">
+            <h1>A Luta Contra o Pecado</h1>
+            <p>Quiz Oficial da Série de Lições Bíblicas</p>
+        </div>
+
+        <div class="quiz-card">
+
+            <div class="progress">
+                <div class="progress-bar"></div>
+            </div>
+
+            <div id="quiz"></div>
+
+            <div class="result" id="result"></div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const perguntas = [
+
+            {
+                pergunta: `“Portanto, cingindo os lombos do vosso entendimento, sede sóbrios, e esperai inteiramente na graça que se vos ofereceu na revelação de Jesus Cristo.”<br><br>
+    Este é o texto básico de que lição?`,
+                opcoes: [
+                    "Lição 3 - O vício no jogo",
+                    "Lição 10 - O vício nas redes",
+                    "Lição 13 - O vício nas drogas"
+                ],
+                correta: 2
+            },
+
+            {
+                pergunta: "Na lição nº 12, qual foi o país do momento missionário?",
+                opcoes: [
+                    "Uganda",
+                    "Nigéria",
+                    "Angola"
+                ],
+                correta: 0
+            },
+
+            {
+                pergunta: "Qual o tema central da lição?",
+                opcoes: [
+                    "A luta contra o pecado",
+                    "A luta contra o egoísmo",
+                    "É tempo de despertar"
+                ],
+                correta: 0
+            },
+
+            {
+                pergunta: "Qual o tema da lição nº 01?",
+                opcoes: [
+                    "Soberba, brincando de ser rei",
+                    "Ganância, querendo sempre mais",
+                    "Gula, fazendo da comida um deus"
+                ],
+                correta: 0
+            },
+
+            {
+                pergunta: `“Aí Caim disse a Abel, o seu irmão: Vamos até o campo. Quando os dois estavam no campo, Caim atacou Abel, o seu irmão, e o matou.” (Gênesis 4:8)<br><br>
+    A que lição se refere este texto?`,
+                opcoes: [
+                    "Inveja, perdendo o encanto pela vida",
+                    "Cobiça, querendo sempre ter mais",
+                    "Inveja, incomodado com a felicidade do outro"
+                ],
+                correta: 2
+            },
+
+            {
+                pergunta: `A que lição se refere "Destruindo Relacionamentos", que tem como texto base Efésios 4:26-27?`,
+                opcoes: [
+                    "Ira",
+                    "Inveja",
+                    "Luxúria"
+                ],
+                correta: 0
+            },
+
+            {
+                pergunta: `Qual foi o primeiro país pelo qual oramos no momento missionário desta série de lições e qual pastor pastoreia lá?`,
+                opcoes: [
+                    "Colômbia – Pr. Werlesson",
+                    "Bolívia – Pr. Diego",
+                    "Nigéria – Pr. Izaias"
+                ],
+                correta: 1
+            },
+
+            {
+                pergunta: `“Assim também, a língua é um fogo; é um mundo de iniquidade. Colocada entre os membros do nosso corpo, contamina a pessoa por inteiro, incendeia todo o curso da sua vida, sendo ela mesma incendiada pelo inferno.” (Tiago 3:6)<br><br>
+    Estamos falando de qual lição?`,
+                opcoes: [
+                    "Maledicência, espalhando fofoca",
+                    "Maledicência, espalhando boatos",
+                    "Maledicência, espalhando mentiras"
+                ],
+                correta: 0
+            }
+
+        ];
+
+        let atual = 0;
+        let pontos = 0;
+
+        const quiz = document.getElementById('quiz');
+        const result = document.getElementById('result');
+        const progress = document.querySelector('.progress-bar');
+
+        function carregarPergunta() {
+
+            let p = perguntas[atual];
+
+            progress.style.width =
+                ((atual) / perguntas.length) * 100 + '%';
+
+            quiz.innerHTML = `
+        <div class="question-number">
+            Pergunta ${atual + 1} de ${perguntas.length}
+        </div>
+
+        <div class="question">
+            ${p.pergunta}
+        </div>
+
+        <div class="answers">
+            ${p.opcoes.map((op, i) =>
+                `<button class="answer" onclick="responder(${i})">${op}</button>`
+            ).join('')}
+        </div>
+
+        <div id="feedback"></div>
+    `;
+        }
+
+        function responder(i) {
+
+            const correta = perguntas[atual].correta;
+
+            const botoes = document.querySelectorAll('.answer');
+            const feedback = document.getElementById('feedback');
+
+            botoes.forEach(btn => btn.disabled = true);
+
+            botoes[correta].classList.add('correct');
+
+            if (i === correta) {
+
+                pontos++;
+
+                feedback.innerHTML = `
+            <div class="feedback-box feedback-success">
+                ✅ Resposta correta!
+                <br><br>
+                <button class="next-btn" onclick="proximaPergunta()">
+                    Próxima Pergunta →
+                </button>
+            </div>
+        `;
+
+            } else {
+
+                botoes[i].classList.add('wrong');
+
+                feedback.innerHTML = `
+            <div class="feedback-box feedback-error">
+                ❌ Resposta incorreta.
+                <br><br>
+                Resposta correta:
+                <strong>${perguntas[atual].opcoes[correta]}</strong>
+                <br><br>
+                <button class="next-btn" onclick="proximaPergunta()">
+                    Próxima Pergunta →
+                </button>
+            </div>
+        `;
+            }
+        }
+
+        function proximaPergunta() {
+
+            atual++;
+
+            if (atual < perguntas.length) {
+                carregarPergunta();
+            } else {
+                finalizar();
+            }
+        }
+
+        function finalizar() {
+
+            progress.style.width = '100%';
+
+            quiz.style.display = 'none';
+            result.style.display = 'block';
+
+            let titulo = '📖';
+
+            if (pontos === 8)
+                titulo = '🏆 Mestre da Lição';
+
+            else if (pontos >= 6)
+                titulo = '🥇 Excelente';
+
+            else if (pontos >= 4)
+                titulo = '🥈 Muito Bom';
+
+            else
+                titulo = '📚 Continue Estudando';
+
+            result.innerHTML = `
+<h2>${titulo}</h2>
+<p>Você acertou ${pontos} de ${perguntas.length} perguntas.</p>
+<button class="restart" onclick="location.reload()">
+Jogar Novamente
+</button>
+`;
+
+        }
+
+        carregarPergunta();
+
+    </script>
+
+</body>
+
+</html>
