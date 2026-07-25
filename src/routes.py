@@ -2,7 +2,7 @@ from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 import os
 from datetime import datetime
 import uuid
-from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, abort, Response
+from flask import jsonify, render_template, request, redirect, send_file, url_for, flash, abort, Response, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -814,10 +814,90 @@ def admin_inscricao_detalhe(reg_id):
 # =======================
 
 
-def gerar_senha_temporaria(tamanho: int = 10) -> str:
-    # senha simples e copiável (letras+numeros). Se quiser mais forte, aumento e boto símbolos.
-    alfabeto = string.ascii_letters + string.digits
+def gerar_senha_temporaria(tamanho: int = 12) -> str:
+    """
+    Gera uma senha temporária segura e fácil de copiar.
+
+    Alguns caracteres visualmente parecidos foram removidos para evitar
+    confusão ao repassar a senha: O, 0, I, l e 1.
+    """
+    alfabeto = (
+        "ABCDEFGHJKLMNPQRSTUVWXYZ"
+        "abcdefghijkmnopqrstuvwxyz"
+        "23456789"
+    )
     return "".join(secrets.choice(alfabeto) for _ in range(tamanho))
+
+
+def executar_reset_senha(usuario: User) -> str:
+    """
+    Altera a senha, força a troca no próximo login e registra a auditoria.
+
+    A senha retornada existe somente durante esta requisição e não é salva
+    em texto puro no banco, na URL, no flash ou na sessão.
+    """
+    senha_temporaria = gerar_senha_temporaria(12)
+
+    usuario.set_password(senha_temporaria)
+    usuario.must_change_password = True
+    usuario.password_reset_at = datetime.utcnow()
+
+    database.session.add(AuditLog(
+        actor_user_id=current_user.id,
+        action="admin_reset_password",
+        details=(
+            f"user_id={usuario.id} "
+            f"email={usuario.email} "
+            "force_change=true"
+        )
+    ))
+    database.session.commit()
+
+    return senha_temporaria
+
+
+def renderizar_resultado_reset(usuario: User, senha_temporaria: str):
+    """Renderiza a senha uma vez e impede cache da resposta."""
+    html = render_template(
+        "admin/reset_password_result.html",
+        usuario=usuario,
+        senha_temporaria=senha_temporaria,
+    )
+    response = make_response(html)
+
+    response.headers["Cache-Control"] = (
+        "no-store, no-cache, must-revalidate, max-age=0, private"
+    )
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    return response
+
+
+def processar_reset_senha(usuario: User):
+    """Executa o reset com tratamento de erro e devolve a resposta correta."""
+    if usuario.id == current_user.id:
+        flash(
+            "Para alterar sua própria senha, utilize a opção Minha Senha.",
+            "warning"
+        )
+        return redirect(url_for("admin_usuarios"))
+
+    try:
+        senha_temporaria = executar_reset_senha(usuario)
+    except Exception:
+        database.session.rollback()
+        app.logger.exception(
+            "Erro ao resetar a senha do usuário %s.",
+            usuario.id
+        )
+        flash(
+            "Não foi possível resetar a senha. Tente novamente.",
+            "danger"
+        )
+        return redirect(url_for("admin_usuarios"))
+
+    return renderizar_resultado_reset(usuario, senha_temporaria)
 
 
 @app.route("/admin/permissoes", methods=["GET", "POST"])
@@ -827,36 +907,28 @@ def super_permissoes():
     roles = Role.query.order_by(Role.name.asc()).all()
 
     if request.method == "POST":
-        user_id = int(request.form.get("user_id") or 0)
-        # add | remove | reset_password
+        user_id = request.form.get("user_id", type=int)
         action = (request.form.get("action") or "").strip().lower()
+
+        if not user_id:
+            flash("Usuário inválido.", "danger")
+            return redirect(url_for("super_permissoes"))
 
         user = User.query.get_or_404(user_id)
 
-        # =========================
-        # RESET SENHA
-        # =========================
+        # Mantém compatibilidade com o botão de reset da tela antiga.
         if action == "reset_password":
-            nova_senha = gerar_senha_temporaria(10)
-            user.set_password(nova_senha)
+            return processar_reset_senha(user)
 
-            user.must_change_password = True
-            user.password_reset_at = datetime.utcnow()
+        if action not in {"add", "remove"}:
+            flash("Ação de permissão inválida.", "danger")
+            return redirect(url_for("super_permissoes"))
 
-            database.session.add(AuditLog(
-                actor_user_id=current_user.id,
-                action="super_reset_password",
-                details=f"user_id={user_id}"
-            ))
-            database.session.commit()
+        role_id = request.form.get("role_id", type=int)
+        if not role_id:
+            flash("Permissão inválida.", "danger")
+            return redirect(url_for("super_permissoes"))
 
-            # abre modal no front
-            return redirect(url_for("super_permissoes", pw=nova_senha, email=user.email))
-
-        # =========================
-        # ADD / REMOVE ROLE
-        # =========================
-        role_id = int(request.form.get("role_id") or 0)
         role = Role.query.get_or_404(role_id)
 
         if action == "add" and role not in user.roles:
@@ -875,6 +947,59 @@ def super_permissoes():
         return redirect(url_for("super_permissoes"))
 
     return render_template("admin/permissoes.html", users=users, roles=roles)
+
+
+# =======================
+# SUPER USER - USUÁRIOS E RESET DE SENHA
+# =======================
+
+
+@app.route("/admin/usuarios")
+@super_required
+def admin_usuarios():
+    busca = (request.args.get("q") or "").strip()
+    page = request.args.get("page", 1, type=int)
+    per_page = 20
+
+    query = User.query
+
+    if busca:
+        termo = f"%{busca}%"
+
+        # O relacionamento entre User e Registration é 1:1 no sistema.
+        query = (
+            query
+            .outerjoin(Registration, Registration.user_id == User.id)
+            .filter(or_(
+                User.email.ilike(termo),
+                Registration.full_name.ilike(termo),
+                Registration.cpf.ilike(termo),
+                Registration.phone.ilike(termo),
+            ))
+        )
+
+    pagination = (
+        query
+        .order_by(User.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
+    )
+
+    return render_template(
+        "admin/usuarios.html",
+        usuarios=pagination.items,
+        pagination=pagination,
+        busca=busca,
+    )
+
+
+@app.route(
+    "/admin/usuarios/<int:user_id>/resetar-senha",
+    methods=["POST"]
+)
+@super_required
+def admin_resetar_senha(user_id):
+    usuario = User.query.get_or_404(user_id)
+    return processar_reset_senha(usuario)
 
 
 # =======================
@@ -938,32 +1063,6 @@ def make_super():
     database.session.commit()
 
     print(f"OK! {email} agora é SUPER.")
-
-
-def generate_temp_password(length=12) -> str:
-    alphabet = string.ascii_letters + string.digits
-    return "".join(secrets.choice(alphabet) for _ in range(length))
-
-
-@app.route("/admin/users/<int:user_id>/reset_password", methods=["POST"])
-@super_required
-def admin_reset_password(user_id):
-    user = User.query.get_or_404(user_id)
-
-    temp_pass = generate_temp_password(12)
-    user.set_password(temp_pass)
-    user.must_change_password = True
-    user.password_reset_at = datetime.utcnow()
-
-    database.session.add(AuditLog(
-        actor_user_id=current_user.id,
-        action="admin_reset_password",
-        details=f"user_id={user.id} email={user.email}"
-    ))
-    database.session.commit()
-
-    # Renderiza uma tela que mostra a senha UMA VEZ
-    return render_template("admin/reset_password_result.html", user=user, temp_pass=temp_pass)
 
 
 @app.route("/admin/config/inscricoes", methods=["GET", "POST"])
