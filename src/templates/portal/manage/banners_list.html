@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestão do Portal — Fotos</title>
+    <title>Gestão do Portal — Banners</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -17,7 +17,7 @@
             background: var(--pt-bg-soft);
         }
 
-        .photo-thumb {
+        .banner-thumb {
             height: 140px;
             object-fit: cover;
             width: 100%;
@@ -32,43 +32,44 @@
         <div class="container">
             {% include "components/flash.html" %}
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">Fotos</h1>
-                <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_photo_new') }}">+ Nova foto</a>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h1 class="mb-0">Banners</h1>
+                <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_banner_new') }}">+ Novo banner</a>
+            </div>
+            <div class="pt-muted small mb-4">
+                Aparecem em carrossel na página inicial do portal, na ordem definida abaixo.
             </div>
 
-            {% if photos %}
+            {% if banners %}
             <div class="row g-3">
-                {% for photo in photos %}
+                {% for banner in banners %}
                 <div class="col-6 col-md-4 col-lg-3">
                     <div class="pt-card overflow-hidden">
-                        <img class="photo-thumb" src="{{ get_b2_file_url(photo.image_key) }}"
-                            alt="{{ photo.caption or '' }}">
+                        <img class="banner-thumb" src="{{ get_b2_file_url(banner.image_key) }}"
+                            alt="{{ banner.description }}">
                         <div class="p-2">
-                            <div class="small fw-semibold text-truncate">{{ photo.caption or '(sem legenda)' }}</div>
-                            <div class="pt-muted small">{{ photo.album or '—' }}</div>
+                            <div class="small fw-semibold text-truncate">{{ banner.description }}</div>
+                            <div class="pt-muted small text-truncate">{{ banner.link_url or 'Sem link' }}</div>
+                            <div class="pt-muted small">Ordem: {{ banner.order }}</div>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                {% if photo.is_active %}
-                                <span class="pt-badge pt-badge-status-on">ATIVA</span>
+                                {% if banner.is_active %}
+                                <span class="pt-badge pt-badge-status-on">ATIVO</span>
                                 {% else %}
-                                <span class="pt-badge pt-badge-status-off">OCULTA</span>
+                                <span class="pt-badge pt-badge-status-off">OCULTO</span>
                                 {% endif %}
                                 <a class="pt-btn-outline btn btn-sm"
-                                    href="{{ url_for('portal_manage_photo_edit', photo_id=photo.id) }}">Editar</a>
+                                    href="{{ url_for('portal_manage_banner_edit', banner_id=banner.id) }}">Editar</a>
                             </div>
-                            {% if photo.is_active %}
+                            {% if banner.is_active %}
                             <form method="POST" class="mt-2"
-                                action="{{ url_for('portal_manage_photo_hide', photo_id=photo.id) }}">
+                                action="{{ url_for('portal_manage_banner_hide', banner_id=banner.id) }}">
                                 <button class="pt-btn-danger-outline btn btn-sm w-100" type="submit">Ocultar</button>
                             </form>
                             {% else %}
                             <form method="POST" class="mt-2"
-                                action="{{ url_for('portal_manage_photo_show', photo_id=photo.id) }}">
+                                action="{{ url_for('portal_manage_banner_show', banner_id=banner.id) }}">
                                 <button class="pt-btn btn btn-sm w-100" type="submit">Reativar</button>
                             </form>
-                            <a class="btn btn-outline-danger btn-sm w-100 mt-1"
-                                href="{{ url_for('portal_manage_photo_delete', photo_id=photo.id) }}">Excluir
-                                definitivamente</a>
                             {% endif %}
                         </div>
                     </div>
@@ -76,7 +77,7 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="pt-card p-4 pt-muted">Nenhuma foto cadastrada ainda.</div>
+            <div class="pt-card p-4 pt-muted">Nenhum banner cadastrado ainda.</div>
             {% endif %}
         </div>
     </main>

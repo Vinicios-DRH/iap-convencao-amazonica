@@ -1,6 +1,7 @@
 from flask import abort, render_template, request
 
 from src import app
+from src.services.portal.banners import list_active_banners
 from src.services.portal.downloads import list_active_downloads
 from src.services.portal.photos import list_active_photos
 from src.services.portal.ministries import (
@@ -17,6 +18,7 @@ from src.services.portal.posts import (
     list_published_posts_paginated,
     list_related_posts,
 )
+from src.services.portal.sanitizer import html_to_meta_description
 
 
 @app.route("/portal")
@@ -27,6 +29,7 @@ def portal_home():
         posts=posts,
         downloads=list_active_downloads()[:4],
         photos=list_active_photos()[:6],
+        banners=list_active_banners(),
     )
 
 
@@ -49,12 +52,18 @@ def portal_post_detail(slug):
 
     ministry_social_links = list_active_ministry_social_links(post.ministry) if post.ministry else []
 
+    meta_description = html_to_meta_description(
+        post.summary or post.body,
+        fallback=f"Leia mais sobre {post.title} no portal da Convenção Amazônica IAP.",
+    )
+
     return render_template(
         "portal/post_detail.html",
         post=post,
         related_posts=related,
         recent_posts=recent,
         ministry_social_links=ministry_social_links,
+        meta_description=meta_description,
     )
 
 
@@ -64,7 +73,13 @@ def portal_tag(slug):
     tag, pagination = get_posts_by_tag_slug(slug, page=page, per_page=12)
     if not tag:
         abort(404)
-    return render_template("portal/tag.html", tag=tag, pagination=pagination, posts=pagination.items)
+    return render_template(
+        "portal/tag.html",
+        tag=tag,
+        pagination=pagination,
+        posts=pagination.items,
+        meta_description=f"Artigos marcados com #{tag.name} no portal da Convenção Amazônica IAP.",
+    )
 
 
 @app.route("/portal/ministerios")
@@ -78,12 +93,18 @@ def portal_ministry_detail(slug):
     if not ministry:
         abort(404)
 
+    meta_description = html_to_meta_description(
+        ministry.description,
+        fallback=f"Conheça o {ministry.name} da Convenção Amazônica IAP.",
+    )
+
     return render_template(
         "portal/ministry_detail.html",
         ministry=ministry,
         members=list_active_members(ministry),
         social_links=list_active_ministry_social_links(ministry),
         posts=list_posts_by_ministry(ministry, limit=6),
+        meta_description=meta_description,
     )
 
 

@@ -395,6 +395,22 @@ class Photo(database.Model):
         return f"<Photo {self.caption or self.id}>"
 
 
+class Banner(database.Model):
+    __tablename__ = "cms_banners"
+
+    id = database.Column(database.Integer, primary_key=True)
+    image_key = database.Column(database.String(255), nullable=False)
+    description = database.Column(database.String(200), nullable=False)
+    link_url = database.Column(database.String(300), nullable=True)
+    order = database.Column(database.Integer, default=0, nullable=False)
+
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Banner {self.description}>"
+
+
 class NavLink(database.Model):
     __tablename__ = "cms_nav_links"
 

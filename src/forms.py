@@ -166,6 +166,23 @@ class PhotoForm(FlaskForm):
     submit = SubmitField("Salvar")
 
 
+class BannerForm(FlaskForm):
+    image = FileField(
+        "Imagem",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
+    description = StringField(
+        "Descrição (usada como texto alternativo da imagem)",
+        validators=[DataRequired(), Length(min=3, max=200)],
+    )
+    link_url = StringField(
+        "Link ao clicar (opcional)",
+        validators=[Optional(), Length(max=300), URL(require_tld=True, message="Link inválido.")],
+    )
+    order = IntegerField("Ordem", validators=[Optional(), NumberRange(min=0, max=999)], default=0)
+    submit = SubmitField("Salvar")
+
+
 class NavLinkForm(FlaskForm):
     label = StringField("Texto do link", validators=[DataRequired(), Length(min=1, max=80)])
     url = StringField(
