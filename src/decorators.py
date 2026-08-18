@@ -37,3 +37,20 @@ def super_required(fn):
             abort(403)
         return fn(*args, **kwargs)
     return wrapper
+
+
+def can_admin() -> bool:
+    return getattr(current_user, "can_access_admin", False)
+
+
+def can_review() -> bool:
+    return getattr(current_user, "can_review_payments", False)
+
+
+def cms_manager_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.can_manage_cms:
+            abort(403)
+        return fn(*args, **kwargs)
+    return wrapper

@@ -1,0 +1,362 @@
+/*
+ * Design system do Portal (/portal/*), inspirado na identidade visual de
+ * promessistas.org (azul institucional + laranja, tipografia Poppins/Montserrat).
+ * Único CSS compartilhado por todas as páginas do portal — o resto do app
+ * (admin, inscrição, painel) mantém o tema escuro próprio, intocado.
+ */
+
+:root {
+    --pt-blue: #005596;
+    --pt-blue-dark: #003d6e;
+    --pt-blue-soft: #eaf2fa;
+    --pt-orange: #f29422;
+    --pt-orange-dark: #cc7a10;
+    --pt-bg: #ffffff;
+    --pt-bg-soft: #f7f5f0;
+    --pt-text: #242b3a;
+    --pt-muted: #6b7280;
+    --pt-border: #e5e7eb;
+    --pt-shadow: 0 4px 20px rgba(15, 23, 42, .08);
+    --pt-shadow-sm: 0 2px 10px rgba(15, 23, 42, .06);
+    --pt-radius: 16px;
+}
+
+body.pt-body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+    background: var(--pt-bg);
+    color: var(--pt-text);
+    display: flex;
+    flex-direction: column;
+}
+
+.pt-body h1, .pt-body h2, .pt-body h3, .pt-body h4, .pt-body h5,
+.pt-body .pt-heading {
+    font-family: 'Poppins', 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--pt-text);
+}
+
+.pt-main {
+    flex: 1;
+}
+
+/* ===== header / navbar ===== */
+
+.pt-header {
+    background: var(--pt-bg);
+    border-bottom: 1px solid var(--pt-border);
+    box-shadow: var(--pt-shadow-sm);
+}
+
+.pt-header .navbar-brand {
+    color: var(--pt-blue) !important;
+    font-weight: 800;
+    font-family: 'Poppins', sans-serif;
+}
+
+.pt-header .nav-link {
+    color: var(--pt-text) !important;
+    font-weight: 600;
+    font-size: .95rem;
+}
+
+.pt-header .nav-link:hover,
+.pt-header .nav-link.active {
+    color: var(--pt-blue) !important;
+}
+
+.pt-header .dropdown-menu {
+    border: 1px solid var(--pt-border);
+    box-shadow: var(--pt-shadow);
+    border-radius: 12px;
+}
+
+.pt-header .dropdown-item:hover {
+    background: var(--pt-blue-soft);
+    color: var(--pt-blue-dark);
+}
+
+.pt-header .btn-outline-light {
+    border-color: var(--pt-blue);
+    color: var(--pt-blue);
+}
+
+.pt-header .btn-outline-light:hover {
+    background: var(--pt-blue);
+    color: #fff;
+}
+
+/* ===== cards ===== */
+
+.pt-card {
+    background: var(--pt-bg);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius);
+    box-shadow: var(--pt-shadow-sm);
+}
+
+.post-card img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+}
+
+.post-card-sm img {
+    height: 140px;
+    object-fit: cover;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+}
+
+.pt-card:hover.pt-card-link {
+    box-shadow: var(--pt-shadow);
+    transform: translateY(-2px);
+}
+
+.pt-card-link {
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+/* ===== botões ===== */
+
+.pt-btn {
+    background: var(--pt-blue);
+    border: none;
+    color: #fff !important;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: .6rem 1.1rem;
+}
+
+.pt-btn:hover {
+    background: var(--pt-blue-dark);
+    color: #fff;
+}
+
+.pt-btn-accent {
+    background: var(--pt-orange);
+    border: none;
+    color: #fff !important;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: .6rem 1.1rem;
+}
+
+.pt-btn-accent:hover {
+    background: var(--pt-orange-dark);
+    color: #fff;
+}
+
+.pt-btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--pt-blue);
+    color: var(--pt-blue) !important;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: .6rem 1.1rem;
+}
+
+.pt-btn-outline:hover {
+    background: var(--pt-blue-soft);
+}
+
+.pt-btn-danger-outline {
+    background: transparent;
+    border: 1.5px solid #dc6a3f;
+    color: #b5502a !important;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+.pt-btn-danger-outline:hover {
+    background: #fdf0ea;
+}
+
+/* ===== textos / badges ===== */
+
+.pt-muted {
+    color: var(--pt-muted);
+}
+
+.pt-badge {
+    display: inline-block;
+    background: var(--pt-blue-soft);
+    color: var(--pt-blue-dark);
+    font-size: .78rem;
+    font-weight: 700;
+    padding: .25rem .65rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.pt-badge-status-on {
+    background: #e3f7ea;
+    color: #16794a;
+}
+
+.pt-badge-status-off {
+    background: #f1f2f4;
+    color: #565f6d;
+}
+
+/* ===== formulários ===== */
+
+.pt-body .form-control,
+.pt-body .form-select {
+    background: #fff;
+    border: 1.5px solid var(--pt-border);
+    color: var(--pt-text);
+    border-radius: 10px;
+}
+
+.pt-body .form-control:focus,
+.pt-body .form-select:focus {
+    border-color: var(--pt-blue);
+    box-shadow: 0 0 0 .2rem rgba(0, 85, 150, .12);
+}
+
+.pt-body .form-label {
+    font-weight: 600;
+    color: var(--pt-text);
+}
+
+/* ===== tabelas (telas de gestão) ===== */
+
+.pt-body .table {
+    color: var(--pt-text);
+    vertical-align: middle;
+}
+
+.pt-body .table thead {
+    background: var(--pt-bg-soft);
+}
+
+.pt-body .table > :not(caption) > * > * {
+    border-bottom-color: var(--pt-border);
+}
+
+/* ===== editor Quill (tema claro) ===== */
+
+.pt-body .ql-toolbar {
+    background: var(--pt-bg-soft);
+    border-color: var(--pt-border) !important;
+    border-radius: 12px 12px 0 0;
+}
+
+.pt-body .ql-container {
+    background: #fff;
+    border-color: var(--pt-border) !important;
+    border-radius: 0 0 12px 12px;
+    color: var(--pt-text);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pt-body .ql-editor {
+    min-height: 260px;
+}
+
+/* ===== footer ===== */
+
+.pt-footer {
+    background: var(--pt-blue-dark);
+    color: rgba(255, 255, 255, .85);
+    margin-top: 3rem;
+}
+
+.pt-footer a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.pt-footer a:hover {
+    color: var(--pt-orange);
+}
+
+.pt-footer .pt-footer-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .5rem;
+}
+
+/* ===== flash / alerts ===== */
+
+.pt-body .alert {
+    border-radius: 12px;
+    border: 1px solid var(--pt-border);
+}
+
+/* ===== hero / seções da home ===== */
+
+.pt-hero {
+    background: linear-gradient(120deg, var(--pt-blue), var(--pt-blue-dark));
+    color: #fff;
+    border-radius: var(--pt-radius);
+    padding: 3rem 2rem;
+}
+
+.pt-hero h1 {
+    color: #fff;
+}
+
+.pt-section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+/* ===== ícones de rede social ===== */
+
+.pt-social-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--pt-blue-soft);
+    color: var(--pt-blue);
+    transition: background .15s ease, color .15s ease;
+}
+
+.pt-social-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.pt-social-icon:hover {
+    background: var(--pt-blue);
+    color: #fff;
+}
+
+.pt-footer .pt-social-icon {
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+}
+
+.pt-footer .pt-social-icon:hover {
+    background: var(--pt-orange);
+    color: #fff;
+}
+
+/*
+ * Alinhamento de texto vindo do editor (Quill usa classe ql-align-* por padrão).
+ * As páginas públicas não carregam o CSS do Quill, então isso replica só a
+ * parte de alinhamento pra funcionar fora do editor também.
+ */
+.pt-body .ql-align-center {
+    text-align: center;
+}
+
+.pt-body .ql-align-right {
+    text-align: right;
+}
+
+.pt-body .ql-align-justify {
+    text-align: justify;
+}

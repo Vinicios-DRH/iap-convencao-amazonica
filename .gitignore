@@ -1,0 +1,25 @@
+# segredos / ambiente
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+
+# ambiente virtual
+venv/
+.venv/
+
+# banco local (criar_db.py)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# uploads locais
+uploads/
+
+# SO / editores
+.DS_Store

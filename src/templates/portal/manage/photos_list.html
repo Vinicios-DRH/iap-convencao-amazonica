@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestão do Portal — Fotos</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/portal.css') }}" rel="stylesheet">
+    <style>
+        body.pt-body {
+            background: var(--pt-bg-soft);
+        }
+
+        .photo-thumb {
+            height: 140px;
+            object-fit: cover;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body class="pt-body">
+    {% include "components/portal_manage_nav.html" %}
+
+    <main class="pt-main py-5">
+        <div class="container">
+            {% include "components/flash.html" %}
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Fotos</h1>
+                <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_photo_new') }}">+ Nova foto</a>
+            </div>
+
+            {% if photos %}
+            <div class="row g-3">
+                {% for photo in photos %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="pt-card overflow-hidden">
+                        <img class="photo-thumb" src="{{ get_b2_file_url(photo.image_key) }}"
+                            alt="{{ photo.caption or '' }}">
+                        <div class="p-2">
+                            <div class="small fw-semibold text-truncate">{{ photo.caption or '(sem legenda)' }}</div>
+                            <div class="pt-muted small">{{ photo.album or '—' }}</div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                {% if photo.is_active %}
+                                <span class="pt-badge pt-badge-status-on">ATIVA</span>
+                                {% else %}
+                                <span class="pt-badge pt-badge-status-off">OCULTA</span>
+                                {% endif %}
+                                <a class="pt-btn-outline btn btn-sm"
+                                    href="{{ url_for('portal_manage_photo_edit', photo_id=photo.id) }}">Editar</a>
+                            </div>
+                            {% if photo.is_active %}
+                            <form method="POST" class="mt-2"
+                                action="{{ url_for('portal_manage_photo_hide', photo_id=photo.id) }}">
+                                <button class="pt-btn-danger-outline btn btn-sm w-100" type="submit">Ocultar</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" class="mt-2"
+                                action="{{ url_for('portal_manage_photo_show', photo_id=photo.id) }}">
+                                <button class="pt-btn btn btn-sm w-100" type="submit">Reativar</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="pt-card p-4 pt-muted">Nenhuma foto cadastrada ainda.</div>
+            {% endif %}
+        </div>
+    </main>
+
+    {% include "portal/components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

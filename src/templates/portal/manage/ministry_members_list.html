@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Membros — {{ ministry.name }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/portal.css') }}" rel="stylesheet">
+    <style>
+        body.pt-body {
+            background: var(--pt-bg-soft);
+        }
+    </style>
+</head>
+
+<body class="pt-body">
+    {% include "components/portal_manage_nav.html" %}
+
+    <main class="pt-main py-5">
+        <div class="container">
+            {% include "components/flash.html" %}
+
+            <a href="{{ url_for('portal_manage_ministry_edit', ministry_id=ministry.id) }}"
+                class="pt-muted small text-decoration-none">&larr; {{ ministry.name }}</a>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+                <h1 class="mb-0">Membros do {{ ministry.name }}</h1>
+                <a class="pt-btn-accent btn"
+                    href="{{ url_for('portal_manage_ministry_member_new', ministry_id=ministry.id) }}">+ Novo
+                    membro</a>
+            </div>
+
+            <div class="pt-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Função</th>
+                                <th>Ordem</th>
+                                <th>Status</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td class="fw-semibold">{{ member.name }}</td>
+                                <td class="pt-muted">{{ member.role }}</td>
+                                <td class="pt-muted">{{ member.order }}</td>
+                                <td>
+                                    {% if member.is_active %}
+                                    <span class="pt-badge pt-badge-status-on">ATIVO</span>
+                                    {% else %}
+                                    <span class="pt-badge pt-badge-status-off">OCULTO</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a class="pt-btn-outline btn btn-sm"
+                                            href="{{ url_for('portal_manage_ministry_member_edit', ministry_id=ministry.id, member_id=member.id) }}">Editar</a>
+                                        {% if member.is_active %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_ministry_member_hide', ministry_id=ministry.id, member_id=member.id) }}">
+                                            <button class="pt-btn-danger-outline btn btn-sm"
+                                                type="submit">Ocultar</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_ministry_member_show', ministry_id=ministry.id, member_id=member.id) }}">
+                                            <button class="pt-btn btn btn-sm" type="submit">Reativar</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if members|length == 0 %}
+                            <tr>
+                                <td colspan="5" class="text-center pt-muted p-4">Nenhum membro cadastrado ainda.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include "portal/components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

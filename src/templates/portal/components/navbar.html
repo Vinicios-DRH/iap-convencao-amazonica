@@ -1,0 +1,95 @@
+<nav class="navbar navbar-expand-lg pt-header" data-bs-theme="light">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('portal_home') }}">
+            <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="32" height="32"
+                style="object-fit:contain" alt="Logo">
+            <span>Portal da Convenção</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#portalNav"
+            aria-controls="portalNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="portalNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'portal_home' else '' }}"
+                        href="{{ url_for('portal_home') }}">Início</a>
+                </li>
+                {% if nav_ministries %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint in ['portal_ministries', 'portal_ministry_detail'] else '' }}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Ministérios</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('portal_ministries') }}">Todos os
+                                ministérios</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        {% for ministry in nav_ministries %}
+                        <li><a class="dropdown-item"
+                                href="{{ url_for('portal_ministry_detail', slug=ministry.slug) }}">{{ ministry.name
+                                }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint in ['portal_ministries', 'portal_ministry_detail'] else '' }}"
+                        href="{{ url_for('portal_ministries') }}">Ministérios</a>
+                </li>
+                {% endif %}
+
+                {% for link in nav_links %}
+                {% if link.children %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">{{ link.label }}</a>
+                    <ul class="dropdown-menu">
+                        {% if link.url %}
+                        <li><a class="dropdown-item" href="{{ link.url }}">{{ link.label }}</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        {% endif %}
+                        {% for child in link.children if child.is_active %}
+                        <li><a class="dropdown-item" href="{{ child.url or '#' }}">{{ child.label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ link.url or '#' }}">{{ link.label }}</a></li>
+                {% endif %}
+                {% endfor %}
+
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'portal_downloads' else '' }}"
+                        href="{{ url_for('portal_downloads') }}">Downloads</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'portal_galeria' else '' }}"
+                        href="{{ url_for('portal_galeria') }}">Galeria</a>
+                </li>
+            </ul>
+
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('landing') }}">Inscrição do evento</a>
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Abre os menus (Ministérios, Sobre Nós etc.) ao passar o mouse, sem perder o
+    // clique como alternativa (teclado/toque). Espera o DOM carregar pra garantir
+    // que o bootstrap.bundle.min.js (carregado no fim da página) já esteja pronto.
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.pt-header .dropdown').forEach(function (item) {
+            const toggle = item.querySelector('[data-bs-toggle="dropdown"]');
+            if (!toggle) return;
+            const dropdown = bootstrap.Dropdown.getOrCreateInstance(toggle);
+
+            item.addEventListener('mouseenter', function () { dropdown.show(); });
+            item.addEventListener('mouseleave', function () { dropdown.hide(); });
+        });
+    });
+</script>

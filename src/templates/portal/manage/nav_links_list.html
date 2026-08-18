@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestão do Portal — Menu</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/portal.css') }}" rel="stylesheet">
+    <style>
+        body.pt-body {
+            background: var(--pt-bg-soft);
+        }
+    </style>
+</head>
+
+<body class="pt-body">
+    {% include "components/portal_manage_nav.html" %}
+
+    <main class="pt-main py-5">
+        <div class="container">
+            {% include "components/flash.html" %}
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Menu do portal</h1>
+                <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_nav_link_new') }}">+ Novo item</a>
+            </div>
+            <div class="pt-muted small mb-3">
+                Itens de topo aparecem direto na navbar. Se um item tiver submenus, ele vira um dropdown — só 1
+                nível de submenu é permitido.
+            </div>
+
+            <div class="pt-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Texto</th>
+                                <th>Link</th>
+                                <th>Ordem</th>
+                                <th>Status</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for link in links %}
+                            <tr>
+                                <td class="fw-semibold">{{ link.label }}</td>
+                                <td class="pt-muted">{{ link.url or '(menu / sem link próprio)' }}</td>
+                                <td class="pt-muted">{{ link.order }}</td>
+                                <td>
+                                    {% if link.is_active %}
+                                    <span class="pt-badge pt-badge-status-on">ATIVO</span>
+                                    {% else %}
+                                    <span class="pt-badge pt-badge-status-off">OCULTO</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a class="pt-btn-outline btn btn-sm"
+                                            href="{{ url_for('portal_manage_nav_link_edit', link_id=link.id) }}">Editar</a>
+                                        {% if link.is_active %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_nav_link_hide', link_id=link.id) }}">
+                                            <button class="pt-btn-danger-outline btn btn-sm"
+                                                type="submit">Ocultar</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_nav_link_show', link_id=link.id) }}">
+                                            <button class="pt-btn btn btn-sm" type="submit">Reativar</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% for child in link.children %}
+                            <tr>
+                                <td class="ps-4">↳ {{ child.label }}</td>
+                                <td class="pt-muted">{{ child.url or '—' }}</td>
+                                <td class="pt-muted">{{ child.order }}</td>
+                                <td>
+                                    {% if child.is_active %}
+                                    <span class="pt-badge pt-badge-status-on">ATIVO</span>
+                                    {% else %}
+                                    <span class="pt-badge pt-badge-status-off">OCULTO</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a class="pt-btn-outline btn btn-sm"
+                                            href="{{ url_for('portal_manage_nav_link_edit', link_id=child.id) }}">Editar</a>
+                                        {% if child.is_active %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_nav_link_hide', link_id=child.id) }}">
+                                            <button class="pt-btn-danger-outline btn btn-sm"
+                                                type="submit">Ocultar</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_nav_link_show', link_id=child.id) }}">
+                                            <button class="pt-btn btn btn-sm" type="submit">Reativar</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                            {% if links|length == 0 %}
+                            <tr>
+                                <td colspan="5" class="text-center pt-muted p-4">Nenhum item de menu criado ainda.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include "portal/components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

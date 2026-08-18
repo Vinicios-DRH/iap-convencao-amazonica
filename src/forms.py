@@ -1,9 +1,13 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, SubmitField, FileField, TextAreaField, BooleanField, IntegerField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange
+from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange, URL
 
 from flask_wtf.file import FileAllowed
 from src.controllers.validators import validate_cpf
+
+IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp"]
+DOWNLOAD_EXTENSIONS = ["pdf", "doc", "docx", "ppt", "pptx", "xls",
+                       "xlsx", "zip", "jpg", "jpeg", "png"]
 
 
 class RegisterAndSignupForm(FlaskForm):
@@ -105,4 +109,118 @@ class ReviewRegistrationForm(FlaskForm):
     )
     note = TextAreaField("Observação (opcional)",
                          validators=[Length(max=2000)])
+    submit = SubmitField("Salvar")
+
+
+# ===================== CMS DO PORTAL =====================
+
+class PostForm(FlaskForm):
+    title = StringField("Título", validators=[DataRequired(), Length(min=3, max=200)])
+    summary = TextAreaField("Resumo", validators=[Optional(), Length(max=500)])
+    body = TextAreaField("Conteúdo", validators=[DataRequired()])
+    category = StringField("Categoria", validators=[Optional(), Length(max=80)])
+    tags = StringField(
+        "Tags (separadas por vírgula)",
+        validators=[Optional(), Length(max=300)],
+    )
+    ministry_id = SelectField("Ministério (opcional)", coerce=int, validators=[Optional()])
+    cover_image = FileField(
+        "Imagem de capa (opcional)",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
+    submit = SubmitField("Salvar")
+
+
+class AuthorForm(FlaskForm):
+    name = StringField("Nome", validators=[DataRequired(), Length(min=2, max=150)])
+    bio = TextAreaField("Biografia (opcional)", validators=[Optional(), Length(max=2000)])
+    photo = FileField(
+        "Foto (opcional)",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
+    submit = SubmitField("Salvar")
+
+
+class DownloadForm(FlaskForm):
+    title = StringField("Título", validators=[DataRequired(), Length(min=3, max=200)])
+    description = TextAreaField("Descrição (opcional)", validators=[Optional(), Length(max=1000)])
+    category = StringField("Categoria (opcional)", validators=[Optional(), Length(max=80)])
+    external_url = StringField(
+        "Link externo (opcional)",
+        validators=[Optional(), Length(max=500), URL(require_tld=True, message="Link inválido.")],
+    )
+    file = FileField(
+        "Arquivo (opcional)",
+        validators=[Optional(), FileAllowed(DOWNLOAD_EXTENSIONS, "Formato de arquivo não permitido.")],
+    )
+    submit = SubmitField("Salvar")
+
+
+class PhotoForm(FlaskForm):
+    caption = StringField("Legenda (opcional)", validators=[Optional(), Length(max=200)])
+    album = StringField("Álbum (opcional)", validators=[Optional(), Length(max=80)])
+    image = FileField(
+        "Imagem",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
+    submit = SubmitField("Salvar")
+
+
+class NavLinkForm(FlaskForm):
+    label = StringField("Texto do link", validators=[DataRequired(), Length(min=1, max=80)])
+    url = StringField(
+        "URL (deixe em branco se for só um menu com submenu)",
+        validators=[Optional(), Length(max=300)],
+    )
+    parent_id = SelectField("Menu pai (opcional)", coerce=int, validators=[Optional()])
+    order = IntegerField("Ordem", validators=[Optional(), NumberRange(min=0, max=999)], default=0)
+    submit = SubmitField("Salvar")
+
+
+SOCIAL_PLATFORM_CHOICES = [
+    ("instagram", "Instagram"),
+    ("facebook", "Facebook"),
+    ("youtube", "YouTube"),
+    ("whatsapp", "WhatsApp"),
+    ("tiktok", "TikTok"),
+    ("x", "X (Twitter)"),
+    ("outro", "Outro"),
+]
+
+
+class SocialLinkForm(FlaskForm):
+    platform = SelectField("Rede", choices=SOCIAL_PLATFORM_CHOICES, validators=[DataRequired()])
+    url = StringField("Link", validators=[DataRequired(), Length(max=300), URL(require_tld=True, message="Link inválido.")])
+    order = IntegerField("Ordem", validators=[Optional(), NumberRange(min=0, max=999)], default=0)
+    submit = SubmitField("Salvar")
+
+
+class FooterSettingsForm(FlaskForm):
+    endereco = StringField("Endereço da sede", validators=[Optional(), Length(max=255)])
+    telefone = StringField("Telefone de contato", validators=[Optional(), Length(max=255)])
+    submit = SubmitField("Salvar")
+
+
+class MinistryForm(FlaskForm):
+    name = StringField("Nome do ministério", validators=[DataRequired(), Length(min=3, max=120)])
+    description = TextAreaField("Descrição e objetivo", validators=[Optional()])
+    cover_image = FileField(
+        "Imagem de capa (opcional)",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
+    submit = SubmitField("Salvar")
+
+
+class MinistryMemberForm(FlaskForm):
+    name = StringField("Nome", validators=[DataRequired(), Length(min=2, max=150)])
+    role = StringField("Função", validators=[DataRequired(), Length(max=80)])
+    user_id = SelectField("Vincular a uma conta (opcional)", coerce=int, validators=[Optional()])
+    order = IntegerField("Ordem", validators=[Optional(), NumberRange(min=0, max=999)], default=0)
+    submit = SubmitField("Salvar")
+
+
+class MinistrySocialLinkForm(FlaskForm):
+    platform = SelectField("Rede", choices=SOCIAL_PLATFORM_CHOICES, validators=[DataRequired()])
+    url = StringField("Link", validators=[DataRequired(), Length(max=300), URL(require_tld=True, message="Link inválido.")])
+    order = IntegerField("Ordem", validators=[Optional(), NumberRange(min=0, max=999)], default=0)
     submit = SubmitField("Salvar")

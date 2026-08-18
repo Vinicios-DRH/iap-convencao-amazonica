@@ -1,0 +1,83 @@
+{% macro post_card(post, small=False) %}
+<a href="{{ url_for('portal_post_detail', slug=post.slug) }}" class="text-decoration-none text-reset">
+    <div class="pt-card pt-card-link h-100 overflow-hidden {{ 'post-card-sm' if small else 'post-card' }}">
+        {% if post.cover_image_key %}
+        <img src="{{ get_b2_file_url(post.cover_image_key) }}" alt="{{ post.title }}">
+        {% endif %}
+        <div class="p-3">
+            {% if post.category %}
+            <span class="pt-badge mb-2">{{ post.category }}</span>
+            {% endif %}
+            <h5 class="mt-2">{{ post.title }}</h5>
+            {% if post.summary and not small %}
+            <p class="pt-muted small mb-2">{{ post.summary }}</p>
+            {% endif %}
+            <div class="pt-muted small">
+                {% if post.created_by %}{{ post.created_by.display_name }} · {% endif %}
+                {{ post.created_at.strftime('%d/%m/%Y') if post.created_at else '' }}
+            </div>
+        </div>
+    </div>
+</a>
+{% endmacro %}
+
+{% macro social_icons(links, extra_class="") %}
+{% for link in links %}
+<a class="pt-social-icon {{ extra_class }}" href="{{ link.url }}" target="_blank" rel="noopener"
+    aria-label="{{ link.platform }}">
+    {{ get_social_icon(link.platform)|safe }}
+</a>
+{% endfor %}
+{% endmacro %}
+
+{% macro quill_image_upload_handler(upload_url) %}
+{#
+   Espera que a página já tenha `const quill = new Quill(...)` (variável chamada
+   "quill") e um `input[name="csrf_token"]` em algum formulário na página — usado
+   tanto por artigos quanto por ministérios, só muda a URL de destino.
+#}
+<script>
+    quill.getModule('toolbar').addHandler('image', function () {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = function () {
+            const file = input.files[0];
+            if (!file) return;
+
+            const description = window.prompt(
+                'Descreva a imagem (recomendado — ajuda acessibilidade e busca):', ''
+            ) || '';
+
+            const range = quill.getSelection(true);
+            quill.insertText(range.index, 'Enviando imagem...', { italic: true });
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('description', description);
+            formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+            fetch('{{ upload_url }}', { method: 'POST', body: formData })
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                    quill.deleteText(range.index, 'Enviando imagem...'.length);
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    quill.insertEmbed(range.index, 'image', data.url);
+                    if (description) {
+                        quill.formatText(range.index, 1, 'alt', description);
+                    }
+                    quill.setSelection(range.index + 1);
+                })
+                .catch(function () {
+                    quill.deleteText(range.index, 'Enviando imagem...'.length);
+                    alert('Não foi possível enviar a imagem. Tente de novo.');
+                });
+        };
+    });
+</script>
+{% endmacro %}

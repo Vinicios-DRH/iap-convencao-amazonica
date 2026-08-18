@@ -1,0 +1,48 @@
+<nav class="navbar navbar-expand-lg pt-header" data-bs-theme="light">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('portal_painel') }}">
+            <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="34" height="34"
+                style="object-fit:contain" alt="Logo">
+            <span>Portal • Gestão</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#manageNav"
+            aria-controls="manageNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="manageNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('portal_painel') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('portal_manage_posts') }}">Artigos</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('portal_manage_authors') }}">Autores</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('portal_manage_downloads') }}">Downloads</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('portal_manage_photos') }}">Fotos</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('portal_manage_ministries') }}">Ministérios</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">Site</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('portal_manage_nav_links') }}">Menu de
+                                navegação</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('portal_manage_social_links') }}">Redes
+                                sociais</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('portal_manage_settings') }}">Configurações do
+                                rodapé</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('portal_home') }}"
+                    target="_blank">Ver portal</a>
+                <a class="pt-btn" style="font-size:.875rem; padding:.375rem .75rem;"
+                    href="{{ url_for('logout') }}">Sair</a>
+            </div>
+        </div>
+    </div>
+</nav>

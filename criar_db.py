@@ -31,6 +31,8 @@ with app.app_context():
                 can_review_payments=True)
     upsert_role("REVISOR_PAGAMENTOS", is_super=False,
                 can_access_admin=True, can_review_payments=True)
+    upsert_role("GESTOR_CMS", is_super=False,
+                can_access_admin=False, can_review_payments=False)
 
     # Super user inicial (ajusta email/senha aqui)
     email = "admin@teste.com"

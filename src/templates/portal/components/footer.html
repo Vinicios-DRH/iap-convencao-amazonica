@@ -1,0 +1,48 @@
+{% from "portal/components/_macros.html" import social_icons %}
+<footer class="pt-footer pt-5 pb-4">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <img src="{{ url_for('static', filename='img/logo_lamp.png') }}" width="30" height="30"
+                        style="object-fit:contain" alt="Logo">
+                    <span class="pt-footer-title mb-0">Convenção Regional Amazônica</span>
+                </div>
+                <div style="color:rgba(255,255,255,.75)">
+                    Igreja Adventista da Promessa
+                    {% if footer_settings.endereco %}<br>{{ footer_settings.endereco }}{% endif %}
+                    {% if footer_settings.telefone %}<br>{{ footer_settings.telefone }}{% endif %}
+                </div>
+
+                {% if social_links %}
+                <div class="d-flex gap-2 mt-3">
+                    {{ social_icons(social_links) }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="pt-footer-title">Portal</div>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{{ url_for('portal_home') }}">Início</a>
+                    <a href="{{ url_for('portal_articles') }}">Notícias</a>
+                    <a href="{{ url_for('portal_downloads') }}">Downloads</a>
+                    <a href="{{ url_for('portal_galeria') }}">Galeria</a>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <div class="pt-footer-title">Evento</div>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{{ url_for('landing') }}">Site da convenção</a>
+                    <a href="{{ url_for('inscricao') }}">Fazer inscrição</a>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border-color: rgba(255,255,255,.15); margin: 2rem 0 1rem;">
+        <div style="color:rgba(255,255,255,.6); font-size:.9rem;">
+            © {{ now().year }} Convenção Regional Amazônica — Igreja Adventista da Promessa
+        </div>
+    </div>
+</footer>

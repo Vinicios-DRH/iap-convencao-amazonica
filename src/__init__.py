@@ -1,12 +1,22 @@
-from flask import Flask
+from flask import Flask, flash, jsonify, redirect, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from dotenv import load_dotenv
 from datetime import datetime
 import os
+from urllib.parse import urlparse
+from PIL import UnidentifiedImageError
+from PIL.Image import DecompressionBombError
 from supabase import create_client
 from src.controllers.b2_utils import get_b2_file_url
+from src.constants import (
+    PIX_PADRAO_MSG,
+    CRIANCAS_MSG,
+    INCLUI_ITENS,
+    CONTATO_PAGAMENTO,
+    CONTATO_PAGAMENTO_TEXTO,
+)
 import pytz
 from decimal import Decimal, ROUND_FLOOR
 
@@ -16,6 +26,16 @@ load_dotenv()
 
 app = Flask(__name__)
 app.jinja_env.globals['get_b2_file_url'] = get_b2_file_url
+
+
+def get_social_icon(platform):
+    # import local: evita ciclo de import (social_links.py depende de src.models,
+    # que só existe depois que este módulo termina de carregar)
+    from src.services.portal.social_links import get_icon
+    return get_icon(platform)
+
+
+app.jinja_env.globals['get_social_icon'] = get_social_icon
 
 # Carrega as configurações do .env
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
@@ -32,6 +52,7 @@ supabase = create_client(SUPABASE_DB_URL, SUPABASE_KEY)
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png'}
+app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024  # 25MB — teto duro; acima disso o pedido nem chega na rota
 
 # Extensões
 database = SQLAlchemy(app)
@@ -39,28 +60,6 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'alert-info'
-
-PIX_PADRAO_MSG = (
-    "Informamos que todos os pagamentos realizados via Pix — seja em valor integral ou parcelado — "
-    "devem conter obrigatoriamente os centavos finalizados em 0,09. Essa padronização é necessária "
-    "para a correta identificação do pagamento. Agradecemos a compreensão."
-)
-
-CRIANCAS_MSG = "Crianças até 5 anos não pagam, desde que dividam cama com responsável."
-
-INCLUI_ITENS = [
-    "Dia 20 — Almoço e jantar",
-    "Dia 21 — Café da manhã, almoço e jantar",
-    "Dia 22 — Café da manhã",
-    "Transporte de ônibus (caso prefira) — Saída de Manaus",
-    "Quarto climatizado",
-    "Cama",
-    "Participação em todas as programações durante a convenção jovem",
-    "Momento de lazer",
-]
-
-CONTATO_PAGAMENTO = "+55 92 8459-6369"
-CONTATO_PAGAMENTO_TEXTO = "Número de contato do pagamento de inscrição"
 
 def _env_int(name: str, default: int) -> int:
     try:
@@ -132,6 +131,59 @@ def fmt_manaus(dt):
     return dt.astimezone(tz_manaus).strftime("%d/%m/%Y %H:%M")
 
 
+def _active_nav_links():
+    # import local: cms_nav_links só existe depois de `flask create_cms_tables`.
+    # se a tabela ainda não existir, degrada pra lista vazia em vez de derrubar o site inteiro.
+    from src.models import NavLink
+    try:
+        return (
+            NavLink.query
+            .filter_by(parent_id=None, is_active=True)
+            .order_by(NavLink.order)
+            .all()
+        )
+    except Exception:
+        database.session.rollback()
+        return []
+
+
+def _active_social_links():
+    from src.models import SocialLink
+    try:
+        return (
+            SocialLink.query
+            .filter_by(is_active=True)
+            .order_by(SocialLink.order)
+            .all()
+        )
+    except Exception:
+        database.session.rollback()
+        return []
+
+
+def _portal_footer_settings():
+    from src.services.settings import get_footer_settings
+    try:
+        return get_footer_settings()
+    except Exception:
+        database.session.rollback()
+        return {"endereco": "", "telefone": ""}
+
+
+def _active_ministries_for_nav():
+    from src.models import Ministry
+    try:
+        return (
+            Ministry.query
+            .filter_by(is_active=True)
+            .order_by(Ministry.name)
+            .all()
+        )
+    except Exception:
+        database.session.rollback()
+        return []
+
+
 @app.context_processor
 def inject_globals():
     return {
@@ -145,7 +197,57 @@ def inject_globals():
         # novos globais
         "lot1_limit": LOT1_LIMIT,
         "pix_suffix": str(PIX_SUFFIX).replace(".", ","),
+
+        # portal / CMS
+        "nav_links": _active_nav_links(),
+        "social_links": _active_social_links(),
+        "footer_settings": _portal_footer_settings(),
+        "nav_ministries": _active_ministries_for_nav(),
     }
+
+
+def _wants_json_error() -> bool:
+    # rotas de upload que esperam JSON de volta (editores ricos — Quill, artigo e
+    # ministério); todas as outras são formulários normais (foto/autor/capa).
+    json_upload_paths = {
+        url_for("portal_manage_post_upload_image"),
+        url_for("portal_manage_ministry_upload_image"),
+    }
+    return request.path in json_upload_paths
+
+
+def _safe_redirect_back(fallback_endpoint: str = "portal_painel"):
+    # request.referrer é controlado por quem envia a requisição — só reusa se for
+    # do próprio site, senão cai num destino fixo (evita open redirect).
+    referrer = request.referrer
+    if referrer:
+        parsed = urlparse(referrer)
+        if not parsed.netloc or parsed.netloc == request.host:
+            return redirect(referrer)
+    return redirect(url_for(fallback_endpoint))
+
+
+def _reject_upload(message: str, status: int):
+    if _wants_json_error():
+        return jsonify({"error": message}), status
+    flash(message, "danger")
+    return _safe_redirect_back()
+
+
+@app.errorhandler(413)
+def handle_upload_too_large(e):
+    limit_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
+    return _reject_upload(f"Arquivo muito grande. O limite é {limit_mb}MB.", 413)
+
+
+@app.errorhandler(UnidentifiedImageError)
+def handle_invalid_image(e):
+    return _reject_upload("Arquivo não é uma imagem válida.", 400)
+
+
+@app.errorhandler(DecompressionBombError)
+def handle_image_decompression_bomb(e):
+    return _reject_upload("Imagem com resolução alta demais pra processar.", 400)
 
 
 from src import routes

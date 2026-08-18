@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acesso Restrito — Gestão do Portal</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/portal.css') }}" rel="stylesheet">
+    <style>
+        body.pt-body {
+            background: var(--pt-bg-soft);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 1.75rem;
+        }
+    </style>
+</head>
+
+<body class="pt-body">
+    <div class="pt-card login-card">
+        <div class="text-uppercase pt-muted small mb-1" style="letter-spacing:.12em;">Acesso restrito</div>
+        <h1 class="h3 mb-4">Gestão do Portal</h1>
+
+        {% include "components/flash.html" %}
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.email.label.text }}</label>
+                {{ form.email(class="form-control", placeholder="seuemail@dominio.com") }}
+                {% if form.email.errors %}
+                <div class="text-danger mt-1 small">{{ form.email.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ form.password.label.text }}</label>
+                {{ form.password(class="form-control", placeholder="Sua senha") }}
+                {% if form.password.errors %}
+                <div class="text-danger mt-1 small">{{ form.password.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <button class="pt-btn btn w-100" type="submit">Entrar</button>
+        </form>
+
+        <div class="mt-3 pt-muted small">
+            Área exclusiva de quem gerencia o conteúdo do portal.
+        </div>
+    </div>
+</body>
+
+</html>

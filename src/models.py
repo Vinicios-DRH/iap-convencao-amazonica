@@ -81,6 +81,18 @@ class User(database.Model, UserMixin):
     def can_review_payments(self) -> bool:
         return self.is_super or any(r.can_review_payments for r in self.roles)
 
+    @property
+    def can_manage_cms(self) -> bool:
+        return self.is_super or any(r.name == "GESTOR_CMS" for r in self.roles)
+
+    @property
+    def display_name(self) -> str:
+        if self.registration and self.registration.full_name:
+            first_name = self.registration.full_name.strip().split()
+            if first_name:
+                return first_name[0]
+        return self.email
+
     def __repr__(self):
         return f"<User {self.email}>"
 
@@ -197,3 +209,222 @@ class CoracaoNome(database.Model):
         120), nullable=False, unique=True, index=True)
     created_at = database.Column(
         database.DateTime, default=datetime.utcnow, nullable=False)
+
+
+# =======================
+# CMS DO PORTAL
+# =======================
+
+class Author(database.Model):
+    __tablename__ = "cms_authors"
+
+    id = database.Column(database.Integer, primary_key=True)
+    name = database.Column(database.String(150), nullable=False)
+    bio = database.Column(database.Text, nullable=True)
+    photo_key = database.Column(database.String(255), nullable=True)
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Author {self.name}>"
+
+
+class Tag(database.Model):
+    __tablename__ = "cms_tags"
+
+    id = database.Column(database.Integer, primary_key=True)
+    name = database.Column(database.String(50), nullable=False, unique=True)
+    slug = database.Column(database.String(60), nullable=False, unique=True, index=True)
+
+    def __repr__(self):
+        return f"<Tag {self.name}>"
+
+
+cms_post_tags = database.Table(
+    "cms_post_tags",
+    database.Column("post_id", database.Integer,
+                    database.ForeignKey("cms_posts.id"), primary_key=True),
+    database.Column("tag_id", database.Integer,
+                    database.ForeignKey("cms_tags.id"), primary_key=True),
+)
+
+
+class Ministry(database.Model):
+    __tablename__ = "cms_ministries"
+
+    id = database.Column(database.Integer, primary_key=True)
+    name = database.Column(database.String(120), nullable=False, unique=True)
+    slug = database.Column(database.String(140), nullable=False, unique=True, index=True)
+    description = database.Column(database.Text, nullable=True)
+    cover_image_key = database.Column(database.String(255), nullable=True)
+
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+    updated_at = database.Column(database.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Ministry {self.name}>"
+
+
+class MinistryMember(database.Model):
+    __tablename__ = "cms_ministry_members"
+
+    id = database.Column(database.Integer, primary_key=True)
+    ministry_id = database.Column(database.Integer, database.ForeignKey("cms_ministries.id"), nullable=False)
+    ministry = database.relationship("Ministry", backref="members")
+
+    # gancho opcional pra uma conta existente — não é a fonte do nome exibido
+    # (ver name abaixo), só referência pra uso futuro (login do próprio membro etc).
+    user_id = database.Column(database.Integer, database.ForeignKey("users.id"), nullable=True)
+    user = database.relationship("User")
+
+    # sempre digitado pelo operador, mesmo quando user_id está preenchido — desacopla
+    # o cartaz público de mudanças na conta e evita usar só o primeiro nome (display_name)
+    # num contexto onde faz mais sentido o nome completo.
+    name = database.Column(database.String(150), nullable=False)
+    role = database.Column(database.String(80), nullable=False)
+
+    order = database.Column(database.Integer, default=0, nullable=False)
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f"<MinistryMember {self.name} ({self.role})>"
+
+
+class MinistrySocialLink(database.Model):
+    __tablename__ = "cms_ministry_social_links"
+
+    id = database.Column(database.Integer, primary_key=True)
+    ministry_id = database.Column(database.Integer, database.ForeignKey("cms_ministries.id"), nullable=False)
+    ministry = database.relationship("Ministry", backref="social_links")
+
+    platform = database.Column(database.String(30), nullable=False)
+    url = database.Column(database.String(300), nullable=False)
+
+    order = database.Column(database.Integer, default=0, nullable=False)
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f"<MinistrySocialLink {self.platform}>"
+
+
+cms_post_ministry = database.Table(
+    "cms_post_ministry",
+    database.Column("post_id", database.Integer,
+                    database.ForeignKey("cms_posts.id"), primary_key=True),
+    database.Column("ministry_id", database.Integer,
+                    database.ForeignKey("cms_ministries.id"), primary_key=True),
+)
+
+
+class Post(database.Model):
+    __tablename__ = "cms_posts"
+
+    id = database.Column(database.Integer, primary_key=True)
+    title = database.Column(database.String(200), nullable=False)
+    slug = database.Column(database.String(220), nullable=False, unique=True, index=True)
+    summary = database.Column(database.Text, nullable=True)
+    body = database.Column(database.Text, nullable=True)
+    cover_image_key = database.Column(database.String(255), nullable=True)
+
+    # "artigo" hoje; "pagina" reservado para páginas institucionais futuras
+    post_type = database.Column(database.String(20), nullable=False, default="artigo")
+    category = database.Column(database.String(80), nullable=True)
+
+    author_id = database.Column(database.Integer, database.ForeignKey("cms_authors.id"), nullable=True)
+    author = database.relationship("Author")
+
+    tags = database.relationship("Tag", secondary=cms_post_tags, backref="posts")
+
+    # M2M no banco, mas tratado como "no máximo um" na aplicação inteira — use sempre
+    # a property `ministry` abaixo (getter/setter) em vez de mexer em `ministries` direto.
+    ministries = database.relationship("Ministry", secondary=cms_post_ministry, backref="posts")
+
+    is_published = database.Column(database.Boolean, default=True, nullable=False)
+    published_at = database.Column(database.DateTime, nullable=True)
+
+    created_by_user_id = database.Column(database.Integer, database.ForeignKey("users.id"), nullable=True)
+    created_by = database.relationship("User")
+
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+    updated_at = database.Column(database.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @property
+    def ministry(self):
+        return self.ministries[0] if self.ministries else None
+
+    @ministry.setter
+    def ministry(self, value):
+        self.ministries = [value] if value else []
+
+    def __repr__(self):
+        return f"<Post {self.title}>"
+
+
+class Download(database.Model):
+    __tablename__ = "cms_downloads"
+
+    id = database.Column(database.Integer, primary_key=True)
+    title = database.Column(database.String(200), nullable=False)
+    description = database.Column(database.Text, nullable=True)
+    category = database.Column(database.String(80), nullable=True)
+
+    # um dos dois: arquivo enviado (B2) ou link externo colado
+    file_key = database.Column(database.String(255), nullable=True)
+    external_url = database.Column(database.String(500), nullable=True)
+
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Download {self.title}>"
+
+
+class Photo(database.Model):
+    __tablename__ = "cms_photos"
+
+    id = database.Column(database.Integer, primary_key=True)
+    caption = database.Column(database.String(200), nullable=True)
+    image_key = database.Column(database.String(255), nullable=False)
+    album = database.Column(database.String(80), nullable=True)
+
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Photo {self.caption or self.id}>"
+
+
+class NavLink(database.Model):
+    __tablename__ = "cms_nav_links"
+
+    id = database.Column(database.Integer, primary_key=True)
+    label = database.Column(database.String(80), nullable=False)
+    url = database.Column(database.String(300), nullable=True)
+
+    parent_id = database.Column(database.Integer, database.ForeignKey("cms_nav_links.id"), nullable=True)
+    children = database.relationship(
+        "NavLink",
+        backref=database.backref("parent", remote_side=[id]),
+        order_by="NavLink.order",
+    )
+
+    order = database.Column(database.Integer, default=0, nullable=False)
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f"<NavLink {self.label}>"
+
+
+class SocialLink(database.Model):
+    __tablename__ = "cms_social_links"
+
+    id = database.Column(database.Integer, primary_key=True)
+    platform = database.Column(database.String(30), nullable=False)
+    url = database.Column(database.String(300), nullable=False)
+
+    order = database.Column(database.Integer, default=0, nullable=False)
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f"<SocialLink {self.platform}>"

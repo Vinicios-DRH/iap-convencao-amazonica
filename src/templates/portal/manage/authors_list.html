@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestão do Portal — Autores</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/portal.css') }}" rel="stylesheet">
+    <style>
+        body.pt-body {
+            background: var(--pt-bg-soft);
+        }
+    </style>
+</head>
+
+<body class="pt-body">
+    {% include "components/portal_manage_nav.html" %}
+
+    <main class="pt-main py-5">
+        <div class="container">
+            {% include "components/flash.html" %}
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-1">Autores</h1>
+                    <div class="pt-muted small">Não usado mais na criação de artigos (o autor agora é sempre quem
+                        está logado) — mantido caso você precise creditar colunistas convidados manualmente em
+                        outro lugar.</div>
+                </div>
+                <a class="pt-btn-accent btn flex-shrink-0" href="{{ url_for('portal_manage_author_new') }}">+ Novo
+                    autor</a>
+            </div>
+
+            <div class="pt-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Status</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for author in authors %}
+                            <tr>
+                                <td class="fw-semibold">{{ author.name }}</td>
+                                <td>
+                                    {% if author.is_active %}
+                                    <span class="pt-badge pt-badge-status-on">ATIVO</span>
+                                    {% else %}
+                                    <span class="pt-badge pt-badge-status-off">OCULTO</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a class="pt-btn-outline btn btn-sm"
+                                            href="{{ url_for('portal_manage_author_edit', author_id=author.id) }}">Editar</a>
+                                        {% if author.is_active %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_author_hide', author_id=author.id) }}">
+                                            <button class="pt-btn-danger-outline btn btn-sm"
+                                                type="submit">Ocultar</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST"
+                                            action="{{ url_for('portal_manage_author_show', author_id=author.id) }}">
+                                            <button class="pt-btn btn btn-sm" type="submit">Reativar</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if authors|length == 0 %}
+                            <tr>
+                                <td colspan="3" class="text-center pt-muted p-4">Nenhum autor cadastrado ainda.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include "portal/components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
