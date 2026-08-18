@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Usuários — Administração</title>
+
+    <link rel="icon" type="image/x-icon"
+        href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --pink: #d946ef;
+            --cyan: #22d3ee;
+            --bg: #070711;
+            --card: rgba(255, 255, 255, .06);
+            --border: rgba(255, 255, 255, .14);
+            --muted: rgba(255, 255, 255, .68);
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(900px 500px at 20% 10%, rgba(34, 211, 238, .18), transparent 60%),
+                radial-gradient(900px 500px at 80% 20%, rgba(217, 70, 239, .20), transparent 60%),
+                linear-gradient(180deg, #05050d, var(--bg));
+            color: #f4f4fb;
+        }
+
+        .navbar-admin {
+            background: rgba(0, 0, 0, .38);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+        }
+
+        .card-admin {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, .20);
+        }
+
+        .title-gradient {
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 900;
+        }
+
+        .form-control {
+            color: #fff;
+            background: rgba(0, 0, 0, .28);
+            border: 1px solid rgba(255, 255, 255, .15);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, .45);
+        }
+
+        .form-control:focus {
+            color: #fff;
+            background: rgba(0, 0, 0, .32);
+            border-color: rgba(34, 211, 238, .65);
+            box-shadow: 0 0 0 .2rem rgba(34, 211, 238, .15);
+        }
+
+        .btn-neon {
+            color: #05050d;
+            font-weight: 900;
+            border: none;
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+        }
+
+        .btn-neon:hover {
+            color: #05050d;
+            opacity: .92;
+        }
+
+        .table-admin {
+            --bs-table-bg: transparent;
+            --bs-table-color: #fff;
+            --bs-table-border-color: rgba(255, 255, 255, .10);
+            margin-bottom: 0;
+        }
+
+        .table-admin thead th {
+            color: rgba(255, 255, 255, .72);
+            font-size: .79rem;
+            font-weight: 800;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            border-bottom: 1px solid rgba(255, 255, 255, .14);
+        }
+
+        .table-admin tbody tr {
+            transition: background .18s ease;
+        }
+
+        .table-admin tbody tr:hover {
+            background: rgba(255, 255, 255, .035);
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            flex-shrink: 0;
+            place-items: center;
+            border-radius: 14px;
+            color: #05050d;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--cyan), var(--pink));
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .badge-force {
+            color: #fde68a;
+            background: rgba(245, 158, 11, .12);
+            border: 1px solid rgba(245, 158, 11, .30);
+        }
+
+        .badge-normal {
+            color: #a7f3d0;
+            background: rgba(16, 185, 129, .12);
+            border: 1px solid rgba(16, 185, 129, .30);
+        }
+
+        .pagination .page-link {
+            color: #fff;
+            background: rgba(255, 255, 255, .06);
+            border-color: rgba(255, 255, 255, .12);
+        }
+
+        .pagination .page-item.active .page-link {
+            color: #05050d;
+            font-weight: 900;
+            border-color: transparent;
+            background: linear-gradient(90deg, var(--cyan), var(--pink));
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: rgba(255, 255, 255, .30);
+            background: rgba(255, 255, 255, .025);
+        }
+
+        .modal-content {
+            color: #fff;
+            background: #10101c;
+            border: 1px solid rgba(255, 255, 255, .16);
+            border-radius: 20px;
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: rgba(255, 255, 255, .10);
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-admin">
+        <div class="container py-2">
+            <a class="navbar-brand d-flex align-items-center gap-2 text-white"
+                href="{{ url_for('admin_home') }}">
+                <img src="{{ url_for('static', filename='img/logo_lamp.png') }}"
+                    width="38" height="38" alt="Logo" style="object-fit: contain">
+                <span class="fw-bold">Administração</span>
+            </a>
+
+            <a href="{{ url_for('admin_home') }}" class="btn btn-outline-light btn-sm">
+                Voltar ao painel
+            </a>
+        </div>
+    </nav>
+
+    <main class="py-5">
+        <div class="container">
+            {% include "components/flash.html" %}
+
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+                <div>
+                    <div class="text-uppercase small fw-bold muted mb-1">Controle de acesso</div>
+                    <h1 class="h2 mb-1">
+                        Gerenciar <span class="title-gradient">usuários</span>
+                    </h1>
+                    <div class="muted">Localize uma conta e gere uma senha temporária.</div>
+                </div>
+
+                <div class="badge rounded-pill text-bg-dark border px-3 py-2">
+                    {{ pagination.total }} usuário(s)
+                </div>
+            </div>
+
+            <div class="card-admin p-3 p-md-4 mb-4">
+                <form method="GET" action="{{ url_for('admin_usuarios') }}" class="row g-2">
+                    <div class="col-md">
+                        <input type="search" name="q" value="{{ busca }}"
+                            class="form-control form-control-lg"
+                            placeholder="Buscar por nome, e-mail, CPF ou telefone..."
+                            autocomplete="off">
+                    </div>
+
+                    <div class="col-md-auto d-grid">
+                        <button type="submit" class="btn btn-neon btn-lg px-4">Buscar</button>
+                    </div>
+
+                    {% if busca %}
+                    <div class="col-md-auto d-grid">
+                        <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-light btn-lg">
+                            Limpar
+                        </a>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="card-admin overflow-hidden">
+                {% if usuarios %}
+                <div class="table-responsive">
+                    <table class="table table-admin align-middle">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Usuário</th>
+                                <th>Cadastro</th>
+                                <th>Situação da senha</th>
+                                <th class="text-end pe-4">Ação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for usuario in usuarios %}
+                            {% set inscricao = usuario.registration %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="user-avatar">
+                                            {{ (inscricao.full_name if inscricao and inscricao.full_name else usuario.email)[0]|upper }}
+                                        </div>
+
+                                        <div>
+                                            <div class="fw-bold">
+                                                {% if inscricao %}
+                                                {{ inscricao.full_name }}
+                                                {% else %}
+                                                Usuário administrativo
+                                                {% endif %}
+                                            </div>
+                                            <div class="muted small">{{ usuario.email }}</div>
+
+                                            {% if inscricao and inscricao.cpf %}
+                                            <div class="muted small">CPF: {{ inscricao.cpf }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div>
+                                        {{ usuario.created_at.strftime("%d/%m/%Y") if usuario.created_at else "—" }}
+                                    </div>
+
+                                    {% if inscricao and inscricao.phone %}
+                                    <div class="muted small">{{ inscricao.phone }}</div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if usuario.must_change_password %}
+                                    <span class="badge rounded-pill badge-force">Troca obrigatória</span>
+                                    {% else %}
+                                    <span class="badge rounded-pill badge-normal">Senha normal</span>
+                                    {% endif %}
+
+                                    {% if usuario.password_reset_at %}
+                                    <div class="muted small mt-1">
+                                        Último reset:
+                                        {{ usuario.password_reset_at.strftime("%d/%m/%Y %H:%M") }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    {% if usuario.id == current_user.id %}
+                                    <button class="btn btn-outline-secondary btn-sm" disabled>Sua conta</button>
+                                    {% else %}
+                                    <button type="button" class="btn btn-outline-warning btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#modalResetSenha"
+                                        data-reset-url="{{ url_for('admin_resetar_senha', user_id=usuario.id) }}"
+                                        data-user-email="{{ usuario.email }}"
+                                        data-user-name="{{ inscricao.full_name if inscricao else usuario.email }}">
+                                        Resetar senha
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <div class="display-5 mb-3">🔍</div>
+                    <h2 class="h5">Nenhum usuário encontrado</h2>
+                    <p class="muted mb-0">Verifique os dados pesquisados e tente novamente.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if pagination.pages > 1 %}
+            <nav class="mt-4" aria-label="Paginação de usuários">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('admin_usuarios', page=pagination.prev_num, q=busca) if pagination.has_prev else '#' }}">
+                            Anterior
+                        </a>
+                    </li>
+
+                    {% for numero in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if numero %}
+                    <li class="page-item {% if numero == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('admin_usuarios', page=numero, q=busca) }}">
+                            {{ numero }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('admin_usuarios', page=pagination.next_num, q=busca) if pagination.has_next else '#' }}">
+                            Próxima
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </main>
+
+    <div class="modal fade" id="modalResetSenha" tabindex="-1"
+        aria-labelledby="modalResetSenhaTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="modalResetSenhaTitulo">
+                        Confirmar reset de senha
+                    </h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="mb-2">Você está prestes a resetar a senha de:</p>
+
+                    <div class="p-3 rounded-4 border" style="background: rgba(255,255,255,.04);">
+                        <div class="fw-bold" id="resetUserName"></div>
+                        <div class="muted small" id="resetUserEmail"></div>
+                    </div>
+
+                    <div class="alert alert-warning mt-3 mb-0">
+                        A senha atual deixará de funcionar. O usuário deverá trocar a senha
+                        temporária no próximo acesso.
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <form method="POST" id="resetPasswordForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <button type="submit" class="btn btn-warning fw-bold">
+                            Sim, resetar senha
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include "components/footer.html" %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const modalResetSenha = document.getElementById("modalResetSenha");
+
+        modalResetSenha?.addEventListener("show.bs.modal", function (event) {
+            const button = event.relatedTarget;
+            const resetUrl = button.getAttribute("data-reset-url");
+            const userName = button.getAttribute("data-user-name");
+            const userEmail = button.getAttribute("data-user-email");
+
+            document.getElementById("resetUserName").textContent = userName;
+            document.getElementById("resetUserEmail").textContent = userEmail;
+            document.getElementById("resetPasswordForm").action = resetUrl;
+        });
+    </script>
+</body>
+
+</html>
