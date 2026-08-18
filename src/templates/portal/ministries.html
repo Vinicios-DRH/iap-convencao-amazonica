@@ -4,7 +4,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ministérios — Portal</title>
+    {% from "portal/components/_seo.html" import seo_head %}
+    {{ seo_head(
+        "Ministérios — Convenção Amazônica IAP",
+        "Conheça os ministérios da Convenção Regional Amazônica da Igreja Adventista da Promessa (IAP): jovens, mulheres, homens, crianças e mais."
+    ) }}
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link

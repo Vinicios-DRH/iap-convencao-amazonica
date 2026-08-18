@@ -47,3 +47,19 @@ def sanitize_body(html: str) -> str:
         css_sanitizer=_CSS_SANITIZER,
         strip=True,
     )
+
+
+_WHITESPACE = re.compile(r"\s+")
+
+
+def html_to_meta_description(html: str, fallback: str, max_length: int = 160) -> str:
+    """
+    Tira todo HTML e reduz a um texto corrido curto, pronto pra virar meta description
+    (corpo de artigo/descrição de ministério) -- se não sobrar nada útil, usa o fallback.
+    """
+    text = _WHITESPACE.sub(" ", bleach.clean(html or "", tags=[], strip=True)).strip()
+    if not text:
+        return fallback
+    if len(text) <= max_length:
+        return text
+    return text[:max_length].rsplit(" ", 1)[0].rstrip(",.;:") + "…"
