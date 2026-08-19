@@ -77,6 +77,13 @@
                         <a class="small" href="{{ url_for('portal_manage_ministries') }}">Ver todos →</a>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <div class="pt-card p-3">
+                        <div class="pt-muted small">Páginas</div>
+                        <div class="kpi-value">{{ total_pages }}</div>
+                        <a class="small" href="{{ url_for('portal_manage_pages') }}">Ver todas →</a>
+                    </div>
+                </div>
             </div>
 
             <div class="pt-card p-4 mt-4">
@@ -93,6 +100,8 @@
                         Novo item de menu</a>
                     <a class="pt-btn-outline btn" href="{{ url_for('portal_manage_ministry_new') }}">+
                         Novo ministério</a>
+                    <a class="pt-btn-outline btn" href="{{ url_for('portal_manage_page_new') }}">+
+                        Nova página</a>
                 </div>
             </div>
         </div>

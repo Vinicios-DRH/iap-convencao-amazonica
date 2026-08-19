@@ -46,8 +46,15 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">{{ form.page_id.label.text }}</label>
+                        {{ form.page_id(class="form-select") }}
+                        <div class="pt-muted small mt-1">Páginas são cadastradas em <a
+                                href="{{ url_for('portal_manage_pages') }}">Páginas</a>.</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">{{ form.url.label.text }}</label>
-                        {{ form.url(class="form-control", placeholder="/portal/downloads ou https://...") }}
+                        {{ form.url(class="form-control", placeholder="/portal/diretoria ou https://...") }}
                     </div>
 
                     <div class="row g-3">

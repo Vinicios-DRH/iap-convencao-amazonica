@@ -3,7 +3,7 @@ from flask import Response, render_template, url_for
 from src import app
 from src.models import Tag
 from src.services.portal.ministries import list_active_ministries
-from src.services.portal.posts import list_published_posts
+from src.services.portal.posts import list_published_pages, list_published_posts
 
 
 @app.route("/robots.txt")
@@ -43,12 +43,20 @@ def portal_sitemap():
     add("portal_ministries", priority="0.6")
     add("portal_downloads", priority="0.4")
     add("portal_galeria", priority="0.4")
+    add("portal_diretoria", changefreq="monthly", priority="0.5")
 
     for post in list_published_posts():
         add(
             "portal_post_detail", slug=post.slug,
             lastmod=post.updated_at or post.created_at,
             changefreq="monthly", priority="0.7",
+        )
+
+    for page in list_published_pages():
+        add(
+            "portal_page_detail", slug=page.slug,
+            lastmod=page.updated_at or page.created_at,
+            changefreq="monthly", priority="0.5",
         )
 
     for ministry in list_active_ministries():

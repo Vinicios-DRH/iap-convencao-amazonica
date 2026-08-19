@@ -28,7 +28,12 @@
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="mb-0">Menu do portal</h1>
-                <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_nav_link_new') }}">+ Novo item</a>
+                <div class="d-flex gap-2">
+                    <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_nav_dropdown_new') }}">+ Novo
+                        dropdown</a>
+                    <a class="pt-btn-outline btn" href="{{ url_for('portal_manage_nav_link_new') }}">+ Novo item
+                        avulso</a>
+                </div>
             </div>
             <div class="pt-muted small mb-3">
                 Itens de topo aparecem direto na navbar. Se um item tiver submenus, ele vira um dropdown — só 1
@@ -51,7 +56,8 @@
                             {% for link in links %}
                             <tr>
                                 <td class="fw-semibold">{{ link.label }}</td>
-                                <td class="pt-muted">{{ link.url or '(menu / sem link próprio)' }}</td>
+                                <td class="pt-muted">{{ 'Página: ' ~ link.page.title if link.page_id and link.page
+                                    else (link.url or '(menu / sem link próprio)') }}</td>
                                 <td class="pt-muted">{{ link.order }}</td>
                                 <td>
                                     {% if link.is_active %}
@@ -62,6 +68,9 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                        <a class="pt-btn-outline btn btn-sm"
+                                            href="{{ url_for('portal_manage_nav_link_new', parent_id=link.id) }}">+
+                                            Submenu</a>
                                         <a class="pt-btn-outline btn btn-sm"
                                             href="{{ url_for('portal_manage_nav_link_edit', link_id=link.id) }}">Editar</a>
                                         {% if link.is_active %}
@@ -82,7 +91,8 @@
                             {% for child in link.children %}
                             <tr>
                                 <td class="ps-4">↳ {{ child.label }}</td>
-                                <td class="pt-muted">{{ child.url or '—' }}</td>
+                                <td class="pt-muted">{{ 'Página: ' ~ child.page.title if child.page_id and child.page
+                                    else (child.url or '—') }}</td>
                                 <td class="pt-muted">{{ child.order }}</td>
                                 <td>
                                     {% if child.is_active %}

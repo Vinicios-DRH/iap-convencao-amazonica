@@ -47,19 +47,19 @@
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                         aria-expanded="false">{{ link.label }}</a>
                     <ul class="dropdown-menu">
-                        {% if link.url %}
-                        <li><a class="dropdown-item" href="{{ link.url }}">{{ link.label }}</a></li>
+                        {% if link.url or link.page_id %}
+                        <li><a class="dropdown-item" href="{{ link.target_url }}">{{ link.label }}</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
                         {% endif %}
                         {% for child in link.children if child.is_active %}
-                        <li><a class="dropdown-item" href="{{ child.url or '#' }}">{{ child.label }}</a></li>
+                        <li><a class="dropdown-item" href="{{ child.target_url }}">{{ child.label }}</a></li>
                         {% endfor %}
                     </ul>
                 </li>
                 {% else %}
-                <li class="nav-item"><a class="nav-link" href="{{ link.url or '#' }}">{{ link.label }}</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ link.target_url }}">{{ link.label }}</a></li>
                 {% endif %}
                 {% endfor %}
 

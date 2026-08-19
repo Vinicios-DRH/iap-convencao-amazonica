@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gestão do Portal — Ministérios</title>
+    <title>Membros — {{ mandate.label }}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -16,6 +16,13 @@
         body.pt-body {
             background: var(--pt-bg-soft);
         }
+
+        .member-thumb {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
     </style>
 </head>
 
@@ -26,9 +33,14 @@
         <div class="container">
             {% include "components/flash.html" %}
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">Ministérios</h1>
-                <a class="pt-btn-accent btn" href="{{ url_for('portal_manage_ministry_new') }}">+ Novo ministério</a>
+            <a href="{{ url_for('portal_manage_board_mandates') if board else url_for('portal_manage_ministry_mandates', ministry_id=ministry.id) }}"
+                class="pt-muted small text-decoration-none">&larr; {{ ministry.name if ministry else 'Diretoria da Convenção' }}</a>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+                <h1 class="mb-0">Membros — {{ mandate.label }}</h1>
+                <a class="pt-btn-accent btn"
+                    href="{{ url_for('portal_manage_board_mandate_member_new', mandate_id=mandate.id) if board else url_for('portal_manage_ministry_mandate_member_new', ministry_id=ministry.id, mandate_id=mandate.id) }}">+
+                    Novo membro</a>
             </div>
 
             <div class="pt-card p-0 overflow-hidden">
@@ -36,17 +48,28 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
+                                <th></th>
                                 <th>Nome</th>
+                                <th>Função</th>
+                                <th>Ordem</th>
                                 <th>Status</th>
                                 <th class="text-end">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for ministry in ministries %}
+                            {% for member in members %}
                             <tr>
-                                <td class="fw-semibold">{{ ministry.name }}</td>
                                 <td>
-                                    {% if ministry.is_active %}
+                                    {% if member.photo_key %}
+                                    <img class="member-thumb" src="{{ get_b2_file_url(member.photo_key) }}"
+                                        alt="{{ member.name }}">
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold">{{ member.name }}</td>
+                                <td class="pt-muted">{{ member.role }}</td>
+                                <td class="pt-muted">{{ member.order }}</td>
+                                <td>
+                                    {% if member.is_active %}
                                     <span class="pt-badge pt-badge-status-on">ATIVO</span>
                                     {% else %}
                                     <span class="pt-badge pt-badge-status-off">OCULTO</span>
@@ -55,21 +78,16 @@
                                 <td class="text-end">
                                     <div class="d-flex gap-2 justify-content-end flex-wrap">
                                         <a class="pt-btn-outline btn btn-sm"
-                                            href="{{ url_for('portal_manage_ministry_mandates', ministry_id=ministry.id) }}">Mandatos</a>
-                                        <a class="pt-btn-outline btn btn-sm"
-                                            href="{{ url_for('portal_manage_ministry_social_links', ministry_id=ministry.id) }}">Redes
-                                            sociais</a>
-                                        <a class="pt-btn-outline btn btn-sm"
-                                            href="{{ url_for('portal_manage_ministry_edit', ministry_id=ministry.id) }}">Editar</a>
-                                        {% if ministry.is_active %}
+                                            href="{{ url_for('portal_manage_board_mandate_member_edit', mandate_id=mandate.id, member_id=member.id) if board else url_for('portal_manage_ministry_mandate_member_edit', ministry_id=ministry.id, mandate_id=mandate.id, member_id=member.id) }}">Editar</a>
+                                        {% if member.is_active %}
                                         <form method="POST"
-                                            action="{{ url_for('portal_manage_ministry_hide', ministry_id=ministry.id) }}">
+                                            action="{{ url_for('portal_manage_board_mandate_member_hide', mandate_id=mandate.id, member_id=member.id) if board else url_for('portal_manage_ministry_mandate_member_hide', ministry_id=ministry.id, mandate_id=mandate.id, member_id=member.id) }}">
                                             <button class="pt-btn-danger-outline btn btn-sm"
                                                 type="submit">Ocultar</button>
                                         </form>
                                         {% else %}
                                         <form method="POST"
-                                            action="{{ url_for('portal_manage_ministry_show', ministry_id=ministry.id) }}">
+                                            action="{{ url_for('portal_manage_board_mandate_member_show', mandate_id=mandate.id, member_id=member.id) if board else url_for('portal_manage_ministry_mandate_member_show', ministry_id=ministry.id, mandate_id=mandate.id, member_id=member.id) }}">
                                             <button class="pt-btn btn btn-sm" type="submit">Reativar</button>
                                         </form>
                                         {% endif %}
@@ -77,10 +95,9 @@
                                 </td>
                             </tr>
                             {% endfor %}
-                            {% if ministries|length == 0 %}
+                            {% if members|length == 0 %}
                             <tr>
-                                <td colspan="3" class="text-center pt-muted p-4">Nenhum ministério cadastrado ainda.
-                                </td>
+                                <td colspan="6" class="text-center pt-muted p-4">Nenhum membro cadastrado ainda.</td>
                             </tr>
                             {% endif %}
                         </tbody>

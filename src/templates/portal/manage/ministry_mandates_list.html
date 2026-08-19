@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Membros — {{ ministry.name }}</title>
+    <title>Mandatos — {{ ministry.name }}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -29,11 +29,15 @@
             <a href="{{ url_for('portal_manage_ministry_edit', ministry_id=ministry.id) }}"
                 class="pt-muted small text-decoration-none">&larr; {{ ministry.name }}</a>
 
-            <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-                <h1 class="mb-0">Membros do {{ ministry.name }}</h1>
+            <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
+                <h1 class="mb-0">Mandatos do {{ ministry.name }}</h1>
                 <a class="pt-btn-accent btn"
-                    href="{{ url_for('portal_manage_ministry_member_new', ministry_id=ministry.id) }}">+ Novo
-                    membro</a>
+                    href="{{ url_for('portal_manage_ministry_mandate_new', ministry_id=ministry.id) }}">+ Novo
+                    mandato</a>
+            </div>
+            <div class="pt-muted small mb-4">
+                Só o mandato marcado como <strong>atual</strong> aparece na página pública do ministério. Os outros
+                ficam guardados aqui como histórico.
             </div>
 
             <div class="pt-card p-0 overflow-hidden">
@@ -41,49 +45,43 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Nome</th>
-                                <th>Função</th>
-                                <th>Ordem</th>
+                                <th>Mandato</th>
+                                <th>Criado em</th>
                                 <th>Status</th>
                                 <th class="text-end">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for member in members %}
+                            {% for mandate in mandates %}
                             <tr>
-                                <td class="fw-semibold">{{ member.name }}</td>
-                                <td class="pt-muted">{{ member.role }}</td>
-                                <td class="pt-muted">{{ member.order }}</td>
+                                <td class="fw-semibold">{{ mandate.label }}</td>
+                                <td class="pt-muted">{{ mandate.created_at.strftime('%d/%m/%Y') if mandate.created_at
+                                    else '—' }}</td>
                                 <td>
-                                    {% if member.is_active %}
-                                    <span class="pt-badge pt-badge-status-on">ATIVO</span>
+                                    {% if mandate.is_current %}
+                                    <span class="pt-badge pt-badge-status-on">ATUAL</span>
                                     {% else %}
-                                    <span class="pt-badge pt-badge-status-off">OCULTO</span>
+                                    <span class="pt-badge pt-badge-status-off">HISTÓRICO</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex gap-2 justify-content-end flex-wrap">
                                         <a class="pt-btn-outline btn btn-sm"
-                                            href="{{ url_for('portal_manage_ministry_member_edit', ministry_id=ministry.id, member_id=member.id) }}">Editar</a>
-                                        {% if member.is_active %}
+                                            href="{{ url_for('portal_manage_ministry_mandate_members', ministry_id=ministry.id, mandate_id=mandate.id) }}">Membros</a>
+                                        {% if not mandate.is_current %}
                                         <form method="POST"
-                                            action="{{ url_for('portal_manage_ministry_member_hide', ministry_id=ministry.id, member_id=member.id) }}">
-                                            <button class="pt-btn-danger-outline btn btn-sm"
-                                                type="submit">Ocultar</button>
-                                        </form>
-                                        {% else %}
-                                        <form method="POST"
-                                            action="{{ url_for('portal_manage_ministry_member_show', ministry_id=ministry.id, member_id=member.id) }}">
-                                            <button class="pt-btn btn btn-sm" type="submit">Reativar</button>
+                                            action="{{ url_for('portal_manage_ministry_mandate_set_current', ministry_id=ministry.id, mandate_id=mandate.id) }}"
+                                            onsubmit="return confirm('Tornar \'{{ mandate.label }}\' o mandato atual? Ele passa a aparecer no site no lugar do mandato atual.');">
+                                            <button class="pt-btn btn btn-sm" type="submit">Tornar atual</button>
                                         </form>
                                         {% endif %}
                                     </div>
                                 </td>
                             </tr>
                             {% endfor %}
-                            {% if members|length == 0 %}
+                            {% if mandates|length == 0 %}
                             <tr>
-                                <td colspan="5" class="text-center pt-muted p-4">Nenhum membro cadastrado ainda.</td>
+                                <td colspan="4" class="text-center pt-muted p-4">Nenhum mandato cadastrado ainda.</td>
                             </tr>
                             {% endif %}
                         </tbody>

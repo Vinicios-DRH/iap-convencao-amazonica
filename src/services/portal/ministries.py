@@ -1,6 +1,6 @@
 from src import database
 from src.controllers.slugify import gerar_slug
-from src.models import Ministry, MinistryMember, MinistrySocialLink
+from src.models import Ministry, MinistryMandate, MinistryMandateMember, MinistrySocialLink
 from src.services.audit import log_audit
 from src.services.portal.photos import track_image
 from src.services.portal.sanitizer import sanitize_body
@@ -89,60 +89,129 @@ def set_ministry_active(ministry: Ministry, is_active: bool, actor_user_id) -> N
     database.session.commit()
 
 
-# ===== membros =====
+# ===== mandatos de liderança =====
+# Cada troca de liderança (a cada ~4 anos) vira um mandato novo em vez de sobrescrever o
+# anterior -- o antigo fica no painel como histórico, só o mandato is_current=True aparece
+# pro público (ver list_active_members, chamada por src/routes/portal/public.py).
 
-def list_members(ministry: Ministry):
+def list_mandates(ministry: Ministry):
+    return MinistryMandate.query.filter_by(ministry_id=ministry.id).order_by(MinistryMandate.created_at.desc()).all()
+
+
+def get_current_mandate(ministry: Ministry):
+    return MinistryMandate.query.filter_by(ministry_id=ministry.id, is_current=True).first()
+
+
+def create_mandate(ministry: Ministry, form, actor_user_id) -> MinistryMandate:
+    mandate = MinistryMandate(ministry_id=ministry.id, label=form.label.data.strip())
+    database.session.add(mandate)
+    log_audit(
+        actor_user_id=actor_user_id,
+        action="cms_ministry_mandate_created",
+        details=f"ministry_id={ministry.id} label={mandate.label}",
+    )
+    database.session.commit()
+    return mandate
+
+
+def set_current_mandate(ministry: Ministry, mandate: MinistryMandate, actor_user_id) -> None:
+    MinistryMandate.query.filter_by(ministry_id=ministry.id).update({"is_current": False})
+    mandate.is_current = True
+    log_audit(
+        actor_user_id=actor_user_id,
+        action="cms_ministry_mandate_set_current",
+        details=f"ministry_id={ministry.id} mandate_id={mandate.id}",
+    )
+    database.session.commit()
+
+
+# ===== membros (dentro de um mandato) =====
+
+def list_members(mandate: MinistryMandate):
     return (
-        MinistryMember.query
-        .filter_by(ministry_id=ministry.id)
-        .order_by(MinistryMember.order, MinistryMember.name)
+        MinistryMandateMember.query
+        .filter_by(mandate_id=mandate.id)
+        .order_by(MinistryMandateMember.order, MinistryMandateMember.name)
         .all()
     )
 
 
 def list_active_members(ministry: Ministry):
-    return (
-        MinistryMember.query
-        .filter_by(ministry_id=ministry.id, is_active=True)
-        .order_by(MinistryMember.order, MinistryMember.name)
-        .all()
-    )
+    """Membros do mandato ATUAL do ministério -- é o que a página pública mostra.
+    Sem mandato atual ainda cadastrado, ou se as tabelas de mandato ainda não existirem
+    (deploy antes de rodar o SQL no Supabase), degrada pra lista vazia em vez de derrubar
+    a página do ministério."""
+    try:
+        mandate = get_current_mandate(ministry)
+        if not mandate:
+            return []
+        return (
+            MinistryMandateMember.query
+            .filter_by(mandate_id=mandate.id, is_active=True)
+            .order_by(MinistryMandateMember.order, MinistryMandateMember.name)
+            .all()
+        )
+    except Exception:
+        database.session.rollback()
+        return []
 
 
-def create_member(ministry: Ministry, form, actor_user_id) -> MinistryMember:
-    member = MinistryMember(
-        ministry_id=ministry.id,
+def create_member(mandate: MinistryMandate, form, actor_user_id) -> MinistryMandateMember:
+    photo_key = None
+    if getattr(form, "photo", None) and form.photo.data:
+        photo_key = save_image_upload(form.photo.data, folder="cms/ministries/mandatos")
+
+    member = MinistryMandateMember(
+        mandate_id=mandate.id,
         user_id=form.user_id.data or None,
         name=form.name.data.strip(),
         role=form.role.data.strip(),
+        photo_key=photo_key,
         order=form.order.data or 0,
     )
     database.session.add(member)
     log_audit(
         actor_user_id=actor_user_id,
-        action="cms_ministry_member_created",
-        details=f"ministry_id={ministry.id} name={member.name}",
+        action="cms_ministry_mandate_member_created",
+        details=f"mandate_id={mandate.id} name={member.name}",
     )
     database.session.commit()
+
+    if photo_key:
+        track_image(photo_key, caption=f"{member.name} ({member.role})", album="Ministérios")
+
     return member
 
 
-def update_member(member: MinistryMember, form, actor_user_id) -> MinistryMember:
+def update_member(member: MinistryMandateMember, form, actor_user_id) -> MinistryMandateMember:
     member.user_id = form.user_id.data or None
     member.name = form.name.data.strip()
     member.role = form.role.data.strip()
     member.order = form.order.data or 0
 
-    log_audit(actor_user_id=actor_user_id, action="cms_ministry_member_updated", details=f"member_id={member.id}")
+    new_photo_key = None
+    if getattr(form, "photo", None) and form.photo.data:
+        new_photo_key = save_image_upload(form.photo.data, folder="cms/ministries/mandatos")
+        member.photo_key = new_photo_key
+
+    log_audit(
+        actor_user_id=actor_user_id,
+        action="cms_ministry_mandate_member_updated",
+        details=f"member_id={member.id}",
+    )
     database.session.commit()
+
+    if new_photo_key:
+        track_image(new_photo_key, caption=f"{member.name} ({member.role})", album="Ministérios")
+
     return member
 
 
-def set_member_active(member: MinistryMember, is_active: bool, actor_user_id) -> None:
+def set_member_active(member: MinistryMandateMember, is_active: bool, actor_user_id) -> None:
     member.is_active = is_active
     log_audit(
         actor_user_id=actor_user_id,
-        action="cms_ministry_member_visibility_changed",
+        action="cms_ministry_mandate_member_visibility_changed",
         details=f"member_id={member.id} is_active={is_active}",
     )
     database.session.commit()

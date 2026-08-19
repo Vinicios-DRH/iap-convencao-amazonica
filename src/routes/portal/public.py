@@ -2,6 +2,7 @@ from flask import abort, render_template, request
 
 from src import app
 from src.services.portal.banners import list_active_banners
+from src.services.portal.board import list_current_members
 from src.services.portal.downloads import list_active_downloads
 from src.services.portal.photos import list_active_photos
 from src.services.portal.ministries import (
@@ -12,6 +13,7 @@ from src.services.portal.ministries import (
 )
 from src.services.portal.posts import (
     get_posts_by_tag_slug,
+    get_published_page_by_slug,
     get_published_post_by_slug,
     list_posts_by_ministry,
     list_published_posts,
@@ -106,6 +108,25 @@ def portal_ministry_detail(slug):
         posts=list_posts_by_ministry(ministry, limit=6),
         meta_description=meta_description,
     )
+
+
+@app.route("/portal/diretoria")
+def portal_diretoria():
+    return render_template("portal/diretoria.html", members=list_current_members())
+
+
+@app.route("/portal/paginas/<slug>")
+def portal_page_detail(slug):
+    page = get_published_page_by_slug(slug)
+    if not page:
+        abort(404)
+
+    meta_description = html_to_meta_description(
+        page.summary or page.body,
+        fallback=f"{page.title} — Convenção Amazônica IAP.",
+    )
+
+    return render_template("portal/page_detail.html", page=page, meta_description=meta_description)
 
 
 @app.route("/portal/downloads")

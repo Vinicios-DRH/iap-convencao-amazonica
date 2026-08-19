@@ -131,6 +131,17 @@ class PostForm(FlaskForm):
     submit = SubmitField("Salvar")
 
 
+class PageForm(FlaskForm):
+    title = StringField("Título", validators=[DataRequired(), Length(min=3, max=200)])
+    summary = TextAreaField("Resumo (opcional)", validators=[Optional(), Length(max=500)])
+    body = TextAreaField("Conteúdo", validators=[DataRequired()])
+    cover_image = FileField(
+        "Imagem de capa (opcional)",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
+    submit = SubmitField("Salvar")
+
+
 class AuthorForm(FlaskForm):
     name = StringField("Nome", validators=[DataRequired(), Length(min=2, max=150)])
     bio = TextAreaField("Biografia (opcional)", validators=[Optional(), Length(max=2000)])
@@ -185,8 +196,9 @@ class BannerForm(FlaskForm):
 
 class NavLinkForm(FlaskForm):
     label = StringField("Texto do link", validators=[DataRequired(), Length(min=1, max=80)])
+    page_id = SelectField("Página vinculada (opcional)", coerce=int, validators=[Optional()])
     url = StringField(
-        "URL (deixe em branco se for só um menu com submenu)",
+        "URL manual (opcional — ignorada se uma página estiver vinculada acima)",
         validators=[Optional(), Length(max=300)],
     )
     parent_id = SelectField("Menu pai (opcional)", coerce=int, validators=[Optional()])
@@ -228,10 +240,22 @@ class MinistryForm(FlaskForm):
     submit = SubmitField("Salvar")
 
 
-class MinistryMemberForm(FlaskForm):
+class MandateForm(FlaskForm):
+    """Reaproveitado tanto pelos mandatos de Ministério quanto da Diretoria — mesma forma,
+    só muda o que o service faz com o label (associa a um ministério ou não)."""
+    label = StringField("Nome do mandato", validators=[DataRequired(), Length(min=3, max=80)])
+    submit = SubmitField("Salvar")
+
+
+class MandateMemberForm(FlaskForm):
+    """Reaproveitado por membro de mandato de Ministério e de membro da Diretoria."""
     name = StringField("Nome", validators=[DataRequired(), Length(min=2, max=150)])
     role = StringField("Função", validators=[DataRequired(), Length(max=80)])
     user_id = SelectField("Vincular a uma conta (opcional)", coerce=int, validators=[Optional()])
+    photo = FileField(
+        "Foto (opcional)",
+        validators=[Optional(), FileAllowed(IMAGE_EXTENSIONS, "Envie uma imagem JPG, PNG ou WEBP.")],
+    )
     order = IntegerField("Ordem", validators=[Optional(), NumberRange(min=0, max=999)], default=0)
     submit = SubmitField("Salvar")
 

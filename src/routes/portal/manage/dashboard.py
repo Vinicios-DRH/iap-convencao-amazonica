@@ -10,7 +10,8 @@ from src.models import Author, Download, Ministry, NavLink, Photo, Post
 def portal_painel():
     return render_template(
         "portal/manage/dashboard.html",
-        total_posts=Post.query.count(),
+        total_posts=Post.query.filter_by(post_type="artigo").count(),
+        total_pages=Post.query.filter_by(post_type="pagina").count(),
         total_authors=Author.query.count(),
         total_downloads=Download.query.count(),
         total_photos=Photo.query.count(),

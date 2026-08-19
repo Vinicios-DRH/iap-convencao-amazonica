@@ -51,9 +51,20 @@
         }
 
         .member-card {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
             border: 1px solid var(--pt-border);
             border-radius: 12px;
             padding: .9rem 1.1rem;
+        }
+
+        .member-photo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -88,8 +99,14 @@
                 {% for member in members %}
                 <div class="col-md-6">
                     <div class="member-card">
-                        <div class="fw-semibold">{{ member.name }}</div>
-                        <div class="pt-muted small">{{ member.role }}</div>
+                        {% if member.photo_key %}
+                        <img class="member-photo" src="{{ get_b2_file_url(member.photo_key) }}"
+                            alt="{{ member.name }}">
+                        {% endif %}
+                        <div>
+                            <div class="fw-semibold">{{ member.name }}</div>
+                            <div class="pt-muted small">{{ member.role }}</div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
