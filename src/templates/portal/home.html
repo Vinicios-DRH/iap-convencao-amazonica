@@ -36,19 +36,13 @@
             object-fit: cover;
         }
 
-        .pt-banner-carousel .carousel-item a {
-            display: block;
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* botão "Acesse aqui" -- só aparece quando o banner tem link, avisando
-           visualmente que dá pra clicar (a imagem inteira já é clicável também) */
+        /* botão "Acesse aqui" -- só aparece quando o banner tem link. A imagem em si
+           não é mais clicável, só o botão (Bootstrap já deixa .carousel-item
+           position:relative por padrão, então isso serve de referência pro absolute). */
         .pt-banner-carousel .banner-cta {
             position: absolute;
-            left: 50%;
-            bottom: 80px;
+            left: 24%;
+            bottom: 140px;
             transform: translateX(-50%);
             z-index: 2;
             display: inline-flex;
@@ -56,18 +50,18 @@
             gap: .4rem;
             background: var(--pt-orange);
             color: #fff;
+            text-decoration: none;
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
             font-size: .95rem;
             padding: .65rem 1.4rem;
             border-radius: 999px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, .3);
-            transition: background-color .2s ease, transform .2s ease;
+            transition: opacity .2s ease;
         }
 
-        .pt-banner-carousel .carousel-item a:hover .banner-cta {
-            background: var(--pt-orange-dark);
-            transform: translate(-50%, -2px);
+        .pt-banner-carousel .banner-cta:hover {
+            opacity: .55;
         }
 
         /* setas laterais: viram um botão circular "vidro fosco" em vez do ícone solto */
@@ -147,13 +141,9 @@
             <div class="carousel-inner">
                 {% for banner in banners %}
                 <div class="carousel-item {{ 'active' if loop.first else '' }}">
-                    {% if banner.link_url %}
-                    <a href="{{ banner.link_url }}">
-                        <img src="{{ get_b2_file_url(banner.image_key) }}" alt="{{ banner.description }}">
-                        <span class="banner-cta">Acesse aqui &rarr;</span>
-                    </a>
-                    {% else %}
                     <img src="{{ get_b2_file_url(banner.image_key) }}" alt="{{ banner.description }}">
+                    {% if banner.link_url %}
+                    <a href="{{ banner.link_url }}" class="banner-cta">Acesse aqui &rarr;</a>
                     {% endif %}
                 </div>
                 {% endfor %}

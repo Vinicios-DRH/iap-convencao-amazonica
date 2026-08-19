@@ -47,7 +47,10 @@ body.pt-body {
 .pt-header {
     background: var(--pt-bg);
     border-bottom: 1px solid var(--pt-border);
-    box-shadow: var(--pt-shadow-sm);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .15);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
 }
 
 .pt-header .navbar-brand {
