@@ -26,7 +26,29 @@
         .pt-banner-carousel .carousel-item {
             height: min(65vw, 620px);
             min-height: 260px;
+            overflow: hidden;
             background: linear-gradient(120deg, var(--pt-blue), var(--pt-blue-dark));
+        }
+
+        /*
+         * Fundo com a mesma imagem, borrada e ampliada, preenchendo o espaço que
+         * sobra quando a proporção da foto não bate com a do carrossel -- em vez
+         * de deixar borda lisa (feio), some atrás de um eco desfocado da própria
+         * imagem. A foto em si (abaixo) continua inteira, sem cortar nada.
+         */
+        .pt-banner-carousel .banner-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(30px) brightness(.65);
+            transform: scale(1.15);
+        }
+
+        .pt-banner-carousel .carousel-item img,
+        .pt-banner-carousel .carousel-item a {
+            position: relative;
+            z-index: 1;
         }
 
         .pt-banner-carousel .carousel-item img {
@@ -45,7 +67,7 @@
         <h1 class="visually-hidden">Convenção Amazônica — Igreja Adventista da Promessa (IAP)</h1>
 
         {% if banners %}
-        <div id="bannerCarousel" class="carousel slide pt-banner-carousel" data-bs-ride="carousel">
+        <div id="bannerCarousel" class="carousel slide carousel-fade pt-banner-carousel" data-bs-ride="carousel">
             {% if banners|length > 1 %}
             <div class="carousel-indicators">
                 {% for banner in banners %}
@@ -60,6 +82,8 @@
             <div class="carousel-inner">
                 {% for banner in banners %}
                 <div class="carousel-item {{ 'active' if loop.first else '' }}">
+                    <div class="banner-bg" style="background-image: url('{{ get_b2_file_url(banner.image_key) }}');">
+                    </div>
                     {% if banner.link_url %}
                     <a href="{{ banner.link_url }}">
                         <img src="{{ get_b2_file_url(banner.image_key) }}" alt="{{ banner.description }}">
