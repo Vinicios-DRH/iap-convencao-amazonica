@@ -1,6 +1,7 @@
 from src import database
 from src.models import Banner
 from src.services.audit import log_audit
+from src.services.portal.colors import extract_accent_color
 from src.services.portal.photos import track_image
 from src.services.portal.uploads import save_image_upload
 
@@ -24,6 +25,7 @@ def list_active_banners():
 
 
 def create_banner(form, actor_user_id) -> Banner:
+    accent_color = extract_accent_color(form.image.data)
     image_key = save_image_upload(form.image.data, folder="cms/banners", max_dimension=BANNER_MAX_DIMENSION)
 
     banner = Banner(
@@ -31,6 +33,7 @@ def create_banner(form, actor_user_id) -> Banner:
         description=form.description.data.strip(),
         link_url=(form.link_url.data or "").strip() or None,
         order=form.order.data or 0,
+        accent_color=accent_color,
     )
     database.session.add(banner)
     log_audit(actor_user_id=actor_user_id, action="cms_banner_created", details=f"description={banner.description}")
@@ -47,7 +50,8 @@ def update_banner(banner: Banner, form, actor_user_id) -> Banner:
 
     new_image_key = None
     if form.image.data:
-        new_image_key = save_image_upload(form.image.data, folder="cms/banners")
+        banner.accent_color = extract_accent_color(form.image.data)
+        new_image_key = save_image_upload(form.image.data, folder="cms/banners", max_dimension=BANNER_MAX_DIMENSION)
         banner.image_key = new_image_key
 
     log_audit(actor_user_id=actor_user_id, action="cms_banner_updated", details=f"banner_id={banner.id}")

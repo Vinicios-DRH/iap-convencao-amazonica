@@ -40,6 +40,7 @@
            não é mais clicável, só o botão (Bootstrap já deixa .carousel-item
            position:relative por padrão, então isso serve de referência pro absolute). */
         .pt-banner-carousel .banner-cta {
+            --cta-color: var(--pt-orange);
             position: absolute;
             left: 24%;
             bottom: 140px;
@@ -48,20 +49,21 @@
             display: inline-flex;
             align-items: center;
             gap: .4rem;
-            background: var(--pt-orange);
+            background-color: var(--cta-color);
+            border: 2px solid var(--cta-color);
             color: #fff;
             text-decoration: none;
             font-family: 'Poppins', sans-serif;
             font-weight: 700;
             font-size: .95rem;
-            padding: .65rem 1.4rem;
+            padding: .55rem 1.3rem;
             border-radius: 999px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, .3);
-            transition: opacity .2s ease;
+            transition: background-color .2s ease;
         }
 
         .pt-banner-carousel .banner-cta:hover {
-            opacity: .55;
+            background-color: transparent;
         }
 
         /* setas laterais: viram um botão circular "vidro fosco" em vez do ícone solto */
@@ -143,7 +145,9 @@
                 <div class="carousel-item {{ 'active' if loop.first else '' }}">
                     <img src="{{ get_b2_file_url(banner.image_key) }}" alt="{{ banner.description }}">
                     {% if banner.link_url %}
-                    <a href="{{ banner.link_url }}" class="banner-cta">Acesse aqui &rarr;</a>
+                    <a href="{{ banner.link_url }}" class="banner-cta"
+                        {% if banner.accent_color %}style="--cta-color: {{ banner.accent_color }};"{% endif %}>Acesse
+                        aqui &rarr;</a>
                     {% endif %}
                 </div>
                 {% endfor %}

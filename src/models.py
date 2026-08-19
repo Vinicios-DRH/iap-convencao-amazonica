@@ -460,6 +460,11 @@ class Banner(database.Model):
     link_url = database.Column(database.String(300), nullable=True)
     order = database.Column(database.Integer, default=0, nullable=False)
 
+    # cor de destaque extraída da própria imagem (ver src/services/portal/colors.py) --
+    # usada como fundo do botão "Acesse aqui", pra combinar com cada banner. Nula pra
+    # banners criados antes dessa coluna existir (o template cai num laranja padrão).
+    accent_color = database.Column(database.String(7), nullable=True)
+
     is_active = database.Column(database.Boolean, default=True, nullable=False)
     created_at = database.Column(database.DateTime, default=datetime.utcnow)
 
