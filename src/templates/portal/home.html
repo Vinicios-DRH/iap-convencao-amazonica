@@ -47,8 +47,9 @@
            visualmente que dá pra clicar (a imagem inteira já é clicável também) */
         .pt-banner-carousel .banner-cta {
             position: absolute;
-            left: 24px;
-            bottom: 24px;
+            left: 50%;
+            bottom: 32px;
+            transform: translateX(-50%);
             z-index: 2;
             display: inline-flex;
             align-items: center;
@@ -66,7 +67,7 @@
 
         .pt-banner-carousel .carousel-item a:hover .banner-cta {
             background: var(--pt-orange-dark);
-            transform: translateY(-2px);
+            transform: translate(-50%, -2px);
         }
 
         /* setas laterais: viram um botão circular "vidro fosco" em vez do ícone solto */
