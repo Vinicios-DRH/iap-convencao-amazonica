@@ -30,31 +30,10 @@
             background: linear-gradient(120deg, var(--pt-blue), var(--pt-blue-dark));
         }
 
-        /*
-         * Fundo com a mesma imagem, borrada e ampliada, preenchendo o espaço que
-         * sobra quando a proporção da foto não bate com a do carrossel -- em vez
-         * de deixar borda lisa (feio), some atrás de um eco desfocado da própria
-         * imagem. A foto em si (abaixo) continua inteira, sem cortar nada.
-         */
-        .pt-banner-carousel .banner-bg {
-            position: absolute;
-            inset: 0;
-            background-size: cover;
-            background-position: center;
-            filter: blur(30px) brightness(.65);
-            transform: scale(1.15);
-        }
-
-        .pt-banner-carousel .carousel-item img,
-        .pt-banner-carousel .carousel-item a {
-            position: relative;
-            z-index: 1;
-        }
-
         .pt-banner-carousel .carousel-item img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -82,8 +61,6 @@
             <div class="carousel-inner">
                 {% for banner in banners %}
                 <div class="carousel-item {{ 'active' if loop.first else '' }}">
-                    <div class="banner-bg" style="background-image: url('{{ get_b2_file_url(banner.image_key) }}');">
-                    </div>
                     {% if banner.link_url %}
                     <a href="{{ banner.link_url }}">
                         <img src="{{ get_b2_file_url(banner.image_key) }}" alt="{{ banner.description }}">
