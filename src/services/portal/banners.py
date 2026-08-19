@@ -4,6 +4,10 @@ from src.services.audit import log_audit
 from src.services.portal.photos import track_image
 from src.services.portal.uploads import save_image_upload
 
+# o banner ocupa a largura inteira da tela (ver .pt-banner-carousel em portal/home.html) --
+# usa um teto maior que o padrão de imagens (1600px) pra não borrar em monitores grandes.
+BANNER_MAX_DIMENSION = 1920
+
 
 def list_banners():
     return Banner.query.order_by(Banner.order, Banner.created_at.desc()).all()
@@ -20,7 +24,7 @@ def list_active_banners():
 
 
 def create_banner(form, actor_user_id) -> Banner:
-    image_key = save_image_upload(form.image.data, folder="cms/banners")
+    image_key = save_image_upload(form.image.data, folder="cms/banners", max_dimension=BANNER_MAX_DIMENSION)
 
     banner = Banner(
         image_key=image_key,
