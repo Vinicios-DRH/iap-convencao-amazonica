@@ -7,7 +7,7 @@ PIX_PADRAO_MSG = (
 CRIANCAS_MSG = "Crianças de até 5 anos não pagam a inscrição, desde que dividam a cama com o responsável."
 
 INCLUI_ITENS = [
-    "Dia 20 — Almoço e jantar",
+    "Dia 20 — Jantar",
     "Dia 21 — Café da manhã, almoço e jantar",
     "Dia 22 — Café da manhã",
     "Transporte de ônibus (caso prefira) — Saída de Manaus",
