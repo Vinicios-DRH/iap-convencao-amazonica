@@ -125,7 +125,8 @@
             text-shadow: 0 0 30px rgba(217, 70, 239, .35);
         }
 
-        .mystery small {
+        .mystery small,
+        .guest-photo small {
             position: absolute;
             left: 12px;
             bottom: 12px;
@@ -134,6 +135,24 @@
             padding: .35rem .6rem;
             border-radius: 999px;
             font-weight: 600;
+        }
+
+        /* convidado(a) já revelado -- mesma moldura do "mistério", só com a foto de
+           verdade em vez do "?" */
+        .guest-photo {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, .25);
+        }
+
+        .guest-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
         }
 
         .footer-note {
@@ -283,29 +302,33 @@
 
             <div class="row g-4 align-items-stretch">
                 <div class="col-12">
-                    <h2 class="h4 fw-bold mb-3">Convidados especiais (revelação em breve)</h2>
+                    <h2 class="h4 fw-bold mb-3">Convidados especiais</h2>
                 </div>
 
                 <div class="col-md-6 col-lg-4">
                     <div class="card-glass p-3 h-100">
-                        <div class="mystery">
+                        <div class="guest-photo">
+                            <img src="{{ url_for('static', filename='img/andrea.jpeg') }}"
+                                alt="Dra. Andrea Nunes">
                             <small>Convidada Especial</small>
                         </div>
                         <div class="mt-3">
-                            <div class="fw-bold">Mistério confirmado 👀</div>
-                            <div style="color:rgba(255,255,255,.75)">Em breve vamos revelar o nome.</div>
+                            <div class="fw-bold">Dsa. Andrea Nunes</div>
+                            <div style="color:rgba(255,255,255,.75)">Convidada especial da Convenção Jovem.</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-lg-4">
                     <div class="card-glass p-3 h-100">
-                        <div class="mystery">
+                        <div class="guest-photo">
+                            <img src="{{ url_for('static', filename='img/pastor_jeferson.jpeg') }}"
+                                alt="Pastor Jeferson Bagagin">
                             <small>Convidado Especial</small>
                         </div>
                         <div class="mt-3">
-                            <div class="fw-bold">Mistério confirmado 👀</div>
-                            <div style="color:rgba(255,255,255,.75)">Em breve vamos revelar o nome.</div>
+                            <div class="fw-bold">Pastor Jeferson Bagagin</div>
+                            <div style="color:rgba(255,255,255,.75)">Convidado especial da Convenção Jovem.</div>
                         </div>
                     </div>
                 </div>
