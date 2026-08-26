@@ -28,11 +28,13 @@ def _unique_slug(title: str, ignore_id: int | None = None) -> str:
 
 
 def list_posts():
-    return Post.query.order_by(Post.created_at.desc()).all()
+    return Post.query.filter_by(post_type="artigo").order_by(Post.created_at.desc()).all()
 
 
 def list_published_posts(limit: int | None = None, exclude_ids: list | None = None):
-    query = Post.query.filter_by(is_published=True)
+    # post_type="artigo" (default do modelo) -- exclui páginas institucionais, que usam
+    # o mesmo modelo Post mas não são "notícia" (ver list_pages/get_published_page_by_slug).
+    query = Post.query.filter_by(is_published=True, post_type="artigo")
     if exclude_ids:
         query = query.filter(Post.id.notin_(exclude_ids))
     query = query.order_by(Post.created_at.desc())
@@ -61,14 +63,14 @@ def list_related_posts(post: Post, limit: int = 4):
 def list_published_posts_paginated(page: int, per_page: int = 12):
     return (
         Post.query
-        .filter_by(is_published=True)
+        .filter_by(is_published=True, post_type="artigo")
         .order_by(Post.created_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
 
 def get_published_post_by_slug(slug: str):
-    return Post.query.filter_by(slug=slug, is_published=True).first()
+    return Post.query.filter_by(slug=slug, is_published=True, post_type="artigo").first()
 
 
 def get_posts_by_tag_slug(tag_slug: str, page: int, per_page: int):
@@ -81,7 +83,7 @@ def get_posts_by_tag_slug(tag_slug: str, page: int, per_page: int):
     pagination = (
         Post.query
         .join(cms_post_tags, Post.id == cms_post_tags.c.post_id)
-        .filter(cms_post_tags.c.tag_id == tag.id, Post.is_published.is_(True))
+        .filter(cms_post_tags.c.tag_id == tag.id, Post.is_published.is_(True), Post.post_type == "artigo")
         .order_by(Post.created_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )
@@ -166,3 +168,67 @@ def set_post_published(post: Post, is_published: bool, actor_user_id) -> None:
         details=f"post_id={post.id} is_published={is_published}",
     )
     database.session.commit()
+
+
+# ===== páginas institucionais (mesmo modelo Post, post_type="pagina") =====
+# Sem autor visível, sem tags, sem ministério -- só título, resumo, conteúdo e capa.
+
+def list_pages():
+    return Post.query.filter_by(post_type="pagina").order_by(Post.title).all()
+
+
+def list_published_pages():
+    return Post.query.filter_by(is_published=True, post_type="pagina").order_by(Post.title).all()
+
+
+def get_published_page_by_slug(slug: str):
+    return Post.query.filter_by(slug=slug, is_published=True, post_type="pagina").first()
+
+
+def create_page(form, created_by_user_id) -> Post:
+    cover_image_key = None
+    if form.cover_image.data:
+        cover_image_key = save_image_upload(form.cover_image.data, folder="cms/pages")
+
+    title = form.title.data.strip()
+    page = Post(
+        title=title,
+        slug=_unique_slug(title),
+        summary=(form.summary.data or "").strip() or None,
+        body=sanitize_body(form.body.data),
+        post_type="pagina",
+        cover_image_key=cover_image_key,
+        is_published=True,
+        published_at=datetime.utcnow(),
+        created_by_user_id=created_by_user_id,
+    )
+    database.session.add(page)
+    log_audit(actor_user_id=created_by_user_id, action="cms_page_created", details=f"title={title}")
+    database.session.commit()
+
+    if cover_image_key:
+        track_image(cover_image_key, caption=f"Capa: {title}", album="Páginas")
+
+    return page
+
+
+def update_page(page: Post, form, actor_user_id) -> Post:
+    new_title = form.title.data.strip()
+    if new_title != page.title:
+        page.slug = _unique_slug(new_title, ignore_id=page.id)
+    page.title = new_title
+    page.summary = (form.summary.data or "").strip() or None
+    page.body = sanitize_body(form.body.data)
+
+    new_cover_key = None
+    if form.cover_image.data:
+        new_cover_key = save_image_upload(form.cover_image.data, folder="cms/pages")
+        page.cover_image_key = new_cover_key
+
+    log_audit(actor_user_id=actor_user_id, action="cms_page_updated", details=f"post_id={page.id}")
+    database.session.commit()
+
+    if new_cover_key:
+        track_image(new_cover_key, caption=f"Capa: {page.title}", album="Páginas")
+
+    return page

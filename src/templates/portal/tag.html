@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>#{{ tag.name }} — Portal</title>
+    {% from "portal/components/_seo.html" import seo_head %}
+    {{ seo_head("#" ~ tag.name ~ " — Convenção Amazônica IAP", meta_description) }}
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link

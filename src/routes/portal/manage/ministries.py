@@ -5,16 +5,20 @@ from flask_wtf.csrf import validate_csrf
 
 from src import app
 from src.decorators import cms_manager_required
-from src.forms import MinistryForm, MinistryMemberForm, MinistrySocialLinkForm
-from src.models import Ministry, MinistryMember, MinistrySocialLink, User
+from src.forms import MandateForm, MandateMemberForm, MinistryForm, MinistrySocialLinkForm
+from src.models import Ministry, MinistryMandate, MinistryMandateMember, MinistrySocialLink, User
 from src.services.portal.inline_uploads import upload_inline_image
 from src.services.portal.ministries import (
+    create_mandate,
     create_member,
     create_ministry,
     create_ministry_social_link,
+    get_current_mandate,
+    list_mandates,
     list_members,
     list_ministries,
     list_ministry_social_links,
+    set_current_mandate,
     set_member_active,
     set_ministry_active,
     set_ministry_social_link_active,
@@ -112,69 +116,141 @@ def portal_manage_ministry_show(ministry_id):
     return redirect(url_for("portal_manage_ministries"))
 
 
-# ===== membros =====
+# ===== mandatos de liderança =====
 
-@app.route("/portal/painel/ministerios/<int:ministry_id>/membros")
+def _get_mandate_or_404(ministry: Ministry, mandate_id) -> MinistryMandate:
+    mandate = MinistryMandate.query.get_or_404(mandate_id)
+    if mandate.ministry_id != ministry.id:
+        abort(404)
+    return mandate
+
+
+def _get_mandate_member_or_404(mandate: MinistryMandate, member_id) -> MinistryMandateMember:
+    member = MinistryMandateMember.query.get_or_404(member_id)
+    if member.mandate_id != mandate.id:
+        abort(404)
+    return member
+
+
+@app.route("/portal/painel/ministerios/<int:ministry_id>/mandatos")
 @cms_manager_required
-def portal_manage_ministry_members(ministry_id):
+def portal_manage_ministry_mandates(ministry_id):
     ministry = _get_ministry_or_404(ministry_id)
     return render_template(
-        "portal/manage/ministry_members_list.html",
+        "portal/manage/ministry_mandates_list.html",
         ministry=ministry,
-        members=list_members(ministry),
+        mandates=list_mandates(ministry),
+        current_mandate=get_current_mandate(ministry),
     )
 
 
-@app.route("/portal/painel/ministerios/<int:ministry_id>/membros/novo", methods=["GET", "POST"])
+@app.route("/portal/painel/ministerios/<int:ministry_id>/mandatos/novo", methods=["GET", "POST"])
 @cms_manager_required
-def portal_manage_ministry_member_new(ministry_id):
+def portal_manage_ministry_mandate_new(ministry_id):
     ministry = _get_ministry_or_404(ministry_id)
-    form = MinistryMemberForm()
+    form = MandateForm()
+
+    if form.validate_on_submit():
+        create_mandate(ministry, form, actor_user_id=current_user.id)
+        flash("Mandato criado com sucesso! Agora adicione os membros.", "success")
+        return redirect(url_for("portal_manage_ministry_mandates", ministry_id=ministry.id))
+
+    return render_template("portal/manage/mandate_form.html", form=form, ministry=ministry, board=False)
+
+
+@app.route("/portal/painel/ministerios/<int:ministry_id>/mandatos/<int:mandate_id>/tornar-atual", methods=["POST"])
+@cms_manager_required
+def portal_manage_ministry_mandate_set_current(ministry_id, mandate_id):
+    ministry = _get_ministry_or_404(ministry_id)
+    mandate = _get_mandate_or_404(ministry, mandate_id)
+    set_current_mandate(ministry, mandate, actor_user_id=current_user.id)
+    flash(f'"{mandate.label}" agora é o mandato atual, visível no site.', "success")
+    return redirect(url_for("portal_manage_ministry_mandates", ministry_id=ministry.id))
+
+
+# ===== membros (dentro de um mandato) =====
+
+@app.route("/portal/painel/ministerios/<int:ministry_id>/mandatos/<int:mandate_id>/membros")
+@cms_manager_required
+def portal_manage_ministry_mandate_members(ministry_id, mandate_id):
+    ministry = _get_ministry_or_404(ministry_id)
+    mandate = _get_mandate_or_404(ministry, mandate_id)
+    return render_template(
+        "portal/manage/mandate_members_list.html",
+        ministry=ministry,
+        mandate=mandate,
+        members=list_members(mandate),
+        board=False,
+    )
+
+
+@app.route("/portal/painel/ministerios/<int:ministry_id>/mandatos/<int:mandate_id>/membros/novo", methods=["GET", "POST"])
+@cms_manager_required
+def portal_manage_ministry_mandate_member_new(ministry_id, mandate_id):
+    ministry = _get_ministry_or_404(ministry_id)
+    mandate = _get_mandate_or_404(ministry, mandate_id)
+    form = MandateMemberForm()
     _populate_user_choices(form)
 
     if form.validate_on_submit():
-        create_member(ministry, form, actor_user_id=current_user.id)
+        create_member(mandate, form, actor_user_id=current_user.id)
         flash("Membro adicionado com sucesso!", "success")
-        return redirect(url_for("portal_manage_ministry_members", ministry_id=ministry.id))
+        return redirect(url_for("portal_manage_ministry_mandate_members", ministry_id=ministry.id, mandate_id=mandate.id))
 
-    return render_template("portal/manage/ministry_member_form.html", form=form, ministry=ministry, member=None)
+    return render_template(
+        "portal/manage/mandate_member_form.html", form=form, ministry=ministry, mandate=mandate, member=None, board=False
+    )
 
 
-@app.route("/portal/painel/ministerios/<int:ministry_id>/membros/<int:member_id>/editar", methods=["GET", "POST"])
+@app.route(
+    "/portal/painel/ministerios/<int:ministry_id>/mandatos/<int:mandate_id>/membros/<int:member_id>/editar",
+    methods=["GET", "POST"],
+)
 @cms_manager_required
-def portal_manage_ministry_member_edit(ministry_id, member_id):
+def portal_manage_ministry_mandate_member_edit(ministry_id, mandate_id, member_id):
     ministry = _get_ministry_or_404(ministry_id)
-    member = MinistryMember.query.get_or_404(member_id)
-    if member.ministry_id != ministry.id:
-        abort(404)
+    mandate = _get_mandate_or_404(ministry, mandate_id)
+    member = _get_mandate_member_or_404(mandate, member_id)
 
-    form = MinistryMemberForm(obj=member)
+    form = MandateMemberForm(obj=member)
     _populate_user_choices(form)
 
     if form.validate_on_submit():
         update_member(member, form, actor_user_id=current_user.id)
         flash("Membro atualizado com sucesso!", "success")
-        return redirect(url_for("portal_manage_ministry_members", ministry_id=ministry.id))
+        return redirect(url_for("portal_manage_ministry_mandate_members", ministry_id=ministry.id, mandate_id=mandate.id))
 
-    return render_template("portal/manage/ministry_member_form.html", form=form, ministry=ministry, member=member)
+    return render_template(
+        "portal/manage/mandate_member_form.html", form=form, ministry=ministry, mandate=mandate, member=member, board=False
+    )
 
 
-@app.route("/portal/painel/ministerios/<int:ministry_id>/membros/<int:member_id>/ocultar", methods=["POST"])
+@app.route(
+    "/portal/painel/ministerios/<int:ministry_id>/mandatos/<int:mandate_id>/membros/<int:member_id>/ocultar",
+    methods=["POST"],
+)
 @cms_manager_required
-def portal_manage_ministry_member_hide(ministry_id, member_id):
-    member = MinistryMember.query.get_or_404(member_id)
+def portal_manage_ministry_mandate_member_hide(ministry_id, mandate_id, member_id):
+    ministry = _get_ministry_or_404(ministry_id)
+    mandate = _get_mandate_or_404(ministry, mandate_id)
+    member = _get_mandate_member_or_404(mandate, member_id)
     set_member_active(member, is_active=False, actor_user_id=current_user.id)
     flash("Membro ocultado.", "info")
-    return redirect(url_for("portal_manage_ministry_members", ministry_id=ministry_id))
+    return redirect(url_for("portal_manage_ministry_mandate_members", ministry_id=ministry_id, mandate_id=mandate_id))
 
 
-@app.route("/portal/painel/ministerios/<int:ministry_id>/membros/<int:member_id>/reativar", methods=["POST"])
+@app.route(
+    "/portal/painel/ministerios/<int:ministry_id>/mandatos/<int:mandate_id>/membros/<int:member_id>/reativar",
+    methods=["POST"],
+)
 @cms_manager_required
-def portal_manage_ministry_member_show(ministry_id, member_id):
-    member = MinistryMember.query.get_or_404(member_id)
+def portal_manage_ministry_mandate_member_show(ministry_id, mandate_id, member_id):
+    ministry = _get_ministry_or_404(ministry_id)
+    mandate = _get_mandate_or_404(ministry, mandate_id)
+    member = _get_mandate_member_or_404(mandate, member_id)
     set_member_active(member, is_active=True, actor_user_id=current_user.id)
     flash("Membro reativado.", "success")
-    return redirect(url_for("portal_manage_ministry_members", ministry_id=ministry_id))
+    return redirect(url_for("portal_manage_ministry_mandate_members", ministry_id=ministry_id, mandate_id=mandate_id))
 
 
 # ===== redes sociais do ministério =====

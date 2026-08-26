@@ -266,12 +266,32 @@ class Ministry(database.Model):
         return f"<Ministry {self.name}>"
 
 
-class MinistryMember(database.Model):
-    __tablename__ = "cms_ministry_members"
+class MinistryMandate(database.Model):
+    """Um mandato de liderança do ministério (ex: "Mandato 2026-2030"). Trocar de liderança
+    cria um mandato novo em vez de sobrescrever o antigo -- só um fica is_current=True por
+    vez (regra de aplicação, não de banco -- ver set_current_mandate em services/portal/
+    ministries.py), e só esse aparece pro público. Mandatos antigos ficam no painel como
+    histórico."""
+    __tablename__ = "cms_ministry_mandates"
 
     id = database.Column(database.Integer, primary_key=True)
     ministry_id = database.Column(database.Integer, database.ForeignKey("cms_ministries.id"), nullable=False)
-    ministry = database.relationship("Ministry", backref="members")
+    ministry = database.relationship("Ministry", backref="mandates")
+
+    label = database.Column(database.String(80), nullable=False)
+    is_current = database.Column(database.Boolean, default=False, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<MinistryMandate {self.label} (ministry_id={self.ministry_id})>"
+
+
+class MinistryMandateMember(database.Model):
+    __tablename__ = "cms_ministry_mandate_members"
+
+    id = database.Column(database.Integer, primary_key=True)
+    mandate_id = database.Column(database.Integer, database.ForeignKey("cms_ministry_mandates.id"), nullable=False)
+    mandate = database.relationship("MinistryMandate", backref="members")
 
     # gancho opcional pra uma conta existente — não é a fonte do nome exibido
     # (ver name abaixo), só referência pra uso futuro (login do próprio membro etc).
@@ -283,12 +303,48 @@ class MinistryMember(database.Model):
     # num contexto onde faz mais sentido o nome completo.
     name = database.Column(database.String(150), nullable=False)
     role = database.Column(database.String(80), nullable=False)
+    photo_key = database.Column(database.String(255), nullable=True)
 
     order = database.Column(database.Integer, default=0, nullable=False)
     is_active = database.Column(database.Boolean, default=True, nullable=False)
 
     def __repr__(self):
-        return f"<MinistryMember {self.name} ({self.role})>"
+        return f"<MinistryMandateMember {self.name} ({self.role})>"
+
+
+class BoardMandate(database.Model):
+    """Mesma ideia de MinistryMandate, mas pra Diretoria da Convenção — que é única (sem
+    ministry_id: só existe uma Diretoria, ao contrário dos vários Ministérios)."""
+    __tablename__ = "cms_board_mandates"
+
+    id = database.Column(database.Integer, primary_key=True)
+    label = database.Column(database.String(80), nullable=False)
+    is_current = database.Column(database.Boolean, default=False, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<BoardMandate {self.label}>"
+
+
+class BoardMember(database.Model):
+    __tablename__ = "cms_board_members"
+
+    id = database.Column(database.Integer, primary_key=True)
+    mandate_id = database.Column(database.Integer, database.ForeignKey("cms_board_mandates.id"), nullable=False)
+    mandate = database.relationship("BoardMandate", backref="members")
+
+    user_id = database.Column(database.Integer, database.ForeignKey("users.id"), nullable=True)
+    user = database.relationship("User")
+
+    name = database.Column(database.String(150), nullable=False)
+    role = database.Column(database.String(80), nullable=False)
+    photo_key = database.Column(database.String(255), nullable=True)
+
+    order = database.Column(database.Integer, default=0, nullable=False)
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f"<BoardMember {self.name} ({self.role})>"
 
 
 class MinistrySocialLink(database.Model):
@@ -395,12 +451,38 @@ class Photo(database.Model):
         return f"<Photo {self.caption or self.id}>"
 
 
+class Banner(database.Model):
+    __tablename__ = "cms_banners"
+
+    id = database.Column(database.Integer, primary_key=True)
+    image_key = database.Column(database.String(255), nullable=False)
+    description = database.Column(database.String(200), nullable=False)
+    link_url = database.Column(database.String(300), nullable=True)
+    order = database.Column(database.Integer, default=0, nullable=False)
+
+    # cor de destaque extraída da própria imagem (ver src/services/portal/colors.py) --
+    # usada como fundo do botão "Acesse aqui", pra combinar com cada banner. Nula pra
+    # banners criados antes dessa coluna existir (o template cai num laranja padrão).
+    accent_color = database.Column(database.String(7), nullable=True)
+
+    is_active = database.Column(database.Boolean, default=True, nullable=False)
+    created_at = database.Column(database.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Banner {self.description}>"
+
+
 class NavLink(database.Model):
     __tablename__ = "cms_nav_links"
 
     id = database.Column(database.Integer, primary_key=True)
     label = database.Column(database.String(80), nullable=False)
     url = database.Column(database.String(300), nullable=True)
+
+    # alternativa ao url manual: linka pra uma página institucional cadastrada no CMS
+    # (Post com post_type="pagina") -- ver property target_url logo abaixo.
+    page_id = database.Column(database.Integer, database.ForeignKey("cms_posts.id"), nullable=True)
+    page = database.relationship("Post")
 
     parent_id = database.Column(database.Integer, database.ForeignKey("cms_nav_links.id"), nullable=True)
     children = database.relationship(
@@ -411,6 +493,13 @@ class NavLink(database.Model):
 
     order = database.Column(database.Integer, default=0, nullable=False)
     is_active = database.Column(database.Boolean, default=True, nullable=False)
+
+    @property
+    def target_url(self):
+        if self.page_id and self.page and self.page.is_published:
+            from flask import url_for
+            return url_for("portal_page_detail", slug=self.page.slug)
+        return self.url or "#"
 
     def __repr__(self):
         return f"<NavLink {self.label}>"

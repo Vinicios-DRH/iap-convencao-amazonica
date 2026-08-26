@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Novo Dropdown — Gestão do Portal</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/portal.css') }}" rel="stylesheet">
+    <style>
+        body.pt-body {
+            background: var(--pt-bg-soft);
+        }
+
+        .child-row {
+            border: 1px solid var(--pt-border);
+            border-radius: 10px;
+            padding: .75rem;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body class="pt-body">
+    {% include "components/portal_manage_nav.html" %}
+
+    <main class="pt-main py-5">
+        <div class="container" style="max-width: 720px;">
+            {% include "components/flash.html" %}
+
+            <a href="{{ url_for('portal_manage_nav_links') }}"
+                class="pt-muted small text-decoration-none">&larr; Menu do portal</a>
+
+            <h1 class="mb-2 mt-2">Novo dropdown</h1>
+            <p class="pt-muted small mb-4">Cria o item de topo e os submenus dele juntos. Cada submenu pode apontar
+                pra uma página cadastrada ou pra uma URL manual.</p>
+
+            <form method="POST" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <div class="pt-card p-4 mb-3">
+                    <label class="form-label">Nome do dropdown</label>
+                    <input type="text" name="label" class="form-control" placeholder="Ex: Sobre Nós"
+                        value="{{ posted.get('label') if posted else '' }}" required>
+                    <div class="pt-muted small mt-1">É o que aparece na navbar — vira o botão que abre os submenus.
+                    </div>
+                </div>
+
+                <div class="pt-card p-4 mb-3">
+                    <div class="fw-bold mb-3">Submenus</div>
+                    <div id="childRows" class="d-flex flex-column gap-2 mb-3"></div>
+                    <button type="button" class="pt-btn-outline btn btn-sm" id="addRowBtn">+ Adicionar
+                        submenu</button>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="pt-btn-accent btn" type="submit">Salvar</button>
+                    <a class="pt-btn-outline btn" href="{{ url_for('portal_manage_nav_links') }}">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    {% include "portal/components/footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const pages = [
+            {% for p in pages %}
+            { id: {{ p.id }}, title: {{ p.title|tojson }} },
+            {% endfor %}
+        ];
+
+        function buildRow(values) {
+            values = values || { label: '', page_id: '', url: '' };
+            const row = document.createElement('div');
+            row.className = 'child-row row g-2 align-items-end';
+
+            let pageOptions = '<option value="0">— nenhuma (usar URL manual) —</option>';
+            pages.forEach(function (p) {
+                const selected = String(p.id) === String(values.page_id) ? ' selected' : '';
+                pageOptions += `<option value="${p.id}"${selected}>${p.title}</option>`;
+            });
+
+            row.innerHTML = `
+                <div class="col-md-4">
+                    <label class="form-label small">Texto</label>
+                    <input type="text" name="child_label" class="form-control" placeholder="Ex: Nossa História" value="${values.label}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Página vinculada</label>
+                    <select name="child_page_id" class="form-select">${pageOptions}</select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">URL manual (opcional)</label>
+                    <input type="text" name="child_url" class="form-control" placeholder="https://..." value="${values.url}">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger btn-sm w-100 removeRowBtn">&times;</button>
+                </div>
+            `;
+            row.querySelector('.removeRowBtn').addEventListener('click', function () {
+                row.remove();
+            });
+            return row;
+        }
+
+        const childRows = document.getElementById('childRows');
+        document.getElementById('addRowBtn').addEventListener('click', function () {
+            childRows.appendChild(buildRow());
+        });
+
+        {% if posted %}
+        // reabrindo depois de um erro (esqueceu o nome do dropdown) -- restaura o que já tinha sido digitado
+        const postedLabels = {{ posted.getlist('child_label')|tojson }};
+        const postedPageIds = {{ posted.getlist('child_page_id')|tojson }};
+        const postedUrls = {{ posted.getlist('child_url')|tojson }};
+        postedLabels.forEach(function (label, i) {
+            childRows.appendChild(buildRow({ label: label, page_id: postedPageIds[i], url: postedUrls[i] }));
+        });
+        {% else %}
+        // começa com 2 linhas em branco -- a maioria dos dropdowns tem pelo menos isso
+        childRows.appendChild(buildRow());
+        childRows.appendChild(buildRow());
+        {% endif %}
+    </script>
+</body>
+
+</html>

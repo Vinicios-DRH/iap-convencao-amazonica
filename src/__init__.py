@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 import os
 from urllib.parse import urlparse
+from werkzeug.middleware.proxy_fix import ProxyFix
 from PIL import UnidentifiedImageError
 from PIL.Image import DecompressionBombError
 from supabase import create_client
@@ -25,6 +26,9 @@ load_dotenv()
 
 
 app = Flask(__name__)
+# atrás do proxy do Railway, sem isso toda URL absoluta (canonical, og:url, sitemap)
+# sairia como http:// mesmo com o site servido em https:// -- confia em 1 hop de proxy.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.jinja_env.globals['get_b2_file_url'] = get_b2_file_url
 
 

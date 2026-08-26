@@ -19,19 +19,23 @@ def save_upload(file_storage, folder: str) -> str:
     return upload_to_b2(key_name, file_storage, folder=folder)
 
 
-def save_image_upload(file_storage, folder: str) -> str:
+def save_image_upload(file_storage, folder: str, max_dimension: int = IMAGE_MAX_DIMENSION) -> str:
     """
     Como save_upload, mas pra imagens exibidas no site (capa de artigo, foto de
     autor, galeria): redimensiona pro tamanho máximo de exibição e recomprime
     antes de enviar, pra uma foto de celular não chegar em tamanho/qualidade
     original e deixar a página pesada. Sempre sai como JPEG.
+
+    `max_dimension` é ajustável pra quem precisa de mais resolução que o padrão --
+    o banner do carrossel, por exemplo, ocupa a largura inteira da tela (pode passar
+    de 1600px em monitores grandes), então usa um teto maior pra não borrar.
     """
     image = Image.open(file_storage)
     image = ImageOps.exif_transpose(image)  # corrige rotação de fotos de celular
     if image.mode not in ("RGB", "L"):
         image = image.convert("RGB")
 
-    image.thumbnail((IMAGE_MAX_DIMENSION, IMAGE_MAX_DIMENSION), Image.LANCZOS)
+    image.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
 
     buffer = BytesIO()
     image.save(buffer, format="JPEG", quality=IMAGE_JPEG_QUALITY, optimize=True)

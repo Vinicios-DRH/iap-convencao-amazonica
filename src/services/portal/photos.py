@@ -1,5 +1,8 @@
+from sqlalchemy import or_
+
 from src import database
-from src.models import Photo
+from src.controllers.b2_utils import delete_from_b2
+from src.models import Banner, Ministry, Photo, Post
 from src.services.audit import log_audit
 from src.services.portal.uploads import save_image_upload
 
@@ -57,4 +60,35 @@ def set_photo_active(photo: Photo, is_active: bool, actor_user_id) -> None:
         action="cms_photo_visibility_changed",
         details=f"photo_id={photo.id} is_active={is_active}",
     )
+    database.session.commit()
+
+
+def find_photo_usages(photo: Photo) -> dict:
+    """
+    Checa se essa imagem ainda está em uso em algum lugar (capa de artigo/ministério,
+    banner, ou colada dentro do corpo/descrição rica) -- pra avisar o operador antes
+    de excluir de vez, já que apagar do bucket quebraria a exibição nesses lugares.
+    """
+    key = photo.image_key
+    posts = Post.query.filter(or_(Post.cover_image_key == key, Post.body.contains(key))).all()
+    ministries = Ministry.query.filter(
+        or_(Ministry.cover_image_key == key, Ministry.description.contains(key))
+    ).all()
+    banners = Banner.query.filter(Banner.image_key == key).all()
+    return {"posts": posts, "ministries": ministries, "banners": banners}
+
+
+def delete_photo(photo: Photo, actor_user_id) -> None:
+    """
+    Exclusão de verdade: apaga o arquivo do bucket e o registro no banco. Ao
+    contrário de ocultar (set_photo_active), isso não tem volta.
+    """
+    delete_from_b2(photo.image_key)
+
+    log_audit(
+        actor_user_id=actor_user_id,
+        action="cms_photo_deleted",
+        details=f"photo_id={photo.id} image_key={photo.image_key}",
+    )
+    database.session.delete(photo)
     database.session.commit()

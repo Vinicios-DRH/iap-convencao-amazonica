@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ 'Editar' if member else 'Novo' }} Membro — {{ ministry.name }}</title>
+    <title>{{ 'Editar' if member else 'Novo' }} Membro — {{ mandate.label }}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -26,12 +26,12 @@
         <div class="container" style="max-width: 560px;">
             {% include "components/flash.html" %}
 
-            <a href="{{ url_for('portal_manage_ministry_members', ministry_id=ministry.id) }}"
-                class="pt-muted small text-decoration-none">&larr; Membros do {{ ministry.name }}</a>
+            <a href="{{ url_for('portal_manage_board_mandate_members', mandate_id=mandate.id) if board else url_for('portal_manage_ministry_mandate_members', ministry_id=ministry.id, mandate_id=mandate.id) }}"
+                class="pt-muted small text-decoration-none">&larr; Membros — {{ mandate.label }}</a>
 
             <h1 class="mb-4 mt-2">{{ 'Editar membro' if member else 'Novo membro' }}</h1>
 
-            <form method="POST" novalidate>
+            <form method="POST" enctype="multipart/form-data" novalidate>
                 {{ form.hidden_tag() }}
 
                 <div class="pt-card p-4 mb-3">
@@ -45,7 +45,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">{{ form.role.label.text }}</label>
-                        {{ form.role(class="form-control", placeholder="Ex: Líder, Tesoureiro, Secretário...") }}
+                        {{ form.role(class="form-control", placeholder="Ex: Presidente, Tesoureiro, Secretário...") }}
                         {% if form.role.errors %}
                         <div class="text-danger small mt-1">{{ form.role.errors[0] }}</div>
                         {% endif %}
@@ -54,6 +54,19 @@
                     <div class="mb-3">
                         <label class="form-label">{{ form.user_id.label.text }}</label>
                         {{ form.user_id(class="form-select") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.photo.label.text }}</label>
+                        {{ form.photo(class="form-control") }}
+                        {% if form.photo.errors %}
+                        <div class="text-danger small mt-1">{{ form.photo.errors[0] }}</div>
+                        {% endif %}
+                        {% if member and member.photo_key %}
+                        <div class="pt-muted small mt-2">Foto atual — enviar uma nova substitui:</div>
+                        <img src="{{ get_b2_file_url(member.photo_key) }}"
+                            style="max-height:100px; border-radius:10px;" class="mt-1" alt="Foto atual">
+                        {% endif %}
                     </div>
 
                     <div class="mb-1">
@@ -65,7 +78,7 @@
                 <div class="d-flex gap-2">
                     <button class="pt-btn-accent btn" type="submit">Salvar</button>
                     <a class="pt-btn-outline btn"
-                        href="{{ url_for('portal_manage_ministry_members', ministry_id=ministry.id) }}">Cancelar</a>
+                        href="{{ url_for('portal_manage_board_mandate_members', mandate_id=mandate.id) if board else url_for('portal_manage_ministry_mandate_members', ministry_id=ministry.id, mandate_id=mandate.id) }}">Cancelar</a>
                 </div>
             </form>
         </div>

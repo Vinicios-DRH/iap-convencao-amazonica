@@ -4,7 +4,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ ministry.name }} — Portal</title>
+    {% from "portal/components/_seo.html" import seo_head %}
+    {{ seo_head(
+        ministry.name ~ " — Convenção Amazônica IAP",
+        meta_description,
+        image=get_b2_file_url(ministry.cover_image_key) if ministry.cover_image_key else None
+    ) }}
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -46,9 +51,20 @@
         }
 
         .member-card {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
             border: 1px solid var(--pt-border);
             border-radius: 12px;
             padding: .9rem 1.1rem;
+        }
+
+        .member-photo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -83,8 +99,14 @@
                 {% for member in members %}
                 <div class="col-md-6">
                     <div class="member-card">
-                        <div class="fw-semibold">{{ member.name }}</div>
-                        <div class="pt-muted small">{{ member.role }}</div>
+                        {% if member.photo_key %}
+                        <img class="member-photo" src="{{ get_b2_file_url(member.photo_key) }}"
+                            alt="{{ member.name }}">
+                        {% endif %}
+                        <div>
+                            <div class="fw-semibold">{{ member.name }}</div>
+                            <div class="pt-muted small">{{ member.role }}</div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

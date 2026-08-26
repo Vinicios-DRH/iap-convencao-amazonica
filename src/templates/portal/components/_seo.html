@@ -1,0 +1,67 @@
+{% macro seo_head(title, description, url=None, image=None, type="website") %}
+{#
+   Tags de SEO/compartilhamento pro <head> de cada página pública do portal.
+   `url`/`image` são opcionais -- sem eles, usa a URL atual (request.url, já
+   absoluta e https:// graças ao ProxyFix) e a logo do portal como imagem padrão.
+#}
+{% set canonical_url = url or request.url %}
+{% set og_image = image or url_for('static', filename='img/logo_portal.png', _external=True) %}
+<title>{{ title }}</title>
+<meta name="description" content="{{ description }}">
+<link rel="canonical" href="{{ canonical_url }}">
+
+<meta property="og:type" content="{{ type }}">
+<meta property="og:site_name" content="Convenção Amazônica — IAP">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:image" content="{{ og_image }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ description }}">
+<meta name="twitter:image" content="{{ og_image }}">
+{% endmacro %}
+
+{% macro organization_jsonld() %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": {{ "Convenção Regional Amazônica — Igreja Adventista da Promessa" | tojson }},
+    "alternateName": {{ ["Convenção Amazônica IAP", "IAP Convenção Amazônica"] | tojson }},
+    "url": {{ url_for('portal_home', _external=True) | tojson }},
+    "logo": {{ url_for('static', filename='img/logo_portal.png', _external=True) | tojson }}
+}
+</script>
+{% endmacro %}
+
+{% macro article_jsonld(post) %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": {{ post.title | tojson }},
+    "datePublished": {{ (post.published_at or post.created_at).isoformat() | tojson }},
+    "dateModified": {{ (post.updated_at or post.created_at).isoformat() | tojson }},
+    "image": [{{ (get_b2_file_url(post.cover_image_key) if post.cover_image_key else url_for('static', filename='img/logo_portal.png', _external=True)) | tojson }}],
+    "author": {
+        "@type": "Person",
+        "name": {{ (post.created_by.display_name if post.created_by else "Convenção Amazônica") | tojson }}
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": {{ "Convenção Regional Amazônica — Igreja Adventista da Promessa" | tojson }},
+        "logo": {
+            "@type": "ImageObject",
+            "url": {{ url_for('static', filename='img/logo_portal.png', _external=True) | tojson }}
+        }
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": {{ url_for('portal_post_detail', slug=post.slug, _external=True) | tojson }}
+    }
+}
+</script>
+{% endmacro %}

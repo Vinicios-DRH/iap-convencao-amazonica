@@ -4,7 +4,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ post.title }} — Portal</title>
+    {% from "portal/components/_seo.html" import seo_head, article_jsonld %}
+    {{ seo_head(
+        post.title ~ " — Convenção Amazônica IAP",
+        meta_description,
+        image=get_b2_file_url(post.cover_image_key) if post.cover_image_key else None,
+        type="article"
+    ) }}
+    {{ article_jsonld(post) }}
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon_portal.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link

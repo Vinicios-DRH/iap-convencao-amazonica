@@ -20,6 +20,7 @@ def create_nav_link(form, actor_user_id) -> NavLink:
     link = NavLink(
         label=form.label.data.strip(),
         url=(form.url.data or "").strip() or None,
+        page_id=form.page_id.data or None,
         parent_id=form.parent_id.data or None,
         order=form.order.data or 0,
     )
@@ -29,9 +30,43 @@ def create_nav_link(form, actor_user_id) -> NavLink:
     return link
 
 
+def create_dropdown(label: str, order: int, children: list[dict], actor_user_id) -> NavLink:
+    """Cria o item de topo (dropdown) e seus submenus juntos, numa tacada só -- em vez de
+    criar o pai, salvar, e só depois voltar pra criar cada filho separado.
+
+    `children` é uma lista de dicts com label/page_id/url/order; linhas sem label são
+    ignoradas (sobra de linha vazia deixada no formulário)."""
+    parent = NavLink(label=label.strip(), order=order or 0)
+    database.session.add(parent)
+    database.session.flush()  # garante parent.id antes de criar os filhos
+
+    created = 0
+    for child in children:
+        child_label = (child.get("label") or "").strip()
+        if not child_label:
+            continue
+        database.session.add(NavLink(
+            label=child_label,
+            url=(child.get("url") or "").strip() or None,
+            page_id=child.get("page_id") or None,
+            parent_id=parent.id,
+            order=child.get("order") or 0,
+        ))
+        created += 1
+
+    log_audit(
+        actor_user_id=actor_user_id,
+        action="cms_nav_dropdown_created",
+        details=f"label={parent.label} children={created}",
+    )
+    database.session.commit()
+    return parent
+
+
 def update_nav_link(link: NavLink, form, actor_user_id) -> NavLink:
     link.label = form.label.data.strip()
     link.url = (form.url.data or "").strip() or None
+    link.page_id = form.page_id.data or None
     link.order = form.order.data or 0
 
     new_parent_id = form.parent_id.data or None

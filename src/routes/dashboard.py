@@ -11,7 +11,7 @@ CREDIT_PAYMENT_LINK = "https://link.infinitepay.io/senamarcos/VC1DLTAtUg-7QQz9P8
 @login_required
 def painel():
     return render_template(
-        "dashboard/painel.html",
+        "convencao_jovem/dashboard/painel.html",
         reg=current_user.registration,
         lot_info="R$200,09",
         pix_prices={"v1": 200.09, "v2": 100.09, "v4": 50.09},
