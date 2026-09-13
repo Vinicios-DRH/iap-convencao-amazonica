@@ -128,7 +128,7 @@ class Registration(database.Model):
     payment_type = database.Column(database.String(
         20), nullable=False, default="pix")  # pix | credito
     installments = database.Column(
-        database.Integer, nullable=False, default=1)        # 1..3
+        database.Integer, nullable=False, default=1)        # 1..2
 
     status = database.Column(database.String(
         30), nullable=False, default="AGUARDANDO_CONFIRMACAO")

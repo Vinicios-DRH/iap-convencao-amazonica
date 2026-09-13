@@ -186,20 +186,9 @@
         /* ===== QR GRID (RESPONSIVO, ALINHADO) ===== */
         .qr3-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 14px;
             align-items: stretch;
-        }
-
-        /* tablet: 2 colunas + 3º ocupa a linha toda */
-        @media (min-width:576px) and (max-width:991.98px) {
-            .qr3-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .qr3-grid .qr-mini:nth-child(3) {
-                grid-column: 1 / -1;
-            }
         }
 
         /* mobile: 1 coluna */
@@ -497,11 +486,11 @@
                                 <div class="small-warn">
                                     Para identificarmos o pagamento do evento, <b>todos os valores</b> devem terminar em
                                     <b>,09</b>
-                                    (ex.: <b>200,09</b> / <b>100,09</b> / <b>50,09</b>).
+                                    (ex.: <b>200,09</b> / <b>100,09</b>).
                                 </div>
                             </div>
 
-                            <!-- ✅ OPÇÃO B: 3 QR CODES (1x/2x/3x) -->
+                            <!-- QR CODES (1x/2x) -->
                             <div class="mt-3 qr3-grid" id="pixOptions">
                                 <!-- 1x -->
                                 <div class="qr-mini" data-pay="1">
@@ -566,37 +555,6 @@
                                     </button>
                                 </div>
 
-                                <!-- 3x -->
-                                <div class="qr-mini" data-pay="4">
-                                    <div class="title"><span class="neon-highlight">Parcelado <small>(4x)</small></span>
-                                    </div>
-
-                                    <div class="qr-white">
-                                        <img src="{{ url_for('static', filename='img/qr_code_50.jpeg') }}" alt="Pix 4x">
-                                    </div>
-
-                                    <div class="small-note">
-                                        <span class="neon-highlight">4x de R$ {{ '%.2f'|format(pix_prices.v4) }}</span>
-                                    </div>
-
-                                    <div class="mini-actions">
-                                        <button class="btn btn-outline-light btn-sm" type="button"
-                                            data-payload="{{ pix_payloads[4] }}" onclick="openPixModalAndCopy(this)">
-                                            Copiar e Colar
-                                        </button>
-
-                                        <a class="btn btn-soft btn-sm" target="_blank"
-                                            href="{{ url_for('static', filename='img/qr_code_50.jpeg') }}"
-                                            onclick="selectPixOption(4)">
-                                            Abrir QR
-                                        </a>
-                                    </div>
-
-                                    <button class="btn btn-neon btn-sm mt-2 w-100" type="button"
-                                        onclick="selectPixOption(4)">
-                                        Usar este Pix
-                                    </button>
-                                </div>
                             </div>
 
                             <!-- ✅ Barra fora do grid (não bagunça alinhamento) -->
@@ -617,7 +575,7 @@
                             <div class="tip-card mt-3">
                                 <div class="fw-bold mb-1">Como funciona o parcelado no Pix?</div>
                                 <div class="small-note">
-                                    No Pix, parcelamento não é automático. Se você escolher 2x ou 4x, faça
+                                    No Pix, parcelamento não é automático. Se você escolher 2x, faça
                                     <b>transferências separadas</b> (uma por parcela), sempre com final <b>,09</b>.
                                 </div>
                             </div>
@@ -637,12 +595,10 @@
                                 {# valores vindos da rota (painel) #}
                                 {% set v1 = pix_prices.v1 %}
                                 {% set v2 = pix_prices.v2 %}
-                                {% set v3 = pix_prices.v3 %}
 
                                 {# label de cada opção #}
                                 {% set label1 = "À vista (1x)" %}
                                 {% set label2 = "Parcelado (2x)" %}
-                                {% set label3 = "Parcelado (3x)" %}
 
                                 {# textos prontos (URL-encoded usando %0A para quebra de linha) #}
                                 {% set msg1 =
@@ -669,26 +625,10 @@
                                 ~ "Vou anexar o comprovante nesta conversa."
                                 %}
 
-                                {% set v4 = pix_prices.v4 %}
-                                {% set label4 = "Parcelado (4x)" %}
-                                
-                                {% set msg4 =
-                                "Olá! Estou enviando o comprovante da Convenção Jovem — Tempo de Resplandecer.%0A%0A"
-                                ~ "ID da inscrição: " ~ (reg.id|string) ~ "%0A"
-                                ~ "Nome: " ~ (reg.full_name or '-') ~ "%0A"
-                                ~ "CPF: " ~ (reg.cpf or '-') ~ "%0A"
-                                ~ "IAP: " ~ (reg.iap_local or '-') ~ "%0A"
-                                ~ "Telefone: " ~ (reg.phone or '-') ~ "%0A%0A"
-                                ~ "Pix escolhido: " ~ label4 ~ "%0A"
-                                ~ "Parcela: R$ " ~ ('%.2f'|format(v4)) ~ " (enviar 4x)%0A%0A"
-                                ~ "Vou anexar o comprovante nesta conversa."
-                                %}
-
                                 {% set wa1 = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg1 %}
                                 {% set wa2 = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg2 %}
-                                {% set wa4 = "https://wa.me/" ~ wa_number ~ "?text=" ~ msg4 %}
 
-                                {# ====== UI: 3 botões (responsivo) ====== #}
+                                {# ====== UI: botões (responsivo) ====== #}
                                 <div class="mt-3">
                                     <div class="d-grid gap-2">
                                         <a class="btn btn-neon" href="{{ wa1 }}" target="_blank" rel="noopener"
@@ -702,12 +642,6 @@
                                             data-reg-id="{{ reg.id }}" data-payment-type="{{ reg.payment_type }}"
                                             data-installments="{{ reg.installments }}" onclick="onProofBtnClick(this)">
                                             Enviar comprovante — {{ label2 }}
-                                        </a>
-                                        <a class="btn btn-neon" href="{{ wa4 }}" target="_blank" rel="noopener"
-                                            data-proof-btn data-proof-kind="pix" data-pix-opt="4"
-                                            data-reg-id="{{ reg.id }}" data-payment-type="{{ reg.payment_type }}"
-                                            data-installments="{{ reg.installments }}" onclick="onProofBtnClick(this)">
-                                            Enviar comprovante — {{ label4 }}
                                         </a>
                                     </div>
 
@@ -981,7 +915,7 @@
     </script>
 
     <script>
-        const PIX_LABELS = { 1: "À vista (1x)", 2: "Parcelado (2x)", 4: "Parcelado (4x)" };
+        const PIX_LABELS = { 1: "À vista (1x)", 2: "Parcelado (2x)" };
 
         function selectPixOption(n) {
             const wrap = document.getElementById("pixOptions");
@@ -998,10 +932,10 @@
 
             active?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-            // ✅ opcional: se escolher 2x/3x, mantém só o botão de comprovante correspondente
+            // ✅ opcional: se escolher 2x, mantém só o botão de comprovante correspondente
             try {
                 const regId = document.querySelector('[data-proof-btn]')?.getAttribute('data-reg-id');
-                if (regId && (n === 2 || n === 3)) {
+                if (regId && n === 2) {
                     localStorage.setItem(`pix_choice:${regId}`, String(n));
                     showOnlyPixChoice(regId, String(n));
                 }
@@ -1046,10 +980,10 @@
             try {
                 const regId = el.getAttribute('data-reg-id');
                 const kind = el.getAttribute('data-proof-kind'); // pix | credit
-                const pixOpt = el.getAttribute('data-pix-opt'); // 1..3 (se pix)
+                const pixOpt = el.getAttribute('data-pix-opt'); // 1..2 (se pix)
 
-                // ✅ Pix parcelado (2x/3x): NÃO some — mantém só o escolhido
-                if (kind === 'pix' && (pixOpt === '2' || pixOpt === '4')) {
+                // ✅ Pix parcelado (2x): NÃO some — mantém só o escolhido
+                if (kind === 'pix' && pixOpt === '2') {
                     localStorage.setItem(keyPixChoice(regId), pixOpt);
                     showOnlyPixChoice(regId, pixOpt);
 
@@ -1091,7 +1025,7 @@
 
         // ✅ se foi pix parcelado e já tinha escolha, mantém só a escolhida
         const choice = localStorage.getItem(keyPixChoice(regId));
-        if (choice === "2" || choice === "4") {
+        if (choice === "2") {
             showOnlyPixChoice(regId, choice);
 
             // aplica seu layout "selecionado"
