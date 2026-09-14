@@ -68,3 +68,47 @@ def make_super():
     database.session.commit()
 
     print(f"OK! {email} agora é SUPER.")
+
+
+@app.cli.command("adjust_installments_4x_to_2x")
+def adjust_installments_4x_to_2x():
+    """
+    flask adjust_installments_4x_to_2x
+    Atualiza todos os registros em 4x para 2x para inscrições não confirmadas.
+    """
+    from src.models import Registration, AppSetting, AuditLog
+
+    regs_4x = Registration.query.filter(Registration.installments == 4).all()
+    confirmed = [r for r in regs_4x if r.status == "CONFIRMADA"]
+    to_update = [r for r in regs_4x if r.status != "CONFIRMADA"]
+
+    print(f"Total de registros em 4x encontrados: {len(regs_4x)}")
+    print(f"Confirmados mantidos em 4x: {len(confirmed)}")
+    print(f"Não confirmados a serem atualizados para 2x: {len(to_update)}")
+
+    updated_ids = []
+    for r in to_update:
+        r.installments = 2
+        updated_ids.append(r.id)
+        audit = AuditLog(
+            actor_user_id=None,
+            action="adjust_installments_4x_to_2x",
+            details=f"Inscrição ID {r.id} ({r.full_name}) alterada de 4x para 2x por pendência de pagamento e proximidade do evento.",
+        )
+        database.session.add(audit)
+
+    if updated_ids:
+        setting_key = "downgraded_4x_to_2x_ids"
+        setting = AppSetting.query.filter_by(key=setting_key).first()
+        new_ids_str = ",".join(str(i) for i in updated_ids)
+        if setting:
+            existing_ids = [int(x.strip()) for x in setting.value.split(",") if x.strip().isdigit()]
+            merged = sorted(list(set(existing_ids + updated_ids)))
+            setting.value = ",".join(str(i) for i in merged)
+        else:
+            setting = AppSetting(key=setting_key, value=new_ids_str)
+            database.session.add(setting)
+
+    database.session.commit()
+    print(f"Sucesso! {len(to_update)} inscrições atualizadas para 2x.")
+

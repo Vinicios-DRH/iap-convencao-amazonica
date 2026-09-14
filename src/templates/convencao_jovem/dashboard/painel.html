@@ -409,6 +409,29 @@
             </div>
             {% else %}
 
+            {% if reg.installments_adjusted_to_2x and reg.status != 'CONFIRMADA' %}
+            <div class="cardx p-4 mb-4" style="border-left: 5px solid #f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(15, 23, 42, 0.75)); box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+                <div class="d-flex align-items-start gap-3">
+                    <div style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.5rem;">
+                        ⚠️
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <span class="badge" style="background: #f59e0b; color: #000; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Aviso Importante</span>
+                            <span class="text-white-50 small">Atualização de Parcelamento</span>
+                        </div>
+                        <h4 class="h5 fw-bold text-white mb-2">Seu parcelamento foi alterado para 2x</h4>
+                        <p class="mb-2" style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; font-size: 0.96rem;">
+                            Como a sua inscrição <strong>ainda não foi confirmada por falta de pagamento</strong> e o <strong>evento está bem próximo</strong>, o parcelamento foi atualizado de 4x para <strong>2x</strong>.
+                        </p>
+                        <p class="mb-0 text-white-50" style="font-size: 0.88rem;">
+                            💡 <em>Para garantir sua vaga antes do encerramento, realize o pagamento em até 2 parcelas ou à vista (via Pix ou Cartão) e envie o comprovante pelos botões abaixo.</em>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             {% set cents_total = reg.lot_value_cents or 18000 %}
             {% set total_lote = (cents_total / 100) %}
 
@@ -447,7 +470,11 @@
                                     <div class="fw-bold">Pagamento</div>
                                     <div class="muted">
                                         <div>Tipo: <b>{{ 'Pix' if reg.payment_type=='pix' else 'Crédito' }}</b></div>
-                                        <div>Parcelas: <b>{{ reg.installments }}x</b></div>
+                                        <div>Parcelas: <b>{{ reg.installments }}x</b>
+                                            {% if reg.installments_adjusted_to_2x and reg.status != 'CONFIRMADA' %}
+                                            <span class="badge bg-warning text-dark ms-1" style="font-size: 0.72rem; font-weight: 700;">Atualizado para 2x</span>
+                                            {% endif %}
+                                        </div>
                                         <div>Lote: <b>{{ reg.lot_name }}</b></div>
                                         <div>Valor do lote (sistema): <b>R$200,09</b></div>
                                     </div>

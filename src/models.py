@@ -174,6 +174,21 @@ class Registration(database.Model):
         foreign_keys=[reviewed_by_user_id]
     )
 
+    @property
+    def installments_adjusted_to_2x(self) -> bool:
+        """Verifica se esta inscrição teve o parcelamento reduzido de 4x para 2x."""
+        MIGRATED_IDS = {65, 73, 89, 91, 92, 93, 94, 95, 96, 97, 100, 101, 102, 103, 105, 109, 116, 121, 122, 151}
+        if self.id in MIGRATED_IDS:
+            return True
+        try:
+            setting = AppSetting.query.filter_by(key="downgraded_4x_to_2x_ids").first()
+            if setting and setting.value:
+                ids = {int(x.strip()) for x in setting.value.split(",") if x.strip().isdigit()}
+                return self.id in ids
+        except Exception:
+            pass
+        return False
+
     def __repr__(self):
         return f"<Registration {self.full_name} ({self.status})>"
 

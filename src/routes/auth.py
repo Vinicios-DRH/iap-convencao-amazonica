@@ -27,7 +27,14 @@ def login():
             flash("Por segurança, você precisa definir uma nova senha.", "warning")
             return redirect(url_for("change_password"))
 
-        flash("Bem-vindo!", "success")
+        if user.registration and getattr(user.registration, "installments_adjusted_to_2x", False) and user.registration.status != "CONFIRMADA":
+            flash(
+                "Atenção: O parcelamento da sua inscrição foi alterado para 2x porque ela ainda não foi confirmada "
+                "por falta de pagamento e o evento está muito próximo. Por favor, conclua seu pagamento para garantir sua vaga!",
+                "warning",
+            )
+        else:
+            flash("Bem-vindo!", "success")
         return redirect(url_for("painel"))
 
     return render_template("auth/login.html", form=form)
